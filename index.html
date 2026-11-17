@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#211d1a">
+  <title>Братство Святого Иосифа Обручника</title>
+  <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="crest" aria-label="Временный герб братства">
+          <svg viewBox="0 0 100 116" role="img" aria-hidden="true">
+            <path d="M8 7H92V64Q88 91 50 109Q12 91 8 64Z" fill="#6b292d" stroke="#c8a96e" stroke-width="4"/>
+            <path d="M16 15H84V62Q80 85 50 101Q20 85 16 62Z" fill="none" stroke="#e4d3ad" stroke-width="1.5"/>
+            <path d="M50 27V76M34 48L50 27L66 48M39 76H61" stroke="#d8bd82" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M50 30C43 21 34 25 38 34C41 40 50 42 50 42C50 42 59 40 62 34C66 25 57 21 50 30Z" fill="#eee4cc"/>
+            <path d="M50 42V77M43 77H57" stroke="#eee4cc" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M50 14L52 19L58 20L53 24L54 30L50 26L46 30L47 24L42 20L48 19Z" fill="#d8bd82"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Внутренняя резиденция</div>
+          <div class="brand-name">Братство<br>Святого Иосифа</div>
+          <div class="brand-subtitle">Обручника</div>
+        </div>
+      </div>
+
+      <div class="nav-caption">Резиденция</div>
+      <nav class="main-nav" aria-label="Главное меню">
+        <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span>Главная</button>
+        <button class="nav-item" data-page="members"><span class="nav-icon">♙</span>Участники</button>
+        <button class="nav-item" data-page="info"><span class="nav-icon">✦</span>Важная информация</button>
+        <button class="nav-item" data-page="calendar"><span class="nav-icon">▦</span>Календарь</button>
+        <button class="nav-item" data-page="treasury"><span class="nav-icon">◈</span>Казна</button>
+        <button class="nav-item" data-page="market"><span class="nav-icon">⚖</span>Рынок</button>
+        <button class="nav-item" data-page="work"><span class="nav-icon">⚒</span>Работа</button>
+        <button class="nav-item" data-page="crafts"><span class="nav-icon">♜</span>Ремёсла</button>
+        <button class="nav-item" data-page="map"><span class="nav-icon">⌖</span>Карта</button>
+        <button class="nav-item" data-page="chronicle"><span class="nav-icon">▤</span>Летопись</button>
+        <button class="nav-item" data-page="storehouse"><span class="nav-icon">▣</span>Кладовая</button>
+      </nav>
+
+      <div class="nav-caption management-caption">Совет братства</div>
+      <nav class="main-nav">
+        <button class="nav-item" data-page="management"><span class="nav-icon">⚙</span>Управление</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="motto">LABOR ET FIDES</div>
+        <div class="motto-translation">Труд и вера</div>
+        <div class="sidebar-version">Резиденция · версия 0.1</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Открыть меню">☰</button>
+        <div class="breadcrumbs"><span>Братство</span><b>/</b><strong id="breadcrumbCurrent">Главная</strong></div>
+        <div class="topbar-actions">
+          <span class="status-dot"></span><span class="status-text">Резиденция открыта</span>
+          <button class="discord-button" id="discordLogin"><span class="discord-mark">◉</span> Войти через Discord</button>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="page active-page" id="page-home">
+          <div class="hero">
+            <div class="hero-text">
+              <div class="eyebrow">Во имя труда, чести и братства</div>
+              <h1>Добро пожаловать<br>в резиденцию братства</h1>
+              <p>Здесь хранятся дела, достижения и история тех, кто связал свою судьбу с Братством Святого Иосифа Обручника.</p>
+              <button class="primary-button" data-goto="info">Ознакомиться с братством <span>→</span></button>
+            </div>
+            <div class="hero-emblem">
+              <div class="hero-emblem-ring">
+                <svg viewBox="0 0 100 116" aria-hidden="true">
+                  <path d="M8 7H92V64Q88 91 50 109Q12 91 8 64Z" fill="#6b292d" stroke="#c8a96e" stroke-width="4"/>
+                  <path d="M16 15H84V62Q80 85 50 101Q20 85 16 62Z" fill="none" stroke="#e4d3ad" stroke-width="1.5"/>
+                  <path d="M50 27V76M34 48L50 27L66 48M39 76H61" stroke="#d8bd82" stroke-width="4" fill="none" stroke-linecap="round"/>
+                  <path d="M50 30C43 21 34 25 38 34C41 40 50 42 50 42C50 42 59 40 62 34C66 25 57 21 50 30Z" fill="#eee4cc"/>
+                  <path d="M50 42V77M43 77H57" stroke="#eee4cc" stroke-width="2.5" stroke-linecap="round"/>
+                  <path d="M50 14L52 19L58 20L53 24L54 30L50 26L46 30L47 24L42 20L48 19Z" fill="#d8bd82"/>
+                </svg>
+              </div>
+              <div class="hero-emblem-label">LABOR · FIDES · HONOR</div>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <div><div class="eyebrow">Сведения резиденции</div><h2>Дела братства</h2></div>
+            <span class="section-note">Первые страницы нашей истории</span>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-symbol">♙</div><div class="stat-label">Участники</div><div class="stat-value">—</div><div class="stat-foot">Реестр братства</div></article>
+            <article class="stat-card"><div class="stat-symbol">⚒</div><div class="stat-label">Ремесла</div><div class="stat-value">—</div><div class="stat-foot">Мастера и умельцы</div></article>
+            <article class="stat-card"><div class="stat-symbol">◈</div><div class="stat-label">Казна</div><div class="stat-value">—</div><div class="stat-foot">Общий баланс</div></article>
+            <article class="stat-card"><div class="stat-symbol">▤</div><div class="stat-label">Записи летописи</div><div class="stat-value">—</div><div class="stat-foot">Память братства</div></article>
+          </div>
+
+          <div class="home-columns">
+            <article class="panel announcement-panel">
+              <div class="panel-heading"><div><div class="eyebrow">Глас совета</div><h3>Объявления братства</h3></div><span class="ornament">✦</span></div>
+              <div class="notice">
+                <div class="notice-date">ОБЪЯВЛЕНИЕ · ОБРАЗЕЦ</div>
+                <h4>Да будет крепким наше братство</h4>
+                <p>Здесь будут публиковаться важные новости, решения совета и объявления для всех участников.</p>
+              </div>
+              <div class="notice notice-muted">
+                <div class="notice-date">СКОРО</div>
+                <h4>Начало ведения реестра</h4>
+                <p>После подключения регистрации каждый участник сможет создать собственную страницу.</p>
+              </div>
+            </article>
+            <article class="panel quick-panel">
+              <div class="panel-heading"><div><div class="eyebrow">Путеводитель</div><h3>Разделы резиденции</h3></div></div>
+              <button class="quick-link" data-goto="members"><span>♙</span><span><b>Реестр участников</b><small>Лица и звания братства</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="crafts"><span>⚒</span><span><b>Цеха и ремёсла</b><small>Умения и специализации</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="chronicle"><span>▤</span><span><b>Летопись</b><small>События и история</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="management"><span>⚙</span><span><b>Совет братства</b><small>Внутреннее управление</small></span><i>→</i></button>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-placeholder">
+          <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>
+          <article class="panel placeholder-panel">
+            <div class="placeholder-seal">✦</div>
+            <h2>Страницы этой книги ещё чисты</h2>
+            <p>Этот раздел уже предусмотрен в структуре резиденции. На следующих этапах добавим необходимые функции, данные и инструменты.</p>
+            <div class="placeholder-status"><span class="status-dot"></span> Раздел подготовлен к разработке</div>
+            <button class="secondary-button" data-goto="home">Вернуться на главную</button>
+          </article>
+        </section>
+
+        <footer class="site-footer">
+          <span>© Братство Святого Иосифа Обручника</span>
+          <span>LABOR ET FIDES <b>✦</b></span>
+        </footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

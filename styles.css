@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #29231f;
+  --ink-soft: #51473e;
+  --sidebar: #211d1a;
+  --sidebar-2: #2b2521;
+  --paper: #eee6d6;
+  --paper-light: #f6f0e5;
+  --paper-deep: #e3d7c2;
+  --line: #d5c7ae;
+  --gold: #c5a66d;
+  --gold-light: #dfc995;
+  --wine: #6b292d;
+  --muted: #827565;
+  --shadow: 0 12px 32px rgba(49, 36, 23, .08);
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, Arial, sans-serif; }
+button { font: inherit; }
+.site-shell { min-height: 100vh; }
+.sidebar {
+  position: fixed; inset: 0 auto 0 0; width: 268px; z-index: 20;
+  display: flex; flex-direction: column; padding: 25px 17px 18px;
+  color: #e9dfce; background:
+    radial-gradient(ellipse at 20% 0%, rgba(128,91,55,.16), transparent 42%),
+    linear-gradient(160deg, #2d2621, var(--sidebar) 55%);
+  border-right: 1px solid rgba(197,166,109,.22);
+}
+.brand { display: flex; align-items: center; gap: 13px; padding: 0 7px 25px; border-bottom: 1px solid rgba(197,166,109,.2); }
+.crest { width: 58px; flex: 0 0 58px; }
+.crest svg { display: block; width: 100%; }
+.brand-kicker { color: #b9a98e; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+.brand-name { color: #f1e7d5; font: 700 19px/1.02 "Cormorant Garamond", Georgia, serif; letter-spacing: .2px; }
+.brand-subtitle { color: var(--gold); font: 600 14px "Cormorant Garamond", Georgia, serif; margin-top: 2px; letter-spacing: 1.6px; }
+.nav-caption { color: #9d8d76; font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; margin: 23px 10px 9px; }
+.main-nav { display: grid; gap: 3px; }
+.nav-item { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; border-radius: 5px; padding: 10px 11px; text-align: left; color: #cfc3b1; background: transparent; font-size: 12px; cursor: pointer; transition: .18s ease; }
+.nav-item:hover { color: #fff3dd; background: rgba(255,255,255,.06); }
+.nav-item.active { color: #f5e8cf; background: linear-gradient(90deg, rgba(119,52,53,.62), rgba(119,52,53,.18)); box-shadow: inset 2px 0 var(--gold); }
+.nav-icon { width: 18px; color: var(--gold); font-size: 17px; text-align: center; line-height: 1; }
+.management-caption { margin-top: 20px; }
+.sidebar-bottom { margin-top: auto; padding: 18px 8px 0; text-align: center; border-top: 1px solid rgba(197,166,109,.2); }
+.motto { color: var(--gold-light); font: 700 15px "Cormorant Garamond", Georgia, serif; letter-spacing: 2.5px; }
+.motto-translation { color: #a99a84; font: italic 12px "Cormorant Garamond", Georgia, serif; margin-top: 3px; }
+.sidebar-version { color: #786d60; font-size: 9px; margin-top: 14px; }
+.main-area { min-height: 100vh; margin-left: 268px; }
+.topbar { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 43px; background: rgba(248,243,233,.84); border-bottom: 1px solid var(--line); }
+.breadcrumbs { display: flex; align-items: center; gap: 10px; color: #998a76; font-size: 11px; }
+.breadcrumbs b { color: #c1b49f; font-weight: 400; }
+.breadcrumbs strong { color: #51473e; font-weight: 600; }
+.topbar-actions { display: flex; align-items: center; gap: 9px; }
+.status-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #78906b; box-shadow: 0 0 0 3px rgba(120,144,107,.13); }
+.status-text { color: #827765; font-size: 10px; margin-right: 13px; }
+.discord-button { border: 1px solid #c9b995; background: #f8f2e7; color: #514538; border-radius: 4px; padding: 9px 13px; font-size: 11px; font-weight: 600; cursor: pointer; transition: .2s; }
+.discord-button:hover { background: #eee3cf; border-color: #a98d5e; }
+.discord-mark { color: #6b292d; margin-right: 5px; }
+.mobile-menu { display: none; border: 0; background: transparent; color: var(--ink); font-size: 21px; cursor: pointer; }
+.content-wrap { max-width: 1440px; margin: 0 auto; padding: 35px 43px 22px; }
+.page { display: none; }
+.page.active-page { display: block; animation: appear .25s ease; }
+@keyframes appear { from { opacity: .55; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.hero { position: relative; min-height: 292px; overflow: hidden; display: flex; align-items: center; justify-content: space-between; padding: 38px 55px; color: #eee3cf; border: 1px solid #765d43; border-radius: 4px; background:
+  radial-gradient(ellipse at 80% 45%, rgba(159,120,72,.22), transparent 35%),
+  linear-gradient(110deg, rgba(38,31,26,.97), rgba(58,43,34,.96)),
+  #332921; box-shadow: var(--shadow); }
+.hero:after { content: ""; position: absolute; inset: 12px; border: 1px solid rgba(204,174,118,.22); pointer-events: none; }
+.hero-text { position: relative; z-index: 1; max-width: 620px; }
+.eyebrow { color: #9b7c4c; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.hero .eyebrow { color: #c9a96d; }
+.hero h1, .page-title-block h1 { margin: 12px 0 10px; font: 600 clamp(32px, 4vw, 48px)/.98 "Cormorant Garamond", Georgia, serif; letter-spacing: -.4px; }
+.hero p { max-width: 520px; color: #c8bcaa; font: 15px/1.65 "Cormorant Garamond", Georgia, serif; margin: 14px 0 23px; }
+.primary-button, .secondary-button { display: inline-flex; align-items: center; gap: 18px; border: 1px solid #c4a36a; border-radius: 3px; padding: 11px 15px; background: #b18e56; color: #241e19; font-size: 10px; font-weight: 700; cursor: pointer; transition: .2s; }
+.primary-button:hover { background: #d0b47d; }
+.primary-button span { font-size: 16px; line-height: 10px; }
+.hero-emblem { position: relative; z-index: 1; width: 185px; margin-right: 35px; text-align: center; }
+.hero-emblem-ring { display: grid; place-items: center; width: 160px; height: 175px; margin: auto; border: 1px solid rgba(204,174,118,.38); border-radius: 50%; box-shadow: 0 0 0 10px rgba(204,174,118,.035), 0 0 0 20px rgba(204,174,118,.025); }
+.hero-emblem-ring svg { width: 95px; filter: drop-shadow(0 5px 9px rgba(0,0,0,.3)); }
+.hero-emblem-label { color: #bba77f; font-size: 8px; letter-spacing: 2px; margin-top: 16px; }
+.section-heading { display: flex; justify-content: space-between; align-items: end; margin: 35px 0 17px; }
+.section-heading h2, .panel h3 { margin: 4px 0 0; color: #3c3027; font: 600 27px "Cormorant Garamond", Georgia, serif; }
+.section-note { color: #9b8c77; font: italic 13px "Cormorant Garamond", Georgia, serif; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
+.stat-card { position: relative; min-height: 112px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 3px; background: rgba(248,243,233,.7); box-shadow: 0 4px 15px rgba(49,36,23,.035); }
+.stat-symbol { position: absolute; top: 15px; right: 17px; color: #b69a6a; font-size: 21px; }
+.stat-label { color: #8d7d68; font-size: 10px; }
+.stat-value { color: #3b3028; font: 600 28px "Cormorant Garamond", Georgia, serif; margin-top: 5px; }
+.stat-foot { color: #a79a87; font-size: 9px; margin-top: 1px; }
+.home-columns { display: grid; grid-template-columns: 1.15fr .85fr; gap: 15px; margin-top: 16px; }
+.panel { border: 1px solid var(--line); border-radius: 3px; background: rgba(248,243,233,.78); box-shadow: 0 4px 15px rgba(49,36,23,.035); padding: 21px 23px; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.panel-heading h3 { font-size: 23px; }
+.ornament { color: #b18e56; font-size: 20px; }
+.notice { padding: 13px 15px; border-left: 2px solid #9b7748; background: #f0e7d7; margin-top: 10px; }
+.notice-muted { border-left-color: #b9ad98; background: #f4eee3; }
+.notice-date { color: #9a8058; font-size: 8px; font-weight: 700; letter-spacing: 1.4px; }
+.notice h4 { color: #44372c; font: 600 19px "Cormorant Garamond", Georgia, serif; margin: 6px 0 3px; }
+.notice p { color: #817462; font: 12px/1.55 "Cormorant Garamond", Georgia, serif; margin: 0; }
+.quick-panel { padding-bottom: 12px; }
+.quick-link { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 4px; border: 0; border-top: 1px solid #e4dac9; background: transparent; color: #594b3d; text-align: left; cursor: pointer; }
+.quick-link > span:first-child { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid #d5c4a5; color: #9c7c4d; font-size: 16px; }
+.quick-link > span:nth-child(2) { display: grid; gap: 3px; flex: 1; }
+.quick-link b { font: 600 17px "Cormorant Garamond", Georgia, serif; }
+.quick-link small { color: #948570; font-size: 9px; }
+.quick-link i { color: #a58a5e; font-style: normal; }
+.quick-link:hover b { color: var(--wine); }
+.page-title-block { padding: 18px 0 24px; }
+.page-title-block h1 { color: #3b3028; font-size: 43px; }
+.page-title-block p { color: #817462; font: 15px "Cormorant Garamond", Georgia, serif; }
+.placeholder-panel { min-height: 310px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 25px; }
+.placeholder-seal { width: 55px; height: 55px; display: grid; place-items: center; border: 1px solid #c7ae7f; border-radius: 50%; color: #a48653; font-size: 23px; box-shadow: 0 0 0 7px #f1e8d8; }
+.placeholder-panel h2 { color: #4a3a2d; font: 600 27px "Cormorant Garamond", Georgia, serif; margin: 20px 0 6px; }
+.placeholder-panel p { max-width: 490px; color: #867865; font: 14px/1.6 "Cormorant Garamond", Georgia, serif; margin: 0 0 17px; }
+.placeholder-status { color: #718063; font-size: 10px; margin-bottom: 19px; }
+.placeholder-status .status-dot { margin-right: 7px; }
+.secondary-button { background: transparent; color: #715b3b; padding: 10px 14px; }
+.secondary-button:hover { background: #eee3d0; }
+.site-footer { display: flex; justify-content: space-between; gap: 15px; padding: 22px 2px 0; margin-top: 28px; border-top: 1px solid #d7cbb8; color: #9b8c78; font-size: 9px; letter-spacing: .3px; }
+.site-footer b { color: #b18e56; margin-left: 5px; }
+.toast { position: fixed; z-index: 50; right: 22px; bottom: 22px; max-width: min(360px, calc(100vw - 44px)); padding: 13px 16px; border: 1px solid #9b7c4c; border-radius: 4px; background: #2b2521; color: #eee3cf; font-size: 12px; line-height: 1.5; box-shadow: 0 10px 30px rgba(0,0,0,.22); opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s; }
+.toast.show { opacity: 1; transform: none; }
+@media (max-width: 1100px) {
+  .sidebar { width: 235px; }
+  .main-area { margin-left: 235px; }
+  .topbar { padding: 0 25px; }
+  .content-wrap { padding: 28px 25px 20px; }
+  .hero { padding: 32px 35px; }
+  .hero-emblem { margin-right: 10px; }
+}
+@media (max-width: 800px) {
+  .sidebar { width: 270px; transform: translateX(-100%); transition: transform .22s ease; box-shadow: 15px 0 35px rgba(0,0,0,.18); }
+  .sidebar.open { transform: translateX(0); }
+  .main-area { margin-left: 0; }
+  .topbar { height: 60px; padding: 0 17px; }
+  .mobile-menu { display: block; }
+  .breadcrumbs { margin-right: auto; }
+  .status-text, .topbar-actions > .status-dot { display: none; }
+  .content-wrap { padding: 20px 17px; }
+  .hero { min-height: 270px; padding: 30px 25px; }
+  .hero-emblem { width: 125px; margin-right: 0; }
+  .hero-emblem-ring { width: 115px; height: 130px; }
+  .hero-emblem-ring svg { width: 70px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .discord-button { padding: 8px 9px; font-size: 0; }
+  .discord-mark { font-size: 15px; margin: 0; }
+  .hero { padding: 28px 23px; }
+  .hero-emblem { display: none; }
+  .hero h1 { font-size: 37px; }
+  .hero p { font-size: 14px; }
+  .section-heading { align-items: start; gap: 10px; flex-direction: column; margin-top: 28px; }
+  .home-columns { grid-template-columns: 1fr; }
+  .panel { padding: 18px; }
+  .site-footer { flex-direction: column; }
+}

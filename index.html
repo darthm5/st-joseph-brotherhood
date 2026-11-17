@@ -32,6 +32,7 @@
       <div class="nav-caption">Резиденция</div>
       <nav class="main-nav" aria-label="Главное меню">
         <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span>Главная</button>
+        <button class="nav-item" data-page="profile"><span class="nav-icon">♧</span>Мой кабинет</button>
         <button class="nav-item" data-page="members"><span class="nav-icon">♙</span>Участники</button>
         <button class="nav-item" data-page="info"><span class="nav-icon">✦</span>Важная информация</button>
         <button class="nav-item" data-page="calendar"><span class="nav-icon">▦</span>Календарь</button>
@@ -52,7 +53,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 0.1</div>
+        <div class="sidebar-version">Резиденция · версия 0.3</div>
       </div>
     </aside>
 
@@ -126,6 +127,26 @@
           </div>
         </section>
 
+        <section class="page" id="page-profile">
+          <div class="page-title-block"><div class="eyebrow">Личные записи</div><h1>Мой кабинет</h1><p>Анкета персонажа и сведения о членстве в братстве.</p></div>
+          <article class="panel" id="profileLoginNotice" hidden>Войдите через Discord, чтобы заполнить анкету персонажа.</article>
+          <form class="panel profile-form" id="profileForm" hidden>
+            <div class="profile-status"><div><b id="profileDiscordName">Discord</b><small>Привязанный аккаунт</small></div><div><b id="profileRank">Кандидат</b><small id="profileMembership">Статус: ожидает рассмотрения</small></div></div>
+            <p class="form-hint">Игровое звание и статус членства назначает администрация. Изменить их в анкете нельзя.</p>
+            <div class="profile-fields">
+              <label>Имя персонажа <input name="character_first_name" maxlength="60" required autocomplete="off" placeholder="Милош"></label>
+              <label>Фамилия персонажа <input name="character_last_name" maxlength="60" required autocomplete="off" placeholder="Железный"></label>
+              <label>Возраст персонажа <input name="character_age" type="number" min="16" max="100" placeholder="Например, 30"></label>
+              <label>Профессия <input name="profession" maxlength="120" placeholder="Кузнец, плотник…"></label>
+              <label class="full">Ремёсла <input name="crafts" maxlength="400" placeholder="Кузнечное дело, плотничество, добыча руды"></label>
+              <label class="full">О персонаже <textarea name="about" rows="5" maxlength="3000" placeholder="Краткая история, занятия и интересы персонажа"></textarea></label>
+              <label class="full">Ссылка на изображение персонажа (HTTPS) <input name="character_photo_url" type="url" maxlength="1000" placeholder="https://..."></label>
+            </div>
+            <p class="form-hint">Пока изображение добавляется по прямой HTTPS-ссылке. Загрузку файла с компьютера подключим отдельно.</p>
+            <img id="characterPhotoPreview" class="profile-preview" alt="Изображение персонажа" hidden>
+            <div class="profile-actions"><button type="submit" class="primary-button" id="saveProfile">Сохранить анкету</button><span id="profileMessage" role="status" aria-live="polite"></span></div>
+          </form>
+        </section>
         <section class="page" id="page-placeholder">
           <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>
           <article class="panel placeholder-panel">

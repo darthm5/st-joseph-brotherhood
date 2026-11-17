@@ -22,7 +22,7 @@ button { font: inherit; }
 .site-shell { min-height: 100vh; }
 .sidebar {
   position: fixed; inset: 0 auto 0 0; width: 268px; z-index: 20;
-  display: flex; flex-direction: column; padding: 25px 17px 18px;
+  display: flex; flex-direction: column; padding: 25px 17px 18px; overflow-y: auto; overscroll-behavior: contain;
   color: #e9dfce; background:
     radial-gradient(ellipse at 20% 0%, rgba(128,91,55,.16), transparent 42%),
     linear-gradient(160deg, #2d2621, var(--sidebar) 55%);

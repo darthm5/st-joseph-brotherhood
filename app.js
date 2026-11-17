@@ -23,6 +23,7 @@ const homePage = document.getElementById("page-home");
 const profilePage = document.getElementById("page-profile");
 const placeholderPage = document.getElementById("page-placeholder");
 const membersPage = document.getElementById("page-members");
+const managementPage = document.getElementById("page-management");
 const breadcrumb = document.getElementById("breadcrumbCurrent");
 const sidebar = document.getElementById("sidebar");
 const toast = document.getElementById("toast");
@@ -34,6 +35,7 @@ let currentSession = null;
 let profileLoadSequence = 0;
 let membersLoadSequence = 0;
 let membersCache = [];
+let adminLoadSequence = 0;
 
 function showToast(message) {
   toast.textContent = message;
@@ -47,11 +49,16 @@ function navigate(page) {
   navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === page));
   profilePage.classList.toggle("active-page", page === "profile");
   membersPage.classList.toggle("active-page", page === "members");
+  managementPage.classList.toggle("active-page", page === "management");
+  if (page === "management") loadAdminPanel();
   if (page === "members") loadMembers();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "members") {
+    homePage.classList.remove("active-page");
+    placeholderPage.classList.remove("active-page");
+  } else if (page === "management") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "profile") {
@@ -72,6 +79,7 @@ function navigate(page) {
 function renderAuthState(session) {
   currentSession = session;
   if (membersPage.classList.contains("active-page")) loadMembers();
+  if (managementPage.classList.contains("active-page")) loadAdminPanel();
   if (profilePage.classList.contains("active-page")) loadProfile();
   if (session?.user) {
     const metadata = session.user.user_metadata || {};
@@ -351,3 +359,115 @@ async function loadMembers() {
   membersCache = (data || []).filter(p => p.character_first_name?.trim() && p.character_last_name?.trim());
   renderMembers();
 }
+
+
+// Admin panel. Every write is checked again inside Supabase RPC; UI checks are not security.
+const adminNotice = document.getElementById("adminNotice");
+const adminPanel = document.getElementById("adminPanel");
+const adminList = document.getElementById("adminList");
+const adminFilter = document.getElementById("adminFilter");
+const adminCount = document.getElementById("adminCount");
+let adminProfiles = [];
+const allowedStatuses = ["pending", "approved", "rejected"];
+
+async function loadAdminPanel() {
+  const sequence = ++adminLoadSequence;
+  const userId = currentSession?.user?.id;
+  adminPanel.hidden = true;
+  adminList.replaceChildren();
+  if (!userId || !supabaseClient) {
+    adminNotice.textContent = "Для доступа войдите через Discord.";
+    return;
+  }
+  adminNotice.textContent = "Проверяем административные права…";
+  try {
+    const {data: isAdmin, error: checkError} = await supabaseClient.rpc("is_site_admin");
+    if (checkError) throw checkError;
+    if (sequence !== adminLoadSequence || currentSession?.user?.id !== userId) return;
+    if (isAdmin !== true) {
+      adminNotice.textContent = "Доступ разрешён только администрации братства.";
+      return;
+    }
+    adminNotice.textContent = "Загружаем участников…";
+    const {data, error} = await supabaseClient.from("profiles")
+      .select("id,discord_username,character_first_name,character_last_name,membership_status,game_rank,profession,created_at")
+      .order("created_at", {ascending: false});
+    if (error) throw error;
+    if (sequence !== adminLoadSequence || currentSession?.user?.id !== userId) return;
+    adminProfiles = data || [];
+    adminPanel.hidden = false;
+    adminNotice.textContent = "";
+    renderAdminList();
+  } catch (error) {
+    if (sequence === adminLoadSequence) adminNotice.textContent = "Ошибка: " + error.message;
+  }
+}
+function renderAdminList() {
+  const filter = adminFilter.value;
+  const rows = adminProfiles.filter(p => filter === "all" || p.membership_status === filter);
+  adminCount.textContent = `Показано: ${rows.length} из ${adminProfiles.length}`;
+  adminList.replaceChildren();
+  if (!rows.length) {
+    adminList.append(element("p", "members-message", "Нет участников с выбранным статусом."));
+    return;
+  }
+  for (const p of rows) {
+    const card = element("article", "panel admin-card");
+    const head = element("div", "admin-card-heading");
+    const title = element("div");
+    title.append(element("h2", "", characterName(p)));
+    title.append(element("p", "", `Discord: ${p.discord_username || "не указан"} · ${p.profession || "профессия не указана"}`));
+    head.append(title, element("span", "admin-status", displayStatus(p.membership_status)));
+    card.append(head);
+    const controls = element("div", "admin-controls");
+    const statusGroup = element("label");
+    statusGroup.append(element("span", "", "Статус членства"));
+    const statusSelect = element("select");
+    for (const [value, label] of [["pending", "Кандидат"], ["approved", "Принят"], ["rejected", "Отклонён"]]) {
+      const opt = element("option", "", label); opt.value = value;
+      statusSelect.append(opt);
+    }
+    statusSelect.value = allowedStatuses.includes(p.membership_status) ? p.membership_status : "pending";
+    statusGroup.append(statusSelect);
+    const saveStatus = element("button", "secondary-button", "Сохранить статус");
+    saveStatus.type = "button";
+    saveStatus.addEventListener("click", async () => {
+      if (statusSelect.value === p.membership_status) return showToast("Статус не изменился.");
+      if (!confirm(`Изменить статус персонажа «${characterName(p)}» на «${displayStatus(statusSelect.value)}»?`)) return;
+      await adminMutation("admin_set_member_status", {target_user_id:p.id, new_status:statusSelect.value}, saveStatus);
+    });
+    const rankGroup = element("label");
+    rankGroup.append(element("span", "", "Игровое звание"));
+    const rankInput = element("input");
+    rankInput.type = "text"; rankInput.maxLength = 60; rankInput.value = p.game_rank || "Кандидат";
+    rankGroup.append(rankInput);
+    const saveRank = element("button", "secondary-button", "Сохранить звание");
+    saveRank.type = "button";
+    saveRank.addEventListener("click", async () => {
+      const rank = rankInput.value.trim();
+      if (rank.length < 2 || rank.length > 60) return showToast("Звание должно содержать от 2 до 60 символов.");
+      if (rank === p.game_rank) return showToast("Звание не изменилось.");
+      if (!confirm(`Назначить персонажу «${characterName(p)}» звание «${rank}»?`)) return;
+      await adminMutation("admin_set_member_rank", {target_user_id:p.id, new_rank:rank}, saveRank);
+    });
+    controls.append(statusGroup,saveStatus,rankGroup,saveRank);
+    card.append(controls);
+    adminList.append(card);
+  }
+}
+async function adminMutation(functionName, args, button) {
+  const userId = currentSession?.user?.id;
+  if (!userId || !supabaseClient) return;
+  button.disabled = true;
+  try {
+    const {error} = await supabaseClient.rpc(functionName,args);
+    if (error) throw error;
+    if (currentSession?.user?.id !== userId) return;
+    showToast("Изменения сохранены.");
+    await loadAdminPanel();
+  } catch (error) {
+    showToast("Не удалось сохранить: " + error.message);
+  } finally { button.disabled = false; }
+}
+adminFilter.addEventListener("change", renderAdminList);
+document.getElementById("adminRefresh").addEventListener("click", loadAdminPanel);

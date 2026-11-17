@@ -161,6 +161,18 @@
             <div class="member-details-body" id="memberDetailsBody"></div>
           </article>
         </section>
+        <section class="page" id="page-management">
+          <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
+          <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>
+          <div id="adminPanel" hidden>
+            <div class="members-tools panel"><label for="adminFilter">Показать</label>
+              <select id="adminFilter"><option value="all">Всех зарегистрированных</option><option value="pending">Ожидающих решения</option><option value="approved">Принятых</option><option value="rejected">Отклонённых</option></select>
+              <button id="adminRefresh" type="button" class="secondary-button">Обновить список</button>
+              <span id="adminCount" aria-live="polite"></span>
+            </div>
+            <div id="adminList" class="admin-list"></div>
+          </div>
+        </section>
         <section class="page" id="page-placeholder">
           <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>
           <article class="panel placeholder-panel">

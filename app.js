@@ -250,7 +250,47 @@ const profileForm = document.getElementById("profileForm");
 const profileNotice = document.getElementById("profileLoginNotice");
 const profileMessage = document.getElementById("profileMessage");
 const profilePreview = document.getElementById("characterPhotoPreview");
-const profileFields = ["character_first_name", "character_last_name", "character_age", "profession", "crafts", "about", "character_photo_url"];
+const profileFields = ["character_first_name", "character_last_name", "character_age", "about", "character_photo_url"];
+
+const JOB_NAMES = ["Рудокоп","Дровосек","Травник","Фермер","Рыбак","Охотник","Гонец","Возница","Ночной сторож","Вор"];
+const MASTERY_NAMES = ["Кузнечное дело","Бронное дело","Портное дело","Лучное дело","Ювелирное дело","Столярное дело","Алхимия","Готовка","Пивоварение"];
+const skillLists = { jobs: document.getElementById("jobsList"), masteries: document.getElementById("masteriesList") };
+const skillCatalog = { jobs: JOB_NAMES, masteries: MASTERY_NAMES };
+function addSkillRow(kind, item = {}) {
+  const list = skillLists[kind], names = skillCatalog[kind];
+  if (list.children.length >= (kind === "jobs" ? 2 : names.length)) return;
+  const row = document.createElement("div"); row.className = "skill-row";
+  const choice = document.createElement("select"); choice.className = "skill-name"; choice.setAttribute("aria-label", kind === "jobs" ? "Работа" : "Мастерство");
+  choice.append(new Option("Выберите из списка", ""));
+  for (const name of names) choice.append(new Option(name, name));
+  choice.value = names.includes(item.name) ? item.name : "";
+  const level = document.createElement("select"); level.className = "skill-level"; level.setAttribute("aria-label", "Уровень");
+  for (let i=1;i<=10;i++) level.append(new Option("Ур. " + i, String(i)));
+  level.value = String(Number.isInteger(Number(item.level)) && Number(item.level)>=1 && Number(item.level)<=10 ? item.level : 1);
+  const remove = document.createElement("button"); remove.type = "button"; remove.className = "skill-remove"; remove.textContent = "Удалить";
+  remove.addEventListener("click", () => { row.remove(); updateSkillButtons(); });
+  row.append(choice,level,remove); list.append(row); updateSkillButtons();
+}
+function updateSkillButtons() {
+  document.getElementById("addJob").disabled = skillLists.jobs.children.length >= 2;
+  document.getElementById("addMastery").disabled = skillLists.masteries.children.length >= MASTERY_NAMES.length;
+}
+function loadSkillRows(kind, items) {
+  skillLists[kind].replaceChildren();
+  for (const item of (Array.isArray(items) ? items : [])) addSkillRow(kind,item);
+  updateSkillButtons();
+}
+function collectSkillRows(kind) {
+  const rows = [...skillLists[kind].children].map(row => ({name:row.querySelector(".skill-name").value, level:Number(row.querySelector(".skill-level").value)}));
+  if (rows.some(x=>!x.name)) throw new Error("Выберите название для каждой работы и мастерства.");
+  if (new Set(rows.map(x=>x.name)).size !== rows.length) throw new Error("Одинаковые работы или мастерства нельзя добавлять дважды.");
+  return rows;
+}
+document.getElementById("addJob").addEventListener("click",()=>addSkillRow("jobs"));
+document.getElementById("addMastery").addEventListener("click",()=>addSkillRow("masteries"));
+function formatSkills(items) { return Array.isArray(items) && items.length ? items.map(x=>`${x.name} (ур. ${x.level})`).join(" · ") : "Не указано"; }
+function memberJobs(p) { return Array.isArray(p.jobs) && p.jobs.length ? formatSkills(p.jobs) : (p.profession || "Не указано"); }
+function memberMasteries(p) { return Array.isArray(p.masteries) && p.masteries.length ? formatSkills(p.masteries) : ((p.crafts || []).join(" · ") || "Не указано"); }
 
 function renderPreview(url) {
   if (url && /^https:\/\//i.test(url)) {
@@ -272,7 +312,7 @@ async function loadProfile() {
   if (!user || !supabaseClient) return;
   profileMessage.textContent = "Загружаем анкету…";
   const { data, error } = await supabaseClient.from("profiles")
-    .select("discord_username,character_first_name,character_last_name,character_age,profession,crafts,about,character_photo_url,membership_status,game_rank")
+    .select("discord_username,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank")
     .eq("id", user.id).maybeSingle();
   if (sequence !== profileLoadSequence || currentSession?.user?.id !== user.id) return;
   profileForm.hidden = false;
@@ -280,8 +320,10 @@ async function loadProfile() {
   if (!data) { profileMessage.textContent = "Профиль не найден. Проверь SQL-шаг создания профилей."; profileForm.querySelector('button[type="submit"]').disabled = true; return; }
   profileForm.querySelector('button[type="submit"]').disabled = false;
   for (const field of profileFields) {
-    profileForm.elements[field].value = field === "crafts" ? (data.crafts || []).join(", ") : (data[field] ?? "");
+    profileForm.elements[field].value = data[field] ?? "";
   }
+  loadSkillRows("jobs", data.jobs);
+  loadSkillRows("masteries", data.masteries);
   document.getElementById("profileDiscordName").textContent = data.discord_username || "Discord-пользователь";
   document.getElementById("profileRank").textContent = data.game_rank || "Кандидат";
   const statuses = {pending:"Ожидает рассмотрения",approved:"Принят",rejected:"Отклонён"};
@@ -301,11 +343,12 @@ profileForm.addEventListener("submit", async event => {
   if (age && (!Number.isInteger(Number(age)) || Number(age) < 16 || Number(age) > 100)) return showToast("Возраст должен быть от 16 до 100.");
   const photo = value("character_photo_url");
   if (photo && !/^https:\/\//i.test(photo)) return showToast("Для изображения нужна ссылка HTTPS.");
+  let jobs, masteries;
+  try { jobs = collectSkillRows("jobs"); masteries = collectSkillRows("masteries"); } catch(e) { profileMessage.textContent = e.message; return; }
   const payload = {
     character_first_name:first, character_last_name:last,
     character_age:age ? Number(age) : null,
-    profession:value("profession") || null,
-    crafts:value("crafts").split(",").map(x=>x.trim()).filter(Boolean),
+    jobs, masteries,
     about:value("about") || null,
     character_photo_url:photo || null
   };
@@ -368,7 +411,7 @@ function displayStatus(status) {
 }
 function renderMembers() {
   const term = memberSearch.value.trim().toLocaleLowerCase();
-  const filtered = membersCache.filter(p => [characterName(p), p.profession, p.game_rank, ...(p.crafts || [])].join(" ").toLocaleLowerCase().includes(term));
+  const filtered = membersCache.filter(p => [characterName(p), p.profession, p.game_rank, memberJobs(p), memberMasteries(p)].join(" ").toLocaleLowerCase().includes(term));
   membersGrid.replaceChildren();
   membersCount.textContent = `Показано: ${filtered.length} из ${membersCache.length}`;
   if (!filtered.length) {
@@ -383,8 +426,8 @@ function renderMembers() {
     const body = element("div", "member-card-body");
     body.append(element("span", "member-card-rank", profile.game_rank || "Кандидат"));
     body.append(element("h2", "member-card-name", characterName(profile)));
-    body.append(element("p", "member-card-profession", profile.profession || "Род занятий не указан"));
-    body.append(element("p", "member-card-crafts", (profile.crafts || []).join(" · ") || "Ремёсла не указаны"));
+    body.append(element("p", "member-card-profession", memberJobs(profile)));
+    body.append(element("p", "member-card-crafts", memberMasteries(profile)));
     body.append(element("span", "member-card-more", "Открыть анкету →"));
     card.append(body);
     card.addEventListener("click", () => openMember(profile));
@@ -406,8 +449,8 @@ function openMember(profile) {
   detailField(text, "Звание", profile.game_rank || "Кандидат");
   detailField(text, "Статус", displayStatus(profile.membership_status));
   detailField(text, "Возраст", profile.character_age == null ? null : profile.character_age + " лет");
-  detailField(text, "Профессия", profile.profession);
-  detailField(text, "Ремёсла", (profile.crafts || []).join(", "));
+  detailField(text, "Работы", memberJobs(profile));
+  detailField(text, "Мастерства", memberMasteries(profile));
   detailField(text, "О персонаже", profile.about);
   memberDetailsBody.append(text);
   membersGrid.hidden = true;
@@ -435,7 +478,7 @@ async function loadMembers() {
   }
   membersMessage.textContent = "Загружаем реестр участников…";
   const { data, error } = await supabaseClient.from("profiles")
-    .select("id,character_first_name,character_last_name,character_age,profession,crafts,about,character_photo_url,membership_status,game_rank")
+    .select("id,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank")
     .order("created_at", {ascending:true});
   if (sequence !== membersLoadSequence || !currentSession?.user) return;
   if (error) {

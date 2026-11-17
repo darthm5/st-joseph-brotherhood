@@ -224,3 +224,15 @@ button { font: inherit; }
 .waiting-panel p{color:#786956;font-size:14px;line-height:1.7;margin:14px auto 23px;max-width:510px}
 .waiting-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .nav-item[hidden],.quick-link[hidden]{display:none!important}
+
+/* v0.7: work and mastery selectors */
+.skills-section { border-top:1px solid #ded1bc; padding-top:15px; }
+.skills-section h3 { margin:0 0 12px; font-size:17px; color:#49382e; }
+.skills-section h3 small {font-size:12px;font-weight:normal;color:#887762;}
+.skill-list {display:grid;gap:9px;margin-bottom:10px;}
+.skill-row {display:grid;grid-template-columns:minmax(0,1fr) 105px auto;gap:8px;align-items:center;}
+.skill-row select {min-width:0;width:100%;padding:11px;border:1px solid #d2c2a8;border-radius:3px;background:#fffaf1;color:#342920;font:14px Arial,sans-serif;}
+.secondary-button,.skill-remove {border:1px solid #aa987e;background:#f4e9d5;color:#594433;padding:10px 12px;border-radius:3px;cursor:pointer;font:13px Arial,sans-serif;}
+.skill-remove {background:#f9eee9;border-color:#c9ada5;}
+.secondary-button:disabled {opacity:.5;cursor:not-allowed;}
+@media(max-width:540px){.skill-row{grid-template-columns:minmax(0,1fr) 88px;}.skill-remove{grid-column:1/-1;}}

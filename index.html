@@ -146,8 +146,8 @@
               <label>Имя персонажа <input name="character_first_name" maxlength="60" required autocomplete="off" placeholder="Милош"></label>
               <label>Фамилия персонажа <input name="character_last_name" maxlength="60" required autocomplete="off" placeholder="Железный"></label>
               <label>Возраст персонажа <input name="character_age" type="number" min="16" max="100" placeholder="Например, 30"></label>
-              <label>Профессия <input name="profession" maxlength="120" placeholder="Кузнец, плотник…"></label>
-              <label class="full">Ремёсла <input name="crafts" maxlength="400" placeholder="Кузнечное дело, плотничество, добыча руды"></label>
+              <div class="full skills-section"><h3>Работы <small>(не более двух, уровни 1–10)</small></h3><div id="jobsList" class="skill-list"></div><button type="button" class="secondary-button" id="addJob">+ Добавить работу</button></div>
+              <div class="full skills-section"><h3>Мастерства <small>(любое количество из списка, уровни 1–10)</small></h3><div id="masteriesList" class="skill-list"></div><button type="button" class="secondary-button" id="addMastery">+ Добавить мастерство</button></div>
               <label class="full">О персонаже <textarea name="about" rows="5" maxlength="3000" placeholder="Краткая история, занятия и интересы персонажа"></textarea></label>
               <label class="full">Ссылка на изображение персонажа (HTTPS) <input name="character_photo_url" type="url" maxlength="1000" placeholder="https://..."></label>
             </div>

@@ -53,7 +53,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 0.3</div>
+        <div class="sidebar-version">Резиденция · версия 0.4</div>
       </div>
     </aside>
 
@@ -146,6 +146,20 @@
             <img id="characterPhotoPreview" class="profile-preview" alt="Изображение персонажа" hidden>
             <div class="profile-actions"><button type="submit" class="primary-button" id="saveProfile">Сохранить анкету</button><span id="profileMessage" role="status" aria-live="polite"></span></div>
           </form>
+        </section>
+        <section class="page" id="page-members">
+          <div class="page-title-block"><div class="eyebrow">Реестр братства</div><h1>Участники</h1><p>Лица, ремёсла и истории тех, кто состоит при братстве.</p></div>
+          <div class="members-tools panel">
+            <label for="memberSearch">Поиск по имени или ремеслу</label>
+            <input id="memberSearch" type="search" placeholder="Например, Милош или кузнец" autocomplete="off">
+            <span id="membersCount" aria-live="polite"></span>
+          </div>
+          <p id="membersMessage" class="members-message" role="status" aria-live="polite"></p>
+          <div id="membersGrid" class="members-grid"></div>
+          <article id="memberDetails" class="panel member-details" hidden>
+            <button type="button" class="secondary-button" id="closeMemberDetails">← Вернуться к реестру</button>
+            <div class="member-details-body" id="memberDetailsBody"></div>
+          </article>
         </section>
         <section class="page" id="page-placeholder">
           <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>

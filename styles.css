@@ -170,3 +170,33 @@ button { font: inherit; }
 .profile-preview { max-width:250px; max-height:300px; object-fit:contain; display:block; margin:14px 0; border:1px solid #d2c2a8; }
 .profile-actions { display:flex; gap:14px; align-items:center; flex-wrap:wrap; color:#6f7657; font-size:12px; }
 @media(max-width:560px){.profile-fields{grid-template-columns:1fr}.profile-status{flex-direction:column}}
+
+/* Read-only member registry */
+#memberDetails[hidden], #membersGrid[hidden], .members-tools[hidden] {display:none!important}
+.members-tools {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.members-tools label {font-size:12px;color:#6b5742}
+.members-tools input {flex:1;min-width:190px;padding:11px 12px;border:1px solid #d2c2a8;background:#fffaf1;border-radius:3px;color:#342920}
+#membersCount {font-size:11px;color:#897762}
+.members-message {color:#806d58;font-size:14px;margin:14px 0}
+.members-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:18px}
+.member-card {display:flex;flex-direction:column;overflow:hidden;text-align:left;border:1px solid #d5c5ac;background:#f8f1e4;box-shadow:0 4px 15px rgba(49,36,23,.05);padding:0;cursor:pointer;transition:transform .15s,border-color .15s}
+.member-card:hover {transform:translateY(-3px);border-color:#a48653}
+.member-card:focus-visible {outline:3px solid #a48653;outline-offset:2px}
+.member-photo {height:205px;background:linear-gradient(145deg,#dfd2bb,#bca786);display:grid;place-items:center;overflow:hidden}
+.member-photo img {width:100%;height:100%;object-fit:cover}
+.member-photo-fallback {font:90px Georgia,serif;color:#78624b;opacity:.65}
+.member-card-body {padding:17px 18px 19px;flex:1}
+.member-card-rank {font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#946e3d}
+.member-card-name {font:600 26px/1.05 'Cormorant Garamond',Georgia,serif;color:#3c3027;margin:8px 0}
+.member-card-profession {font-size:12px;color:#5b4b3c;margin:8px 0}
+.member-card-crafts {font-size:11px;line-height:1.5;color:#8c7a65;min-height:33px}
+.member-card-more {display:block;margin-top:16px;font-size:11px;color:#875d36}
+.member-details {margin-top:10px}
+.member-details-body {display:grid;grid-template-columns:minmax(180px,280px) 1fr;gap:28px;margin-top:24px}
+.member-detail-photo {min-height:270px;background:#e3d5bd;display:grid;place-items:center;align-self:start;overflow:hidden}
+.member-detail-photo img {width:100%;max-height:420px;object-fit:contain}
+.member-detail-text h2 {font:600 36px 'Cormorant Garamond',Georgia,serif;color:#3c3027;margin:8px 0 22px}
+.member-detail-field {margin:0 0 15px}
+.member-detail-label {font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#9a7e53}
+.member-detail-field p {font-size:14px;line-height:1.65;color:#4e4033;white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0 0}
+@media(max-width:600px){.member-details-body{grid-template-columns:1fr}.member-detail-photo{min-height:180px;max-height:330px}}

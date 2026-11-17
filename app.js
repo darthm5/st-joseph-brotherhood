@@ -22,6 +22,7 @@ const navButtons = [...document.querySelectorAll(".nav-item")];
 const homePage = document.getElementById("page-home");
 const profilePage = document.getElementById("page-profile");
 const placeholderPage = document.getElementById("page-placeholder");
+const membersPage = document.getElementById("page-members");
 const breadcrumb = document.getElementById("breadcrumbCurrent");
 const sidebar = document.getElementById("sidebar");
 const toast = document.getElementById("toast");
@@ -31,6 +32,8 @@ const statusDot = document.querySelector(".topbar-actions > .status-dot");
 let toastTimer;
 let currentSession = null;
 let profileLoadSequence = 0;
+let membersLoadSequence = 0;
+let membersCache = [];
 
 function showToast(message) {
   toast.textContent = message;
@@ -43,8 +46,13 @@ function navigate(page) {
   const info = pageInfo[page] || pageInfo.home;
   navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === page));
   profilePage.classList.toggle("active-page", page === "profile");
+  membersPage.classList.toggle("active-page", page === "members");
+  if (page === "members") loadMembers();
   if (page === "home") {
     homePage.classList.add("active-page");
+    placeholderPage.classList.remove("active-page");
+  } else if (page === "members") {
+    homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "profile") {
     homePage.classList.remove("active-page");
@@ -63,6 +71,7 @@ function navigate(page) {
 
 function renderAuthState(session) {
   currentSession = session;
+  if (membersPage.classList.contains("active-page")) loadMembers();
   if (profilePage.classList.contains("active-page")) loadProfile();
   if (session?.user) {
     const metadata = session.user.user_metadata || {};
@@ -220,3 +229,125 @@ profileForm.addEventListener("submit", async event => {
     profileMessage.textContent = "Ошибка сохранения: " + error.message;
   } finally { button.disabled = false; }
 });
+
+
+// Member registry: read-only, loaded from Supabase using the logged-in session.
+const membersGrid = document.getElementById("membersGrid");
+const membersMessage = document.getElementById("membersMessage");
+const membersCount = document.getElementById("membersCount");
+const memberSearch = document.getElementById("memberSearch");
+const memberDetails = document.getElementById("memberDetails");
+const memberDetailsBody = document.getElementById("memberDetailsBody");
+
+function element(tag, className, content) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (content !== undefined && content !== null) node.textContent = String(content);
+  return node;
+}
+function safePhoto(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? parsed.href : null;
+  } catch { return null; }
+}
+function characterName(profile) {
+  return [profile.character_first_name, profile.character_last_name].filter(Boolean).join(" ") || "Безымянный персонаж";
+}
+function photoNode(profile, className) {
+  const url = safePhoto(profile.character_photo_url);
+  const wrapper = element("div", className);
+  if (url) {
+    const img = element("img");
+    img.src = url;
+    img.alt = "Портрет персонажа " + characterName(profile);
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => img.replaceWith(element("span", "member-photo-fallback", "♙")));
+    wrapper.append(img);
+  } else wrapper.append(element("span", "member-photo-fallback", "♙"));
+  return wrapper;
+}
+function displayStatus(status) {
+  return ({pending:"Ожидает рассмотрения",approved:"Принят",rejected:"Отклонён"})[status] || "Не указан";
+}
+function renderMembers() {
+  const term = memberSearch.value.trim().toLocaleLowerCase();
+  const filtered = membersCache.filter(p => [characterName(p), p.profession, p.game_rank, ...(p.crafts || [])].join(" ").toLocaleLowerCase().includes(term));
+  membersGrid.replaceChildren();
+  membersCount.textContent = `Показано: ${filtered.length} из ${membersCache.length}`;
+  if (!filtered.length) {
+    membersMessage.textContent = membersCache.length ? "По вашему запросу никого не найдено." : "В реестре пока нет заполненных анкет.";
+    return;
+  }
+  membersMessage.textContent = "";
+  for (const profile of filtered) {
+    const card = element("button", "member-card");
+    card.type = "button";
+    card.append(photoNode(profile, "member-photo"));
+    const body = element("div", "member-card-body");
+    body.append(element("span", "member-card-rank", profile.game_rank || "Кандидат"));
+    body.append(element("h2", "member-card-name", characterName(profile)));
+    body.append(element("p", "member-card-profession", profile.profession || "Род занятий не указан"));
+    body.append(element("p", "member-card-crafts", (profile.crafts || []).join(" · ") || "Ремёсла не указаны"));
+    body.append(element("span", "member-card-more", "Открыть анкету →"));
+    card.append(body);
+    card.addEventListener("click", () => openMember(profile));
+    membersGrid.append(card);
+  }
+}
+function detailField(parent, title, value) {
+  const block = element("div", "member-detail-field");
+  block.append(element("span", "member-detail-label", title));
+  block.append(element("p", "", value || "Не указано"));
+  parent.append(block);
+}
+function openMember(profile) {
+  memberDetailsBody.replaceChildren();
+  memberDetailsBody.append(photoNode(profile, "member-detail-photo"));
+  const text = element("div", "member-detail-text");
+  text.append(element("div", "eyebrow", "Анкета персонажа"));
+  text.append(element("h2", "", characterName(profile)));
+  detailField(text, "Звание", profile.game_rank || "Кандидат");
+  detailField(text, "Статус", displayStatus(profile.membership_status));
+  detailField(text, "Возраст", profile.character_age == null ? null : profile.character_age + " лет");
+  detailField(text, "Профессия", profile.profession);
+  detailField(text, "Ремёсла", (profile.crafts || []).join(", "));
+  detailField(text, "О персонаже", profile.about);
+  memberDetailsBody.append(text);
+  membersGrid.hidden = true;
+  document.querySelector(".members-tools").hidden = true;
+  memberDetails.hidden = false;
+  memberDetails.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeMember() {
+  memberDetails.hidden = true;
+  membersGrid.hidden = false;
+  document.querySelector(".members-tools").hidden = false;
+}
+document.getElementById("closeMemberDetails").addEventListener("click", closeMember);
+memberSearch.addEventListener("input", () => { closeMember(); renderMembers(); });
+
+async function loadMembers() {
+  const sequence = ++membersLoadSequence;
+  closeMember();
+  membersGrid.replaceChildren();
+  membersCount.textContent = "";
+  membersCache = [];
+  if (!currentSession?.user || !supabaseClient) {
+    membersMessage.textContent = "Для просмотра реестра войдите через Discord.";
+    return;
+  }
+  membersMessage.textContent = "Загружаем реестр участников…";
+  const { data, error } = await supabaseClient.from("profiles")
+    .select("id,character_first_name,character_last_name,character_age,profession,crafts,about,character_photo_url,membership_status,game_rank")
+    .order("created_at", {ascending:true});
+  if (sequence !== membersLoadSequence || !currentSession?.user) return;
+  if (error) {
+    membersMessage.textContent = "Не удалось загрузить реестр: " + error.message;
+    return;
+  }
+  // Do not list blank profiles; registered members with a named character are included.
+  membersCache = (data || []).filter(p => p.character_first_name?.trim() && p.character_last_name?.trim());
+  renderMembers();
+}

@@ -24,6 +24,80 @@ const profilePage = document.getElementById("page-profile");
 const placeholderPage = document.getElementById("page-placeholder");
 const membersPage = document.getElementById("page-members");
 const managementPage = document.getElementById("page-management");
+const waitingPage = document.getElementById("page-waiting");
+let accessState = { mode: "loading", status: null, complete: false };
+let accessSequence = 0;
+let accessInitialized = false;
+const publicPages = new Set(["profile", "waiting"]);
+function canVisit(page) {
+  return accessState.mode === "approved" || accessState.mode === "admin" || publicPages.has(page);
+}
+function updateNavigationAccess() {
+  const restricted = accessState.mode !== "approved" && accessState.mode !== "admin";
+  for (const button of navButtons) {
+    button.hidden = restricted && button.dataset.page !== "profile";
+  }
+  document.querySelectorAll("[data-goto]").forEach(button => {
+    button.hidden = restricted && button.dataset.goto !== "profile";
+  });
+  document.querySelector(".management-caption").hidden = accessState.mode !== "admin";
+  const adminNav = document.querySelector('[data-page="management"]');
+  adminNav.hidden = accessState.mode !== "admin";
+  // The admin link is hidden for ordinary approved members too.
+  if (accessState.mode === "approved") adminNav.hidden = true;
+}
+function showWaiting() {
+  const heading = document.getElementById("waitingHeading");
+  const message = document.getElementById("waitingMessage");
+  const refresh = document.getElementById("waitingRefresh");
+  const profileButton = document.getElementById("waitingProfile");
+  const {mode} = accessState;
+  const content = {
+    loading:["Проверяем доступ…","Подождите, пока проверим вашу учётную запись."],
+    register:["Представьтесь братству","Чтобы отправить заявку, заполните имя и фамилию персонажа в разделе «Мой кабинет» и сохраните анкету."],
+    pending:["Заявка на рассмотрении","Анкета сохранена. Совет братства рассмотрит вашу заявку. Пока доступны только этот экран и ваш личный кабинет."],
+    rejected:["Заявка отклонена","Совет братства отклонил заявку. Вы можете просмотреть и изменить собственную анкету."],
+    error:["Не удалось проверить доступ","Проверьте подключение и повторите попытку. Если проблема повторится, обратитесь к администрации."],
+    guest:["Войдите через Discord","Для подачи заявки требуется авторизация через Discord."]
+  };
+  const [title, body] = content[mode] || content.loading;
+  heading.textContent = title;
+  message.textContent = body;
+  profileButton.hidden = mode === "guest" || mode === "loading";
+  refresh.hidden = mode === "guest";
+  waitingPage.classList.add("active-page");
+}
+async function refreshAccess() {
+  const sequence = ++accessSequence;
+  const userId = currentSession?.user?.id;
+  accessState = {mode: userId ? "loading" : "guest", status:null,complete:false};
+  updateNavigationAccess();
+  if (!userId || !supabaseClient) { navigate("waiting"); return; }
+  navigate("waiting");
+  try {
+    const [adminResult, profileResult] = await Promise.all([
+      supabaseClient.rpc("is_site_admin"),
+      supabaseClient.from("profiles").select("character_first_name,character_last_name,membership_status").eq("id",userId).maybeSingle()
+    ]);
+    if (sequence !== accessSequence || currentSession?.user?.id !== userId) return;
+    if (adminResult.error) throw adminResult.error;
+    if (profileResult.error) throw profileResult.error;
+    const p = profileResult.data;
+    const complete = !!(p?.character_first_name?.trim() && p?.character_last_name?.trim());
+    const mode = adminResult.data === true ? "admin" : !complete ? "register" : p.membership_status === "approved" ? "approved" : p.membership_status === "rejected" ? "rejected" : "pending";
+    accessState = {mode,status:p?.membership_status || null,complete};
+    updateNavigationAccess();
+    navigate(mode === "admin" || mode === "approved" ? "home" : "waiting");
+  } catch(error) {
+    if (sequence !== accessSequence) return;
+    accessState = {mode:"error",status:null,complete:false};
+    updateNavigationAccess(); navigate("waiting");
+    showToast("Проверка доступа: " + error.message);
+  }
+}
+document.getElementById("waitingProfile").addEventListener("click",()=>navigate("profile"));
+document.getElementById("waitingRefresh").addEventListener("click",refreshAccess);
+
 const breadcrumb = document.getElementById("breadcrumbCurrent");
 const sidebar = document.getElementById("sidebar");
 const toast = document.getElementById("toast");
@@ -45,15 +119,21 @@ function showToast(message) {
 }
 
 function navigate(page) {
+  if (!canVisit(page)) page = "waiting";
   const info = pageInfo[page] || pageInfo.home;
   navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === page));
   profilePage.classList.toggle("active-page", page === "profile");
   membersPage.classList.toggle("active-page", page === "members");
   managementPage.classList.toggle("active-page", page === "management");
+  waitingPage.classList.toggle("active-page", page === "waiting");
+  if (page === "waiting") showWaiting();
   if (page === "management") loadAdminPanel();
   if (page === "members") loadMembers();
   if (page === "home") {
     homePage.classList.add("active-page");
+    placeholderPage.classList.remove("active-page");
+  } else if (page === "waiting") {
+    homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "members") {
     homePage.classList.remove("active-page");
@@ -71,13 +151,19 @@ function navigate(page) {
     document.getElementById("placeholderTitle").textContent = info[0];
     document.getElementById("placeholderDescription").textContent = info[1];
   }
-  breadcrumb.textContent = info[0];
+  breadcrumb.textContent = page === "waiting" ? "Вступление" : info[0];
   sidebar.classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function renderAuthState(session) {
+  const previousUserId = currentSession?.user?.id;
   currentSession = session;
+  if (!accessInitialized || previousUserId !== (session?.user?.id || null)) {
+    accessInitialized = true;
+    // Avoid making Supabase requests synchronously inside onAuthStateChange.
+    setTimeout(refreshAccess, 0);
+  }
   if (membersPage.classList.contains("active-page")) loadMembers();
   if (managementPage.classList.contains("active-page")) loadAdminPanel();
   if (profilePage.classList.contains("active-page")) loadProfile();
@@ -233,6 +319,7 @@ profileForm.addEventListener("submit", async event => {
     profileMessage.textContent = "Анкета сохранена.";
     showToast("Анкета персонажа успешно сохранена.");
     renderPreview(photo);
+    await refreshAccess();
   } catch (error) {
     profileMessage.textContent = "Ошибка сохранения: " + error.message;
   } finally { button.disabled = false; }
@@ -471,3 +558,7 @@ async function adminMutation(functionName, args, button) {
 }
 adminFilter.addEventListener("change", renderAdminList);
 document.getElementById("adminRefresh").addEventListener("click", loadAdminPanel);
+
+// Always begin behind the access gate until Supabase confirms the user status.
+updateNavigationAccess();
+navigate("waiting");

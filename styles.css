@@ -215,3 +215,12 @@ button { font: inherit; }
 .admin-controls button {min-height:39px}
 @media(max-width:950px){.admin-controls{grid-template-columns:1fr auto;row-gap:18px}}
 @media(max-width:560px){.admin-controls{grid-template-columns:1fr}.admin-card-heading{flex-direction:column}.admin-controls button{width:100%}}
+
+/* Candidate onboarding and access gate */
+#page-waiting:not(.active-page){display:none!important}
+.waiting-panel{text-align:center;max-width:670px;margin:0 auto;padding:40px 25px}
+.waiting-seal{width:65px;height:65px;margin:0 auto 20px;display:grid;place-items:center;border:1px solid #c8aa77;border-radius:50%;font-size:27px;color:#8b683d;background:#f1e7d5}
+.waiting-panel h2{font:600 32px 'Cormorant Garamond',Georgia,serif;color:#49382e}
+.waiting-panel p{color:#786956;font-size:14px;line-height:1.7;margin:14px auto 23px;max-width:510px}
+.waiting-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.nav-item[hidden],.quick-link[hidden]{display:none!important}

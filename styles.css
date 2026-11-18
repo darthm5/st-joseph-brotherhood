@@ -251,3 +251,9 @@ button { font: inherit; }
 .store-tab{padding:12px 20px;border:1px solid var(--border, #806c53);border-radius:9px;background:transparent;color:inherit;cursor:pointer;font:inherit}
 .store-tab.active{background:#70502f;color:#fff0ce;border-color:#bd9251;font-weight:700}
 .store-tab:focus-visible{outline:3px solid #d8b56b;outline-offset:2px}
+
+/* v1.1.2 — компактный выбор предметов в двух формах кладовой */
+.store-cascade { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.store-cascade label { min-width:0; }
+.store-cascade select, .store-cascade input { width:100%; min-width:0; }
+@media(max-width:680px){ .store-cascade{grid-template-columns:1fr;} }

@@ -870,12 +870,52 @@ async function storeAllRows(table, columns, sortColumn = "created_at") {
   }
   return all;
 }
-function storePopulateSelect(select, items, emptyLabel) {
-  const selected = select.value;
-  select.replaceChildren(new Option(emptyLabel,""));
-  for (const item of items) select.add(new Option(`${item.name} (${item.category})`,item.id));
-  if (items.some(i => i.id === selected)) select.value = selected;
+// Каскадные фильтры для обеих форм: раздел → категория → поиск → предмет.
+function storeCascade(form) {
+  const section=form.querySelector('[data-store-section]');
+  const category=form.querySelector('[data-store-category]');
+  const search=form.querySelector('[data-store-item-search]');
+  const item=form.elements.namedItem('item');
+  function refreshCategories() {
+    category.replaceChildren(new Option('Выберите категорию',''));
+    const cats=[...new Set(storeItems.filter(x=>(x.section||'materials')===section.value).map(x=>x.category))].sort((a,b)=>a.localeCompare(b,'ru'));
+    for(const c of cats)category.add(new Option(c,c));
+    category.disabled=!section.value;
+    category.value='';search.value='';search.disabled=true;
+    refreshItems();
+  }
+  function refreshItems(keepSelection=false) {
+    const old=keepSelection?item.value:'';
+    const q=search.value.trim().toLocaleLowerCase('ru');
+    item.replaceChildren(new Option('Выберите предмет',''));
+    const matches=storeItems.filter(x=>(x.section||'materials')===section.value && x.category===category.value && (!q||x.name.toLocaleLowerCase('ru').includes(q)));
+    for(const x of matches)item.add(new Option(x.name,x.id));
+    item.disabled=!category.value;
+    search.disabled=!category.value;
+    if(matches.some(x=>x.id===old))item.value=old;
+  }
+  section.addEventListener('change',refreshCategories);
+  category.addEventListener('change',()=>{search.value='';refreshItems();});
+  search.addEventListener('input',()=>refreshItems(true));
+  return {
+    update(){
+      const current=item.value;
+      const chosen=storeItems.find(x=>x.id===current);
+      const desired=chosen?(chosen.section||'materials'):section.value;
+      section.value=desired||'';
+      refreshCategories();
+      if(chosen){category.value=chosen.category;refreshItems();item.value=chosen.id;}
+    },
+    choose(id){
+      const chosen=storeItems.find(x=>x.id===id);if(!chosen)return;
+      section.value=chosen.section||'materials';refreshCategories();
+      category.value=chosen.category;refreshItems();item.value=id;
+    },
+    reset(){section.value='';refreshCategories();}
+  };
 }
+const storeRequestCascade=storeCascade(storeEl('storeRequestForm'));
+const storeManualCascade=storeCascade(storeEl('storeManualForm'));
 function renderStoreCatalog() {
   const query = storeEl("storeSearch").value.trim().toLocaleLowerCase("ru");
   const category = storeEl("storeCategory").value;
@@ -899,7 +939,7 @@ function renderStoreCatalog() {
     storeText(row,"b",`${storeNumber.format(storeBalances.get(item.id)||0)} ${item.unit || "шт."}`);
     const action=document.createElement("button");action.type="button";action.className="secondary-button";action.textContent="Заявка";
     action.addEventListener("click",()=>{
-      storeEl("storeRequestForm").elements.namedItem("item").value=item.id;
+      storeRequestCascade.choose(item.id);
       storeEl("storeRequestForm").scrollIntoView({behavior:"smooth",block:"start"});
     });
     row.appendChild(action);root.appendChild(row);
@@ -931,7 +971,7 @@ async function loadStorehouse() {
     storeEl("storeInStock").textContent=storeNumber.format(items.filter(item=>(storeBalances.get(item.id)||0)>0).length);
     storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length);
     storeRenderFilters();
-    for(const formId of ["storeRequestForm","storeManualForm"])storePopulateSelect(storeEl(formId).elements.namedItem("item"),storeItems,"Выберите предмет");
+    storeRequestCascade.update();storeManualCascade.update();
     const members=profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(storeProfiles.get(a.id)||"").localeCompare(storeProfiles.get(b.id)||"","ru"));
     const memberSelect=storeEl("storeManualForm").elements.member;const selectedMember=memberSelect.value;
     memberSelect.replaceChildren(new Option("Общая операция",""));
@@ -983,7 +1023,7 @@ storeEl("storeRequestForm").addEventListener("submit",async event=>{
   if(!Number.isSafeInteger(quantity)||quantity<=0)return showToast("Укажите положительное целое количество.");
   if(!form.elements.namedItem("item").value)return showToast("Выберите предмет.");
   storeBusy=true;
-  try {const {error}=await supabaseClient.rpc("storage_submit_request",{p_item_id:form.elements.namedItem("item").value,p_request_type:form.elements.type.value,p_quantity:quantity,p_comment:form.elements.comment.value.trim()});if(error)throw error;form.reset();showToast("Заявка отправлена");await loadStorehouse();}
+  try {const {error}=await supabaseClient.rpc("storage_submit_request",{p_item_id:form.elements.namedItem("item").value,p_request_type:form.elements.type.value,p_quantity:quantity,p_comment:form.elements.comment.value.trim()});if(error)throw error;form.reset();storeRequestCascade.reset();showToast("Заявка отправлена");await loadStorehouse();}
   catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
 });
 storeEl("storeManualForm").addEventListener("submit",async event=>{
@@ -994,7 +1034,7 @@ storeEl("storeManualForm").addEventListener("submit",async event=>{
   if(!form.elements.namedItem("item").value)return showToast("Выберите предмет.");
   if(!window.confirm(`Записать ${signed<0?"выдачу":"поступление"} ${quantity} шт. предмета «${storeItemName(form.elements.namedItem("item").value)}»?`))return;
   storeBusy=true;
-  try {const {error}=await supabaseClient.rpc("storage_add_transaction",{p_item_id:form.elements.namedItem("item").value,p_quantity:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();showToast("Операция записана");await loadStorehouse();}
+  try {const {error}=await supabaseClient.rpc("storage_add_transaction",{p_item_id:form.elements.namedItem("item").value,p_quantity:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();storeManualCascade.reset();showToast("Операция записана");await loadStorehouse();}
   catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
 });
 storeEl("storeAddForm").addEventListener("submit",async event=>{

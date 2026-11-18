@@ -212,14 +212,24 @@
           <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div></article>
           <div class="treasury-forms">
             <form id="storeRequestForm" class="panel treasury-form"><h2>Заявка на ресурсы</h2><p>Передача или выдача учитывается после подтверждения администрации.</p>
-              <label>Предмет<select name="item" required><option value="">Выберите предмет</option></select></label>
+              <div class="store-cascade">
+                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
+                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
+                <label>Поиск предмета<input type="search" data-store-item-search placeholder="Начните вводить название" disabled autocomplete="off"></label>
+                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
+              </div>
               <label>Действие<select name="type"><option value="deposit">Передать в кладовую</option><option value="withdraw">Получить из кладовой</option></select></label>
               <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
               <label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Для чего нужны ресурсы или откуда они"></textarea></label>
               <button type="submit" class="secondary-button">Отправить заявку</button>
             </form>
             <form id="storeManualForm" class="panel treasury-form" hidden><h2>Операция кладовщика</h2>
-              <label>Предмет<select name="item" required><option value="">Выберите предмет</option></select></label>
+              <div class="store-cascade">
+                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
+                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
+                <label>Поиск предмета<input type="search" data-store-item-search placeholder="Начните вводить название" disabled autocomplete="off"></label>
+                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
+              </div>
               <label>Действие<select name="type"><option value="deposit">Приход</option><option value="withdraw">Расход</option></select></label>
               <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
               <label>Участник (необязательно)<select name="member"><option value="">Общая операция</option></select></label>

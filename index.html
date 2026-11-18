@@ -289,6 +289,14 @@
             <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
           </form>
         </section>
+        <section class="page" id="page-chronicle">
+          <div class="page-title-block"><div class="eyebrow">Anno Domini · Память поколений</div><h1>Летопись братства</h1><p>События, деяния и судьбы, навеки вписанные в историю нашего братства.</p></div>
+          <div class="chron-actions"><button type="button" class="secondary-button" id="chronCreate" hidden>✦ Внести событие в летопись</button><button type="button" class="secondary-button" id="chronBack" hidden>← К летописи</button><button type="button" class="secondary-button" id="chronRefresh">Обновить</button></div>
+          <p id="chronNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div id="chronTimelineView"><div class="chron-intro">✥ &nbsp; Хроника славных и памятных деяний &nbsp; ✥</div><div id="chronTimeline" class="chron-timeline"></div></div>
+          <article id="chronReader" class="panel chron-reader" hidden><p id="chronReaderDate" class="chron-date"></p><h2 id="chronReaderTitle"></h2><img id="chronReaderImage" class="chron-hero" alt="Иллюстрация летописи" hidden><p id="chronReaderSummary" class="chron-lead"></p><div id="chronReaderBody" class="library-body"></div><div id="chronReaderActions" class="treasury-actions"></div></article>
+          <form id="chronEditor" class="panel treasury-form" hidden><h2 id="chronEditorTitle">Новое событие</h2><label>Название события<input name="title" required minlength="3" maxlength="160" placeholder="Основание братства"></label><label>Дата в истории братства<input name="event_date" type="date" required></label><label>Краткое описание<textarea name="summary" rows="3" maxlength="600" placeholder="Краткая запись для временной линии"></textarea></label><label>Полная история<textarea name="body" rows="12" required maxlength="30000" placeholder="Расскажите о памятном событии..."></textarea></label><label>Ссылка на иллюстрацию (HTTPS)<input name="image_url" type="url" maxlength="2000" placeholder="https://example.com/illustration.jpg"></label><p class="store-muted">Изображения внутри текста: ![Описание](https://example.com/image.jpg). Заголовки: #, жирный текст: **слово**.</p><div class="treasury-actions"><button type="submit" class="secondary-button" id="chronSave">Сохранить запись</button><button type="button" class="secondary-button" id="chronCancel">Отмена</button></div></form>
+        </section>
         <section class="page" id="page-calendar">
           <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
           <div class="store-actions" role="group" aria-label="Календарь и мероприятия">

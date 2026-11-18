@@ -31,6 +31,7 @@ const workPage = document.getElementById("page-work");
 const marketPage = document.getElementById("page-market");
 const calendarPage = document.getElementById("page-calendar");
 const libraryPage = document.getElementById("page-info");
+const chroniclePage = document.getElementById("page-chronicle");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -138,6 +139,7 @@ function navigate(page) {
   marketPage.classList.toggle("active-page", page === "market");
   calendarPage.classList.toggle("active-page", page === "calendar");
   libraryPage.classList.toggle("active-page", page === "info");
+  chroniclePage.classList.toggle("active-page", page === "chronicle");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -149,6 +151,7 @@ function navigate(page) {
   if (page === "work") loadWork();
   if (page === "market") loadMarket();
   if (page === "calendar") loadCalendar();
+  if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
   if (page === "info") { libHome(); loadLibrary(); }
   if (page === "home") {
     homePage.classList.add("active-page");
@@ -162,7 +165,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -1618,4 +1621,93 @@ libEl('libraryEditor').addEventListener('submit',async event=>{
  else args.p_category=libCategory;
  const ok=await libRpc(libEditing?'guild_article_update':'guild_article_create',args,libEditing?'Документ обновлён':'Документ опубликован');
  if(ok){libEditing=null;f.reset();libShow('board');}
+});
+
+
+// Chronicle v1.6: chronological medieval timeline, Supabase admin-only RPCs.
+const chronEl=id=>document.getElementById(id);
+let chronRecords=[],chronMode='timeline',chronEditing=null,chronSelected=null,chronSeq=0,chronSaving=false;
+const chronDate=d=>{const [y,m,day]=String(d).slice(0,10).split('-').map(Number);return new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,day));};
+function chronShow(mode){
+ if(mode==='editor'&&accessState.mode!=='admin')return;
+ chronMode=mode;
+ chronEl('chronTimelineView').hidden=mode!=='timeline';
+ chronEl('chronReader').hidden=mode!=='reader';
+ chronEl('chronEditor').hidden=mode!=='editor';
+ chronEl('chronBack').hidden=mode==='timeline';
+ chronEl('chronCreate').hidden=mode!=='timeline'||accessState.mode!=='admin';
+ chronEl('chronRefresh').hidden=mode!=='timeline';
+}
+function chronRender(){
+ const root=chronEl('chronTimeline');root.replaceChildren();
+ if(!chronRecords.length){root.append(libNode('p','Летопись пока пуста. Первое событие ещё ждёт своего летописца.','chron-empty'));return;}
+ let lastYear=null;
+ for(const rec of chronRecords){
+  const year=String(rec.event_date).slice(0,4);
+  if(year!==lastYear){const heading=libNode('div','Anno Domini '+year,'chron-year');root.append(heading);lastYear=year;}
+  const entry=libNode('article',null,'chron-entry');
+  const marker=libNode('div',null,'chron-marker');entry.append(marker);
+  const card=libNode('div',null,'chron-entry-card');
+  const img=libSafeImage(rec.image_url,'Иллюстрация: '+rec.title,'chron-entry-image');if(img)card.append(img);
+  const content=libNode('div',null,'chron-entry-content');
+  content.append(libNode('time',chronDate(rec.event_date),'chron-date'),libNode('h2',rec.title));
+  const excerpt=rec.summary||String(rec.body).replace(/!\[[^\]]*\]\([^)]+\)|[#*\[\]]/g,'').slice(0,260);
+  content.append(libNode('p',excerpt+(excerpt.length>=260?'…':''),'chron-summary'));
+  const button=libNode('button','Читать запись →','secondary-button');button.type='button';button.addEventListener('click',()=>chronRead(rec.id));content.append(button);
+  card.append(content);entry.append(card);root.append(entry);
+ }
+}
+function chronRead(id){
+ const rec=chronRecords.find(r=>r.id===id);if(!rec)return chronShow('timeline');chronSelected=id;
+ chronEl('chronReaderDate').textContent=chronDate(rec.event_date);
+ chronEl('chronReaderTitle').textContent=rec.title;
+ chronEl('chronReaderSummary').textContent=rec.summary||'';
+ const hero=chronEl('chronReaderImage');hero.hidden=true;hero.removeAttribute('src');
+ if(rec.image_url){const safe=libSafeImage(rec.image_url,'Иллюстрация: '+rec.title);if(safe){hero.src=safe.src;hero.hidden=false;hero.onerror=()=>{hero.hidden=true;};}}
+ libBody(rec.body,chronEl('chronReaderBody'));
+ const actions=chronEl('chronReaderActions');actions.replaceChildren();
+ if(accessState.mode==='admin'){
+  const edit=libNode('button','Изменить запись','secondary-button');edit.type='button';edit.addEventListener('click',()=>chronEdit(id));
+  const del=libNode('button','Удалить запись','secondary-button');del.type='button';del.addEventListener('click',async()=>{if(!confirm('Удалить запись «'+rec.title+'» без возможности восстановления?'))return;const ok=await chronRpc('guild_chronicle_delete',{p_id:id},'Запись удалена');if(ok)chronShow('timeline');});
+  actions.append(edit,del);
+ }
+ chronShow('reader');
+}
+function chronEdit(id=null){
+ if(accessState.mode!=='admin')return;
+ const rec=id?chronRecords.find(r=>r.id===id):null;chronEditing=rec?.id||null;
+ const form=chronEl('chronEditor');form.reset();
+ for(const name of ['title','event_date','summary','body','image_url'])form.elements.namedItem(name).value=rec?.[name]||'';
+ chronEl('chronEditorTitle').textContent=rec?'Редактирование записи':'Новое событие летописи';chronShow('editor');
+}
+async function loadChronicle(){
+ if(!supabaseClient||!currentSession?.user||!['admin','approved'].includes(accessState.mode))return;
+ const token=++chronSeq;chronEl('chronNotice').textContent='Открываем летопись…';
+ chronEl('chronCreate').hidden=accessState.mode!=='admin'||chronMode!=='timeline';
+ try{
+  const {data,error}=await supabaseClient.from('guild_chronicle').select('id,title,event_date,summary,body,image_url,updated_at').order('event_date',{ascending:false}).order('created_at',{ascending:false}).limit(1000);
+  if(error)throw error;if(token!==chronSeq)return;
+  chronRecords=data||[];chronRender();
+  if(chronMode==='reader'&&chronSelected){if(chronRecords.some(r=>r.id===chronSelected))chronRead(chronSelected);else chronShow('timeline');}
+  chronEl('chronNotice').textContent='';
+ }catch(err){if(token===chronSeq)chronEl('chronNotice').textContent='Ошибка загрузки летописи: '+err.message;}
+}
+async function chronRpc(name,args,message){
+ if(chronSaving)return false;chronSaving=true;chronEl('chronSave').disabled=true;
+ try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(message);await loadChronicle();return true;}
+ catch(err){showToast('Ошибка летописи: '+err.message);return false;}
+ finally{chronSaving=false;chronEl('chronSave').disabled=false;}
+}
+chronEl('chronCreate').addEventListener('click',()=>chronEdit());
+chronEl('chronBack').addEventListener('click',()=>chronShow('timeline'));
+chronEl('chronCancel').addEventListener('click',()=>chronShow(chronEditing?'reader':'timeline'));
+chronEl('chronRefresh').addEventListener('click',loadChronicle);
+chronEl('chronEditor').addEventListener('submit',async e=>{
+ e.preventDefault();if(accessState.mode!=='admin'||chronSaving)return;
+ const f=e.currentTarget;
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_event_date:f.elements.namedItem('event_date').value,p_summary:f.elements.namedItem('summary').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_image_url:f.elements.namedItem('image_url').value.trim()||null};
+ if(!args.p_title||!args.p_event_date||!args.p_body){showToast('Укажите название, дату и историю.');return;}
+ if(chronEditing)args.p_id=chronEditing;
+ const ok=await chronRpc(chronEditing?'guild_chronicle_update':'guild_chronicle_create',args,chronEditing?'Запись обновлена':'Событие внесено в летопись');
+ if(ok){chronEditing=null;f.reset();chronShow('timeline');}
 });

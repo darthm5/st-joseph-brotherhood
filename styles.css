@@ -360,3 +360,25 @@ button { font: inherit; }
 #page-info .library-inline-image{display:block;max-width:100%;height:auto;max-height:700px;object-fit:contain;margin:24px auto;border:1px solid #bca783}
 #page-info .library-body{font-size:16px;line-height:1.85;max-width:none}
 @media(max-width:720px){#page-info .library-news-card{flex-direction:column}#page-info .library-news-cover{width:100%;min-width:0;max-height:240px}#page-info .library-news-content{padding:20px}}
+
+/* Chronicle v1.6 */
+#page-chronicle [hidden]{display:none!important}
+#page-chronicle .chron-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+#page-chronicle .chron-intro{text-align:center;font-family:Georgia,serif;color:#b28a51;letter-spacing:1.2px;font-size:17px;margin:30px 0 36px}
+#page-chronicle .chron-timeline{position:relative;padding:0 0 12px 30px;margin-left:12px;border-left:2px solid #aa8958}
+#page-chronicle .chron-year{font-family:Georgia,serif;color:#d2b77b;background:#4c2924;border:1px solid #97754a;padding:8px 18px;width:max-content;max-width:100%;margin:22px 0 24px -48px;position:relative;font-size:18px}
+#page-chronicle .chron-entry{position:relative;margin:0 0 28px}
+#page-chronicle .chron-marker{position:absolute;left:-40px;top:24px;width:16px;height:16px;border-radius:50%;background:#b48a48;border:3px solid #50302b;box-shadow:0 0 0 2px #b48a48}
+#page-chronicle .chron-entry-card{border:1px solid #987344;background:#efe0bf;display:flex;overflow:hidden;box-shadow:0 4px 18px #0002;min-height:165px}
+#page-chronicle .chron-entry-image{width:34%;max-height:320px;object-fit:cover;display:block;flex-shrink:0}
+#page-chronicle .chron-entry-content{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:24px 28px;flex:1;min-width:0;color:#3b2920}
+#page-chronicle .chron-date{font-family:Georgia,serif;color:#95652f;font-size:14px;font-weight:600}
+#page-chronicle .chron-entry-content h2{font-family:Georgia,serif;color:#432820;font-size:clamp(21px,2.5vw,30px);line-height:1.25;margin:0;overflow-wrap:anywhere}
+#page-chronicle .chron-summary{line-height:1.7;white-space:pre-wrap;margin:0;overflow-wrap:anywhere}
+#page-chronicle .chron-entry-content button{margin-top:auto}
+#page-chronicle .chron-reader{padding:clamp(20px,4vw,48px);max-width:none;width:100%;box-sizing:border-box}
+#page-chronicle .chron-reader h2{font-family:Georgia,serif;font-size:clamp(28px,3vw,44px);margin:10px 0 20px}
+#page-chronicle .chron-hero{width:100%;max-height:540px;object-fit:cover;margin:0 0 25px;border:1px solid #b99b68}
+#page-chronicle .chron-lead{font-size:clamp(17px,2vw,21px);line-height:1.7;white-space:pre-wrap}
+#page-chronicle .chron-empty{font-family:Georgia,serif;padding:25px;color:#b7a07b}
+@media(max-width:720px){#page-chronicle .chron-timeline{padding-left:18px;margin-left:10px}#page-chronicle .chron-marker{left:-28px}#page-chronicle .chron-year{margin-left:-34px}#page-chronicle .chron-entry-card{flex-direction:column}#page-chronicle .chron-entry-image{width:100%;max-height:260px}#page-chronicle .chron-entry-content{padding:20px}}

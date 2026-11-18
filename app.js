@@ -1286,8 +1286,10 @@ function marketStartEdit(ad){
 }
 function marketAction(parent,label,fn){const b=marketNode('button',label,'secondary-button');b.type='button';b.addEventListener('click',fn);parent.append(b);}
 function marketCard(ad){
-  const card=marketNode('article',null,'work-card');const top=marketNode('div',null,'work-card-top');
-  top.append(marketNode('strong',ad.title),marketNode('span',ad.status==='closed'?'Закрыто':marketTypeNames[ad.ad_type]||'Архив','treasury-status'));card.append(top);
+  const card=marketNode('article',null,'work-card market-ad-'+(ad.status==='active'?'fresh':ad.status==='deal'?'deal':'closed'));const top=marketNode('div',null,'work-card-top');
+  const statusText=ad.status==='deal'?'Сделка':ad.status==='closed'?'Закрыто':marketTypeNames[ad.ad_type]||'Архив';
+  top.append(marketNode('strong',ad.title),marketNode('span',statusText,'treasury-status'));card.append(top);
+  if(ad.status==='deal')card.append(marketNode('p','🤝 Сделка с '+(marketNames.get(ad.deal_with)||'участником братства'),'market-deal-person'));
   const items=ad.market_ad_items||[];
   if(items.length){const list=marketNode('ul',null,'market-card-items');for(const it of items)list.append(marketNode('li',`${it.item_name} — ${it.quantity} ${it.unit||'шт.'} · ${it.price==null?'Цена договорная':it.price+' грошей/ед.'}`));card.append(list);}
   else card.append(marketNode('small',`${ad.category} · ${ad.quantity} шт. · ${ad.price==null?'Цена договорная':ad.price+' грошей'} (старое объявление)`));
@@ -1295,16 +1297,23 @@ function marketCard(ad){
   card.append(marketNode('small',`Автор: ${marketNames.get(ad.author_id)||'Участник'} · ${new Date(ad.created_at).toLocaleString('ru-RU')}`));
   if(ad.contact)card.append(marketNode('small',`Связь: ${ad.contact}`));
   const mine=ad.author_id===currentSession?.user?.id;
+  if(ad.status==='active'&&!mine){
+    const actions=marketNode('div',null,'treasury-actions');
+    marketAction(actions,'🤝 Сделка',()=>marketRpc('market_take_deal',{p_id:ad.id},'Сделка закреплена за вами',`Закрепить объявление «${ad.title}» за собой?`));card.append(actions);
+  }
   if(mine||accessState.mode==='admin'){
     const actions=marketNode('div',null,'treasury-actions');
-    if(mine){if(ad.status==='active'&&ad.ad_type!=='exchange'&&items.every(x=>x.item_id))marketAction(actions,'Изменить',()=>marketStartEdit(ad));
-      marketAction(actions,ad.status==='active'?'Закрыть':'Открыть',()=>marketRpc('market_set_status',{p_id:ad.id,p_status:ad.status==='active'?'closed':'active'},'Статус обновлён'));}
+    if(mine){
+      if(ad.status==='active'&&ad.ad_type!=='exchange'&&items.every(x=>x.item_id))marketAction(actions,'Изменить',()=>marketStartEdit(ad));
+      if(ad.status==='deal')marketAction(actions,'Отменить сделку',()=>marketRpc('market_cancel_deal',{p_id:ad.id},'Объявление снова доступно','Отменить закреплённую сделку?'));
+      if(ad.status!=='deal')marketAction(actions,ad.status==='active'?'Закрыть':'Открыть',()=>marketRpc('market_set_status',{p_id:ad.id,p_status:ad.status==='active'?'closed':'active'},'Статус обновлён'));
+    }
     marketAction(actions,'Удалить',()=>marketRpc('market_delete_ad',{p_id:ad.id},'Объявление удалено',`Удалить объявление «${ad.title}»?`));card.append(actions);
   }
   return card;
 }
 function marketRender(){
-  const myId=currentSession?.user?.id,active=marketRows.filter(ad=>ad.status==='active'&&ad.ad_type!=='exchange');
+  const myId=currentSession?.user?.id,active=marketRows.filter(ad=>['active','deal'].includes(ad.status)&&ad.ad_type!=='exchange');
   const type=marketEl('marketFilterType').value,category=marketEl('marketFilterCategory').value,search=marketEl('marketSearch').value.trim().toLocaleLowerCase('ru');
   const visible=active.filter(ad=>{
     const items=ad.market_ad_items||[];
@@ -1323,7 +1332,7 @@ async function loadMarket(){
   const token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
   try{
     const [ads,people,catalog]=await Promise.all([
-      supabaseClient.from('market_ads').select('id,author_id,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price)').order('created_at',{ascending:false}).limit(1000),
+      supabaseClient.from('market_ads').select('id,author_id,deal_with,deal_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price)').order('created_at',{ascending:false}).limit(1000),
       supabaseClient.from('profiles').select('id,character_first_name,character_last_name').limit(1000),
       supabaseClient.from('storage_items').select('id,name,category,unit,section').order('name').limit(5000)
     ]);
@@ -1331,7 +1340,7 @@ async function loadMarket(){
     marketRows=ads.data||[];marketCatalog=catalog.data||[];
     marketNames=new Map((people.data||[]).map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));
     const filter=marketEl('marketFilterCategory'),old=filter.value;filter.replaceChildren(new Option('Все категории','all'));
-    const cats=new Set();for(const a of marketRows.filter(a=>a.status==='active')){cats.add(a.category);for(const it of a.market_ad_items||[])cats.add(it.category);}
+    const cats=new Set();for(const a of marketRows.filter(a=>['active','deal'].includes(a.status))){cats.add(a.category);for(const it of a.market_ad_items||[])cats.add(it.category);}
     for(const cat of [...cats].sort((a,b)=>a.localeCompare(b,'ru')))filter.add(new Option(cat,cat));
     if([...filter.options].some(o=>o.value===old))filter.value=old;
     marketRender();marketEl('marketNotice').textContent='Объявления обновлены.';

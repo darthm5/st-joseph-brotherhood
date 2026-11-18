@@ -293,3 +293,9 @@ button { font: inherit; }
 
 /* Market v1.3.1 multi-item editor */
 .market-item-rows{display:grid;gap:12px;margin:12px 0 18px}.market-item-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px;border:1px solid var(--line, #67543d);border-radius:8px}.market-item-row label{min-width:0}.market-item-row select,.market-item-row input{width:100%;min-width:0}.market-item-row label:nth-child(3){grid-column:1/-1}.market-item-row button{justify-self:start}.market-card-items{margin:10px 0;padding-left:24px}.market-card-items li{margin:4px 0}@media(max-width:640px){.market-item-row{grid-template-columns:1fr}.market-item-row label:nth-child(3){grid-column:auto}}
+
+/* Market v1.3.2: visually distinct available/reserved listings */
+#page-market .market-ad-fresh{border:2px solid #4e9b59;background:linear-gradient(110deg,rgba(56,146,68,.17),rgba(56,146,68,.055));}
+#page-market .market-ad-deal{border:2px solid #d3a533;background:linear-gradient(110deg,rgba(215,165,44,.20),rgba(215,165,44,.055));}
+#page-market .market-ad-closed{opacity:.75;}
+#page-market .market-deal-person{font-weight:700;color:#e3bb56;margin:8px 0;}

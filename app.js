@@ -27,6 +27,7 @@ const managementPage = document.getElementById("page-management");
 const craftsPage = document.getElementById("page-crafts");
 const treasuryPage = document.getElementById("page-treasury");
 const storehousePage = document.getElementById("page-storehouse");
+const workPage = document.getElementById("page-work");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -130,6 +131,7 @@ function navigate(page) {
   craftsPage.classList.toggle("active-page", page === "crafts");
   treasuryPage.classList.toggle("active-page", page === "treasury");
   storehousePage.classList.toggle("active-page", page === "storehouse");
+  workPage.classList.toggle("active-page", page === "work");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -138,6 +140,7 @@ function navigate(page) {
   if (page === "crafts") loadDirectory();
   if (page === "treasury") loadTreasury();
   if (page === "storehouse") loadStorehouse();
+  if (page === "work") loadWork();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -150,7 +153,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -1061,4 +1064,169 @@ storeEl("storeAddForm").addEventListener("submit",async event=>{
   const form=event.currentTarget;storeBusy=true;
   try {const section=form.elements.namedItem("section").value;const category=form.elements.category.value.trim();if(section==="products"&&!storeProductCategories.includes(category))throw new Error("Выберите одну из девяти категорий готовой продукции");const {error}=await supabaseClient.rpc(section==="products"?"storage_add_product_item":"storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:category,p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();storeEl("storeNewSection").value=storeSection;showToast("Предмет добавлен в каталог");await loadStorehouse();}
   catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+});
+
+
+// WORK v1.2 — all panels closed by default, one panel at a time.
+const workEl = id => document.getElementById(id);
+let workTab = 'public';
+let workPanel = null;
+let workLoadToken = 0;
+let workBusy = false;
+let workTasks = [];
+let workReports = [];
+let workPeople = new Map();
+const workDate = value => value ? new Date(value).toLocaleString('ru-RU') : 'Без срока';
+const workStatusNames = {open:'Свободно',assigned:'В работе',submitted:'Отчёт на проверке',completed:'Завершено',cancelled:'Отменено'};
+function workNode(tag, content, className='') {
+  const node=document.createElement(tag);
+  if(content!==undefined && content!==null)node.textContent=String(content);
+  if(className)node.className=className;
+  return node;
+}
+function workOpenPanel(id) {
+  workPanel = workPanel===id ? null : id;
+  for(const panel of document.querySelectorAll('.work-panel'))panel.hidden=panel.id!==workPanel;
+  for(const button of document.querySelectorAll('[data-work-panel]')){
+    const expanded=button.dataset.workPanel===workPanel;
+    button.setAttribute('aria-expanded',String(expanded));
+    button.classList.toggle('work-selected',expanded);
+  }
+}
+function workShowReport(task) {
+  workOpenPanel(workPanel==='workReportPanel'?null:'workReportPanel');
+  if(workPanel==='workReportPanel'){
+    workEl('workReportForm').elements.namedItem('task_id').value=task.id;
+    workEl('workReportTitle').textContent='Отчёт: '+task.title;
+    workEl('workReportPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+function workAction(parent,label,callback) {
+  const button=workNode('button',label,'secondary-button');button.type='button';
+  button.addEventListener('click',callback);parent.appendChild(button);return button;
+}
+function workCard(parent,task,kind='board') {
+  const card=workNode('article',null,'work-card');
+  const top=workNode('div',null,'work-card-top');
+  top.append(workNode('strong',task.title),workNode('span',workStatusNames[task.status]||task.status,'treasury-status'));
+  card.append(top);
+  card.append(workNode('small',`${task.category} · ${task.task_type==='personal'?'Личное':'Общее'} · Награда: ${task.reward_amount} грошей`));
+  if(task.description)card.append(workNode('p',task.description));
+  card.append(workNode('small',`Срок: ${workDate(task.deadline)} · Исполнитель: ${workPeople.get(task.assigned_to)||'Не назначен'}`));
+  const actions=workNode('div',null,'treasury-actions');
+  const mine=task.assigned_to===currentSession?.user?.id;
+  if(kind==='board' && task.status==='open' && task.task_type==='public')
+    workAction(actions,'Взять поручение',()=>workPerform('work_claim_task',{p_task_id:task.id},'Поручение принято',`Взять поручение «${task.title}»?`));
+  if((kind==='board'||kind==='mine') && mine && task.status==='assigned')
+    workAction(actions,'Отправить отчёт',()=>workShowReport(task));
+  if(accessState.mode==='admin' && !['completed','cancelled','submitted'].includes(task.status))
+    workAction(actions,'Отменить',()=>workPerform('work_cancel_task',{p_task_id:task.id},'Поручение отменено',`Отменить «${task.title}»?`));
+  if(actions.childNodes.length)card.append(actions);
+  parent.append(card);
+}
+function workRender() {
+  const personal=workTab==='personal';
+  workEl('workListTitle').textContent=personal?'Личные поручения':'Доска общих поручений';
+  const filtered=workTasks.filter(t=>t.task_type===workTab && !['completed','cancelled'].includes(t.status));
+  workEl('workCount').textContent=`${filtered.length} поручений`;
+  const board=workEl('workTaskList');board.replaceChildren();
+  if(!filtered.length)board.append(workNode('p',personal?'Личных поручений пока нет.':'Общих поручений пока нет.','store-muted'));
+  for(const task of filtered)workCard(board,task);
+  const mine=workEl('workMineList');mine.replaceChildren();
+  const myTasks=workTasks.filter(t=>t.assigned_to===currentSession?.user?.id && !['completed','cancelled'].includes(t.status));
+  if(!myTasks.length)mine.append(workNode('p','Активных заданий нет.','store-muted'));
+  for(const task of myTasks)workCard(mine,task,'mine');
+  const archive=workEl('workArchiveList');archive.replaceChildren();
+  const archived=workTasks.filter(t=>['completed','cancelled'].includes(t.status));
+  if(!archived.length)archive.append(workNode('p','Архив пока пуст.','store-muted'));
+  for(const task of archived)workCard(archive,task,'archive');
+  const reports=workEl('workReportsList');reports.replaceChildren();
+  if(accessState.mode==='admin'){
+    const pending=workReports.filter(r=>r.status==='pending');
+    if(!pending.length)reports.append(workNode('p','Отчётов на проверке нет.','store-muted'));
+    for(const r of pending){
+      const task=workTasks.find(t=>t.id===r.task_id);
+      const card=workNode('article',null,'work-card');
+      card.append(workNode('strong',task?.title||'Поручение'),workNode('small',`${workPeople.get(r.user_id)||'Участник'} · ${workDate(r.created_at)}`),workNode('p',r.report_text));
+      const actions=workNode('div',null,'treasury-actions');
+      workAction(actions,'Подтвердить',()=>workPerform('work_review_report',{p_report_id:r.id,p_approve:true},'Отчёт принят',`Подтвердить отчёт по «${task?.title||'поручению'}»?`));
+      workAction(actions,'Отклонить',()=>workPerform('work_review_report',{p_report_id:r.id,p_approve:false},'Отчёт отклонён',`Отклонить отчёт? Исполнитель сможет отправить новый.`));
+      card.append(actions);reports.append(card);
+    }
+  }
+}
+async function workFetchAll(table,columns,sort='created_at') {
+  const rows=[];
+  for(let offset=0;offset<10000;offset+=500){
+    const {data,error}=await supabaseClient.from(table).select(columns).order(sort,{ascending:false}).range(offset,offset+499);
+    if(error)throw error;
+    rows.push(...(data||[]));if(!data||data.length<500)return rows;
+  }
+  throw new Error('Слишком много записей для загрузки.');
+}
+async function loadWork() {
+  if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+  const token=++workLoadToken;
+  const admin=accessState.mode==='admin';
+  for(const button of document.querySelectorAll('[data-work-admin]'))button.hidden=!admin;
+  if(!admin && ['workCreatePanel','workReportsPanel'].includes(workPanel))workOpenPanel(workPanel);
+  workEl('workNotice').textContent='Загружаем поручения…';
+  try{
+    const [tasks,reports,people]=await Promise.all([
+      workFetchAll('work_tasks','id,title,description,category,task_type,status,reward_amount,assigned_to,created_by,deadline,created_at'),
+      admin?workFetchAll('work_reports','id,task_id,user_id,report_text,status,created_at'):Promise.resolve([]),
+      workFetchAll('profiles','id,character_first_name,character_last_name,membership_status','created_at')
+    ]);
+    if(token!==workLoadToken)return;
+    workTasks=tasks;workReports=reports;
+    workPeople=new Map(people.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));
+    const assignee=workEl('workAssignee');assignee.replaceChildren(new Option('Выберите участника',''));
+    for(const p of people.filter(p=>p.membership_status==='approved').sort((a,b)=>(workPeople.get(a.id)||'').localeCompare(workPeople.get(b.id)||'','ru')))
+      assignee.add(new Option(workPeople.get(p.id),p.id));
+    workRender();
+    workEl('workNotice').textContent='Поручения обновлены.';
+  }catch(err){if(token===workLoadToken)workEl('workNotice').textContent='Ошибка загрузки поручений: '+err.message;}
+}
+async function workPerform(rpc,args,success,confirmText){
+  if(workBusy)return;
+  if(confirmText&&!window.confirm(confirmText))return;
+  workBusy=true;
+  try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;showToast(success);await loadWork();}
+  catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
+}
+for(const button of document.querySelectorAll('[data-work-panel]'))button.addEventListener('click',()=>workOpenPanel(button.dataset.workPanel));
+workEl('workTabPublic').addEventListener('click',()=>workSwitchTab('public'));
+workEl('workTabPersonal').addEventListener('click',()=>workSwitchTab('personal'));
+function workSwitchTab(tab){
+  workTab=tab;
+  for(const [id,value] of [['workTabPublic','public'],['workTabPersonal','personal']]){
+    const b=workEl(id);b.classList.toggle('active',tab===value);b.setAttribute('aria-selected',String(tab===value));
+  }
+  if(workPanel)workOpenPanel(workPanel);
+  workRender();
+}
+workEl('workRefresh').addEventListener('click',loadWork);
+workEl('workCreateType').addEventListener('change',event=>{
+  const personal=event.target.value==='personal';
+  workEl('workAssigneeLabel').hidden=!personal;
+  workEl('workAssignee').required=personal;
+});
+workEl('workCreatePanel').addEventListener('submit',async event=>{
+  event.preventDefault();if(workBusy||accessState.mode!=='admin')return;
+  const f=event.currentTarget;
+  const amount=Number(f.elements.namedItem('reward_amount').value);
+  if(!Number.isSafeInteger(amount)||amount<0)return showToast('Укажите целую неотрицательную награду.');
+  const deadline=f.elements.namedItem('deadline').value;
+  const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_task_type:f.elements.namedItem('task_type').value,p_reward_amount:amount,p_assigned_to:f.elements.namedItem('assigned_to').value||null,p_deadline:deadline?new Date(deadline).toISOString():null};
+  workBusy=true;
+  try{const {error}=await supabaseClient.rpc('work_create_task',args);if(error)throw error;f.reset();workEl('workAssigneeLabel').hidden=true;workEl('workAssignee').required=false;workOpenPanel('workCreatePanel');showToast('Поручение создано');await loadWork();}
+  catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
+});
+workEl('workReportForm').addEventListener('submit',async event=>{
+  event.preventDefault();if(workBusy)return;
+  const f=event.currentTarget;
+  const args={p_task_id:f.elements.namedItem('task_id').value,p_report_text:f.elements.namedItem('report_text').value.trim()};
+  workBusy=true;
+  try{const {error}=await supabaseClient.rpc('work_submit_report',args);if(error)throw error;f.reset();workOpenPanel('workReportPanel');showToast('Отчёт отправлен на проверку');await loadWork();}
+  catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
 });

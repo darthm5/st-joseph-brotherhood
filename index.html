@@ -255,6 +255,42 @@
           <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
         </section>
+        <section class="page" id="page-work">
+          <div class="page-title-block"><div class="eyebrow">Дела братства</div><h1>Работа и поручения</h1><p>Общая доска, личные задания и отчёты о выполнении.</p></div>
+          <div class="store-tabs" role="tablist" aria-label="Виды поручений">
+            <button type="button" class="store-tab active" id="workTabPublic" aria-selected="true">Общие поручения</button>
+            <button type="button" class="store-tab" id="workTabPersonal" aria-selected="false">Личные поручения</button>
+          </div>
+          <div class="store-actions" role="group" aria-label="Действия с поручениями">
+            <button type="button" class="secondary-button" data-work-panel="workCreatePanel" data-work-admin hidden aria-expanded="false">Создать поручение</button>
+            <button type="button" class="secondary-button" data-work-panel="workMinePanel" aria-expanded="false">Мои задания</button>
+            <button type="button" class="secondary-button" data-work-panel="workReportsPanel" data-work-admin hidden aria-expanded="false">Проверка отчётов</button>
+            <button type="button" class="secondary-button" data-work-panel="workArchivePanel" aria-expanded="false">Архив работ</button>
+            <button type="button" class="secondary-button" id="workRefresh">Обновить</button>
+          </div>
+          <p id="workNotice" class="members-message" role="status" aria-live="polite">Загружаем поручения…</p>
+          <form id="workCreatePanel" class="panel treasury-form work-panel" hidden>
+            <h2>Новое поручение</h2>
+            <label>Название<input name="title" minlength="3" maxlength="150" required placeholder="Например: добыть 200 железной руды"></label>
+            <label>Описание<textarea name="description" maxlength="5000" rows="4" placeholder="Что нужно сделать"></textarea></label>
+            <div class="work-form-grid">
+              <label>Категория<select name="category"><option>Добыча ресурсов</option><option>Лесозаготовка</option><option>Охота</option><option>Доставка</option><option>Ремесло</option><option>Торговля</option><option>Охрана</option><option>Прочее</option></select></label>
+              <label>Тип поручения<select name="task_type" id="workCreateType"><option value="public">Общее</option><option value="personal">Личное</option></select></label>
+              <label id="workAssigneeLabel" hidden>Исполнитель<select name="assigned_to" id="workAssignee"><option value="">Выберите участника</option></select></label>
+              <label>Награда, грошей<input name="reward_amount" type="number" min="0" step="1" value="0" required></label>
+              <label>Срок (необязательно)<input name="deadline" type="datetime-local"></label>
+            </div>
+            <p class="store-muted">Награда информационная: гроши из казны автоматически не списываются.</p>
+            <button type="submit" class="secondary-button">Опубликовать поручение</button>
+          </form>
+          <article class="panel treasury-section work-panel" id="workMinePanel" hidden><h2>Мои задания</h2><div id="workMineList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workReportsPanel" hidden><h2>Отчёты на проверке</h2><div id="workReportsList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workArchivePanel" hidden><h2>Архив поручений</h2><div id="workArchiveList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workReportPanel" hidden><h2 id="workReportTitle">Отчёт о выполнении</h2>
+            <form id="workReportForm" class="treasury-form"><input type="hidden" name="task_id"><label>Результат работы<textarea name="report_text" minlength="3" maxlength="3000" rows="5" required placeholder="Что выполнено, где переданы ресурсы, подробности"></textarea></label><button type="submit" class="secondary-button">Отправить отчёт</button></form>
+          </article>
+          <article class="panel treasury-section"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div id="workTaskList" class="work-list"></div></article>
+        </section>
         <section class="page" id="page-management">
           <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>

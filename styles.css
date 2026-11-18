@@ -266,3 +266,16 @@ button { font: inherit; }
 #page-storehouse .treasury-forms{display:block}
 #page-storehouse .treasury-forms form{margin-bottom:18px}
 @media(max-width:650px){.store-actions button{flex:1 1 calc(50% - 10px)}}
+
+/* Work v1.2 */
+.work-panel[hidden],#workAssigneeLabel[hidden], [data-work-admin][hidden]{display:none!important}
+.work-panel{margin:0 0 18px}
+.work-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.work-list{display:grid;gap:12px;margin-top:16px}
+.work-card{display:grid;gap:9px;padding:16px;border:1px solid #ded1bc;border-radius:4px;background:rgba(255,250,241,.45)}
+.work-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.work-card strong{font-size:17px}
+.work-card small{color:#786956;font-size:12px}
+.work-card p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.5}
+.work-selected{outline:2px solid #a18a64}
+@media(max-width:760px){.work-form-grid{grid-template-columns:1fr}}

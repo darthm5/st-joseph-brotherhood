@@ -309,3 +309,21 @@ button { font: inherit; }
 
 /* v1.4.1: hidden must override button/form display rules. */
 #page-calendar [hidden] { display: none !important; }
+
+
+/* Library v1.5 */
+#page-info [hidden]{display:none!important}
+.library-toolbar{display:grid;grid-template-columns:2fr 1fr;gap:14px;padding:18px;margin-bottom:18px}
+.library-toolbar label{display:grid;gap:7px;font-size:13px;color:#786956}
+.library-toolbar input,.library-toolbar select,#libraryEditor input,#libraryEditor select,#libraryEditor textarea{box-sizing:border-box;width:100%;border:1px solid #d2c2a8;background:#fffaf1;border-radius:3px;padding:10px;color:#342920;font:14px Arial,sans-serif}
+.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.library-card{padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.library-card h2{font-size:20px;margin:0;overflow-wrap:anywhere}
+.library-card p{margin:0;line-height:1.55;overflow-wrap:anywhere;flex:1}
+.library-card button{align-self:start}
+.library-body{line-height:1.8;overflow-wrap:anywhere;white-space:normal;margin:20px 0}
+.library-body p{margin:0 0 12px;white-space:pre-wrap}
+.library-body a{color:#80522c;text-decoration:underline}
+.library-pin{display:flex!important;align-items:center;gap:10px}
+.library-pin input{width:auto!important}
+@media(max-width:700px){.library-toolbar{grid-template-columns:1fr}}

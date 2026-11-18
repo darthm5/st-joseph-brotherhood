@@ -255,6 +255,37 @@
           <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
         </section>
+        <section class="page" id="page-info">
+          <div class="page-title-block"><div class="eyebrow">Книги и указы</div><h1>Библиотека братства</h1><p>Устав, правила, объявления и руководства.</p></div>
+          <div class="store-actions" role="group" aria-label="Управление библиотекой">
+            <button type="button" class="secondary-button" id="libraryCreateButton" hidden>+ Новый документ</button>
+            <button type="button" class="secondary-button" id="libraryBackButton" hidden>← К библиотеке</button>
+            <button type="button" class="secondary-button" id="libraryRefreshButton">Обновить</button>
+          </div>
+          <p id="libraryNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div id="libraryBoard">
+            <div class="panel library-toolbar">
+              <label>Поиск по библиотеке<input id="librarySearch" type="search" placeholder="Название или текст документа"></label>
+              <label>Категория<select id="libraryCategory"><option value="all">Все разделы</option><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+            </div>
+            <div id="libraryList" class="library-grid"></div>
+          </div>
+          <article class="panel treasury-section" id="libraryReader" hidden>
+            <div class="treasury-heading"><h2 id="libraryReaderTitle"></h2><span id="libraryReaderCategory" class="treasury-status"></span></div>
+            <p id="libraryReaderMeta" class="store-muted"></p>
+            <div id="libraryReaderBody" class="library-body"></div>
+            <div id="libraryReaderActions" class="treasury-actions"></div>
+          </article>
+          <form id="libraryEditor" class="panel treasury-form" hidden>
+            <h2 id="libraryEditorHeading">Новый документ</h2>
+            <label>Название<input name="title" required minlength="3" maxlength="160"></label>
+            <label>Категория<select name="category" required><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+            <label>Содержание<textarea name="body" required maxlength="30000" rows="13" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
+            <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
+            <p class="store-muted">Поддерживается простая разметка: # заголовок, ## подзаголовок, **жирный**, - пункт списка, [текст](https://адрес).</p>
+            <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
+          </form>
+        </section>
         <section class="page" id="page-calendar">
           <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
           <div class="store-actions" role="group" aria-label="Календарь и мероприятия">

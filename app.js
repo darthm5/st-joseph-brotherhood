@@ -30,6 +30,7 @@ const storehousePage = document.getElementById("page-storehouse");
 const workPage = document.getElementById("page-work");
 const marketPage = document.getElementById("page-market");
 const calendarPage = document.getElementById("page-calendar");
+const libraryPage = document.getElementById("page-info");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -136,6 +137,7 @@ function navigate(page) {
   workPage.classList.toggle("active-page", page === "work");
   marketPage.classList.toggle("active-page", page === "market");
   calendarPage.classList.toggle("active-page", page === "calendar");
+  libraryPage.classList.toggle("active-page", page === "info");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -147,6 +149,7 @@ function navigate(page) {
   if (page === "work") loadWork();
   if (page === "market") loadMarket();
   if (page === "calendar") loadCalendar();
+  if (page === "info") loadLibrary();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -159,7 +162,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -1446,4 +1449,131 @@ calEl('calendarCreatePanel').addEventListener('submit',async e=>{
  if(calEditing)args.p_event_id=calEditing;const rpc=calEditing?'guild_event_update':'guild_event_create';calBusy=true;
  try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;showToast(calEditing?'Мероприятие обновлено':'Мероприятие создано');calReset();calPanel='calendarCreatePanel';calOpen('calendarCreatePanel');await loadCalendar();}
  catch(err){showToast('Ошибка: '+err.message);}finally{calBusy=false;}
+});
+
+
+// Library v1.5 — all writes use admin-only Supabase RPCs.
+const libCategories={charter:'Устав братства',rules:'Законы и правила',announcements:'Объявления',guides:'Руководства'};
+const libEl=id=>document.getElementById(id);
+let libDocuments=[],libMode='board',libEditing=null,libSelected=null,libToken=0,libBusy=false;
+function libNode(tag,value,cls){
+ const el=document.createElement(tag);
+ if(value!==undefined&&value!==null)el.textContent=String(value);
+ if(cls)el.className=cls;
+ return el;
+}
+function libShow(mode){
+ if((mode==='editor')&&accessState.mode!=='admin')return;
+ libMode=mode;
+ libEl('libraryBoard').hidden=mode!=='board';
+ libEl('libraryReader').hidden=mode!=='reader';
+ libEl('libraryEditor').hidden=mode!=='editor';
+ libEl('libraryBackButton').hidden=mode==='board';
+}
+function libInline(text,parent){
+ // Render a deliberately small safe Markdown subset without injecting HTML.
+ const re=/\*\*([^*]+)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+ let pos=0,match;
+ while((match=re.exec(text))!==null){
+  if(match.index>pos)parent.append(document.createTextNode(text.slice(pos,match.index)));
+  if(match[1])parent.append(libNode('strong',match[1]));
+  else {const a=libNode('a',match[2]);a.href=match[3];a.target='_blank';a.rel='noopener noreferrer';parent.append(a);}
+  pos=re.lastIndex;
+ }
+ if(pos<text.length)parent.append(document.createTextNode(text.slice(pos)));
+}
+function libBody(text,container){
+ container.replaceChildren();
+ const lines=String(text||'').split(/\r?\n/);
+ let list=null;
+ for(const line of lines){
+  if(!line.trim()){list=null;continue;}
+  const heading=line.match(/^(#{1,3})\s+(.+)$/);
+  if(heading){list=null;const h=libNode('h'+Math.min(heading[1].length+1,4));libInline(heading[2],h);container.append(h);continue;}
+  const item=line.match(/^\s*[-*]\s+(.+)$/);
+  if(item){if(!list){list=libNode('ul');container.append(list);}const li=libNode('li');libInline(item[1],li);list.append(li);continue;}
+  list=null;const p=libNode('p');libInline(line,p);container.append(p);
+ }
+}
+function libRender(){
+ const search=libEl('librarySearch').value.trim().toLocaleLowerCase('ru');
+ const cat=libEl('libraryCategory').value;
+ const items=libDocuments.filter(d=>(cat==='all'||d.category===cat)&&(!search||(d.title+' '+d.body).toLocaleLowerCase('ru').includes(search)));
+ const list=libEl('libraryList');list.replaceChildren();
+ if(!items.length){list.append(libNode('p','Документы не найдены.','store-muted'));return;}
+ for(const d of items){
+  const card=libNode('article',null,'panel library-card');
+  const header=libNode('div',null,'treasury-heading');
+  header.append(libNode('h2',d.title));
+  if(d.is_pinned)header.append(libNode('span','📌 Закреплено','treasury-status'));
+  card.append(header,libNode('small',libCategories[d.category]||d.category,'store-muted'));
+  const excerpt=String(d.body).replace(/[#*[\]]/g,'').slice(0,190);
+  card.append(libNode('p',excerpt+(d.body.length>190?'…':'')));
+  const btn=libNode('button','Читать документ','secondary-button');btn.type='button';
+  btn.addEventListener('click',()=>libRead(d.id));card.append(btn);list.append(card);
+ }
+}
+function libRead(id){
+ const d=libDocuments.find(x=>x.id===id);if(!d)return libShow('board');
+ libSelected=id;libEl('libraryReaderTitle').textContent=d.title;
+ libEl('libraryReaderCategory').textContent=(d.is_pinned?'📌 Закреплено · ':'')+(libCategories[d.category]||d.category);
+ libEl('libraryReaderMeta').textContent='Обновлено: '+new Date(d.updated_at).toLocaleString('ru-RU');
+ libBody(d.body,libEl('libraryReaderBody'));
+ const actions=libEl('libraryReaderActions');actions.replaceChildren();
+ if(accessState.mode==='admin'){
+  const edit=libNode('button','Изменить','secondary-button');edit.type='button';edit.addEventListener('click',()=>libEdit(id));
+  const del=libNode('button','Удалить','secondary-button');del.type='button';
+  del.addEventListener('click',async()=>{if(confirm('Безвозвратно удалить документ «'+d.title+'»?')){await libRpc('guild_document_delete',{p_document_id:id},'Документ удалён');libShow('board');}});
+  actions.append(edit,del);
+ }
+ libShow('reader');
+}
+function libEdit(id=null){
+ if(accessState.mode!=='admin')return;
+ const d=id?libDocuments.find(x=>x.id===id):null;
+ libEditing=d?.id||null;
+ const f=libEl('libraryEditor');f.reset();
+ f.elements.namedItem('title').value=d?.title||'';
+ f.elements.namedItem('category').value=d?.category||'charter';
+ f.elements.namedItem('body').value=d?.body||'';
+ f.elements.namedItem('is_pinned').checked=!!d?.is_pinned;
+ libEl('libraryEditorHeading').textContent=d?'Редактирование документа':'Новый документ';
+ libEl('librarySaveButton').textContent=d?'Сохранить изменения':'Опубликовать';
+ libShow('editor');
+}
+async function loadLibrary(){
+ if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+ const token=++libToken;
+ libEl('libraryCreateButton').hidden=accessState.mode!=='admin';
+ if(accessState.mode!=='admin'&&libMode==='editor')libShow('board');
+ libEl('libraryNotice').textContent='Загрузка библиотеки…';
+ try{
+  const {data,error}=await supabaseClient.from('guild_documents').select('id,title,category,body,is_pinned,created_by,updated_at').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(1000);
+  if(error)throw error;if(token!==libToken)return;
+  libDocuments=data||[];libRender();
+  if(libMode==='reader'&&libSelected){if(libDocuments.some(d=>d.id===libSelected))libRead(libSelected);else libShow('board');}
+  libEl('libraryNotice').textContent='';
+ }catch(err){if(token===libToken)libEl('libraryNotice').textContent='Ошибка загрузки библиотеки: '+err.message;}
+}
+async function libRpc(name,args,success){
+ if(libBusy)return false;
+ libBusy=true;
+ try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(success);await loadLibrary();return true;}
+ catch(err){showToast('Ошибка: '+err.message);return false;}
+ finally{libBusy=false;}
+}
+libEl('libraryCreateButton').addEventListener('click',()=>libEdit());
+libEl('libraryBackButton').addEventListener('click',()=>libShow('board'));
+libEl('libraryCancelButton').addEventListener('click',()=>libShow('board'));
+libEl('libraryRefreshButton').addEventListener('click',loadLibrary);
+libEl('librarySearch').addEventListener('input',libRender);
+libEl('libraryCategory').addEventListener('change',libRender);
+libEl('libraryEditor').addEventListener('submit',async event=>{
+ event.preventDefault();if(accessState.mode!=='admin'||libBusy)return;
+ const f=event.currentTarget;
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_is_pinned:f.elements.namedItem('is_pinned').checked};
+ if(!args.p_title||!args.p_body)return showToast('Заполните название и содержание.');
+ if(libEditing)args.p_document_id=libEditing;
+ const ok=await libRpc(libEditing?'guild_document_update':'guild_document_create',args,libEditing?'Документ обновлён':'Документ опубликован');
+ if(ok){libEditing=null;f.reset();libShow('board');}
 });

@@ -190,7 +190,7 @@
             <form id="treasuryRequestForm" class="panel treasury-form"><h2>Подать заявку на взнос</h2><p>Заявка не изменит баланс, пока администратор не подтвердит передачу грошей в игре.</p><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Кому и когда переданы гроши"></textarea></label><button type="submit" class="secondary-button">Отправить заявку</button></form>
             <form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
           </div>
-          <article class="panel treasury-section" id="storeOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2><button type="button" class="secondary-button" id="treasuryRefresh">Обновить казну</button></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="treasuryOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2><button type="button" class="secondary-button" id="treasuryRefresh">Обновить казну</button></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section"><h2>Журнал операций</h2><div id="treasuryHistory" class="treasury-list"></div></article>
         </section>
@@ -251,7 +251,7 @@
             <label>Описание (необязательно)<textarea name="description" maxlength="1000" rows="2"></textarea></label>
             <button type="submit" class="secondary-button">Добавить предмет</button>
           </form>
-          <article class="panel treasury-section"><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="storeOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="storeOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="storeOwnRequests" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
         </section>

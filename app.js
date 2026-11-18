@@ -1508,6 +1508,8 @@ function libBody(text,container){
  let list=null;
  for(const line of lines){
   if(!line.trim()){list=null;continue;}
+  const picture=line.match(/^!\[([^\]]*)\]\((https:\/\/[^\s)]+)\)$/);
+  if(picture){list=null;const img=libSafeImage(picture[2],picture[1],'library-inline-image');if(img)container.append(img);continue;}
   const heading=line.match(/^(#{1,3})\s+(.+)$/);
   if(heading){list=null;const h=libNode('h'+Math.min(heading[1].length+1,4));libInline(heading[2],h);container.append(h);continue;}
   const item=line.match(/^\s*[-*]\s+(.+)$/);
@@ -1515,22 +1517,36 @@ function libBody(text,container){
   list=null;const p=libNode('p');libInline(line,p);container.append(p);
  }
 }
+function libSafeImage(url,alt,cls){
+ try{
+  const u=new URL(url);
+  if(u.protocol!=='https:')return null;
+  const img=libNode('img',null,cls);img.src=u.href;img.alt=alt||'Иллюстрация статьи';img.loading='lazy';img.referrerPolicy='no-referrer';
+  img.addEventListener('error',()=>{img.style.display='none';});
+  return img;
+ }catch{return null;}
+}
 function libRender(){
  const search=libEl('librarySearch').value.trim().toLocaleLowerCase('ru');
  const cat=libCategory;
- const items=libDocuments.filter(d=>(d.category===cat)&&(!search||(d.title+' '+d.body).toLocaleLowerCase('ru').includes(search)));
+ const items=libDocuments.filter(d=>(d.category===cat)&&(!search||(d.title+' '+(d.summary||'')+' '+d.body).toLocaleLowerCase('ru').includes(search)));
  const list=libEl('libraryList');list.replaceChildren();
- if(!items.length){list.append(libNode('p','В этом разделе пока нет документов.','store-muted'));return;}
+ if(!items.length){list.append(libNode('p','В этом разделе пока нет статей.','store-muted'));return;}
  for(const d of items){
-  const card=libNode('article',null,'panel library-card');
-  const header=libNode('div',null,'treasury-heading');
-  header.append(libNode('h2',d.title));
-  if(d.is_pinned)header.append(libNode('span','📌 Закреплено','treasury-status'));
-  card.append(header,libNode('small',libCategories[d.category]||d.category,'store-muted'));
-  const excerpt=String(d.body).replace(/[#*[\]]/g,'').slice(0,190);
-  card.append(libNode('p',excerpt+(d.body.length>190?'…':'')));
-  const btn=libNode('button','Читать документ','secondary-button');btn.type='button';
-  btn.addEventListener('click',()=>libRead(d.id));card.append(btn);list.append(card);
+  const card=libNode('article',null,'panel library-news-card');
+  const cover=libSafeImage(d.cover_image_url,'Обложка: '+d.title,'library-news-cover');
+  if(cover)card.append(cover);
+  const inner=libNode('div',null,'library-news-content');
+  const info=libNode('div',null,'library-news-meta');
+  info.append(libNode('span',libCategories[d.category]||d.category));
+  info.append(libNode('span',new Date(d.updated_at).toLocaleDateString('ru-RU')));
+  if(d.is_pinned)info.append(libNode('span','📌 Закреплено'));
+  inner.append(info,libNode('h2',d.title));
+  const excerpt=(d.summary||String(d.body).replace(/!\[[^\]]*\]\([^)]+\)|[#*[\]]/g,'').slice(0,280));
+  inner.append(libNode('p',excerpt+(excerpt.length>=280?'…':''),'library-news-summary'));
+  const btn=libNode('button','Читать статью →','secondary-button');btn.type='button';
+  btn.addEventListener('click',()=>libRead(d.id));inner.append(btn);
+  card.append(inner);list.append(card);
  }
 }
 function libRead(id){
@@ -1538,12 +1554,15 @@ function libRead(id){
  libSelected=id;libEl('libraryReaderTitle').textContent=d.title;
  libEl('libraryReaderCategory').textContent=(d.is_pinned?'📌 Закреплено · ':'')+(libCategories[d.category]||d.category);
  libEl('libraryReaderMeta').textContent='Обновлено: '+new Date(d.updated_at).toLocaleString('ru-RU');
- libBody(d.body,libEl('libraryReaderBody'));
+ const body=libEl('libraryReaderBody');libBody(d.body,body);
+ const cover=libSafeImage(d.cover_image_url,'Обложка: '+d.title,'library-article-cover');
+ if(cover)body.prepend(cover);
+ if(d.summary){const lead=libNode('p',d.summary,'library-article-lead');if(cover)cover.after(lead);else body.prepend(lead);}
  const actions=libEl('libraryReaderActions');actions.replaceChildren();
  if(accessState.mode==='admin'){
   const edit=libNode('button','Изменить','secondary-button');edit.type='button';edit.addEventListener('click',()=>libEdit(id));
   const del=libNode('button','Удалить','secondary-button');del.type='button';
-  del.addEventListener('click',async()=>{if(confirm('Безвозвратно удалить документ «'+d.title+'»?')){await libRpc('guild_document_delete',{p_document_id:id},'Документ удалён');libShow('board');}});
+  del.addEventListener('click',async()=>{if(confirm('Безвозвратно удалить статью «'+d.title+'»?')){await libRpc('guild_document_delete',{p_document_id:id},'Статья удалена');libShow('board');}});
   actions.append(edit,del);
  }
  libShow('reader');
@@ -1555,9 +1574,11 @@ function libEdit(id=null){
  const f=libEl('libraryEditor');f.reset();
  f.elements.namedItem('title').value=d?.title||'';
  f.elements.namedItem('category').value=d?.category||libCategory;
+ f.elements.namedItem('summary').value=d?.summary||'';
+ f.elements.namedItem('cover_image_url').value=d?.cover_image_url||'';
  f.elements.namedItem('body').value=d?.body||'';
  f.elements.namedItem('is_pinned').checked=!!d?.is_pinned;
- libEl('libraryEditorHeading').textContent=d?'Редактирование документа':'Новый документ';
+ libEl('libraryEditorHeading').textContent=d?'Редактирование статьи':'Новая статья';
  libEl('librarySaveButton').textContent=d?'Сохранить изменения':'Опубликовать';
  libShow('editor');
 }
@@ -1568,7 +1589,7 @@ async function loadLibrary(){
  libEl('libraryCreateButton').hidden=libMode!=='board'||accessState.mode!=='admin';
  libEl('libraryNotice').textContent='Загрузка библиотеки…';
  try{
-  const {data,error}=await supabaseClient.from('guild_documents').select('id,title,category,body,is_pinned,created_by,updated_at').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(1000);
+  const {data,error}=await supabaseClient.from('guild_documents').select('id,title,category,body,summary,cover_image_url,is_pinned,created_by,updated_at').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(1000);
   if(error)throw error;if(token!==libToken)return;
   libDocuments=data||[];libRender();
   if(libMode==='reader'&&libSelected){if(libDocuments.some(d=>d.id===libSelected))libRead(libSelected);else libShow('board');}
@@ -1591,10 +1612,10 @@ libEl('librarySearch').addEventListener('input',libRender);
 libEl('libraryEditor').addEventListener('submit',async event=>{
  event.preventDefault();if(accessState.mode!=='admin'||libBusy)return;
  const f=event.currentTarget;
- const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_is_pinned:f.elements.namedItem('is_pinned').checked};
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_summary:f.elements.namedItem('summary').value.trim(),p_cover_image_url:f.elements.namedItem('cover_image_url').value.trim()||null,p_is_pinned:f.elements.namedItem('is_pinned').checked};
  if(!args.p_title||!args.p_body)return showToast('Заполните название и содержание.');
  if(libEditing)args.p_document_id=libEditing;
  else args.p_category=libCategory;
- const ok=await libRpc(libEditing?'guild_document_update':'guild_document_create',args,libEditing?'Документ обновлён':'Документ опубликован');
+ const ok=await libRpc(libEditing?'guild_article_update':'guild_article_create',args,libEditing?'Документ обновлён':'Документ опубликован');
  if(ok){libEditing=null;f.reset();libShow('board');}
 });

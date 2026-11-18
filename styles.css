@@ -343,3 +343,20 @@ button { font: inherit; }
 .library-section-top h2{font-family:Georgia,serif;font-size:25px;color:#ead8b5;flex:1;min-width:180px;margin:0}
 #page-info .library-toolbar{grid-template-columns:1fr}
 @media(max-width:640px){.library-category-grid{grid-template-columns:1fr;gap:14px}.library-category-tile{min-height:180px}.library-section-top h2{flex-basis:100%;order:-1}}
+
+/* v1.5.2 — full-width medieval news articles */
+#page-info .library-news-feed{display:flex;flex-direction:column;gap:18px;width:100%;max-width:none}
+#page-info .library-news-card{display:flex;flex-direction:row;align-items:stretch;overflow:hidden;width:100%;padding:0;gap:0}
+#page-info .library-news-cover{width:34%;min-width:220px;max-height:300px;object-fit:cover;display:block;background:#c9b38d}
+#page-info .library-news-content{padding:24px 28px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+#page-info .library-news-content h2{font-size:clamp(22px,2.3vw,30px);line-height:1.2;margin:0;overflow-wrap:anywhere}
+#page-info .library-news-summary{font-size:15px;line-height:1.65;white-space:pre-wrap;margin:0;overflow-wrap:anywhere}
+#page-info .library-news-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#826b4c}
+#page-info .library-news-content button{margin-top:auto}
+#page-info #libraryReader{width:100%;max-width:none;box-sizing:border-box;padding:clamp(20px,4vw,48px)}
+#page-info #libraryReaderTitle{font-size:clamp(26px,3vw,42px);line-height:1.2}
+#page-info .library-article-cover{display:block;width:100%;max-height:520px;object-fit:cover;margin:0 0 28px;border:1px solid #bca783}
+#page-info .library-article-lead{font-size:clamp(17px,2vw,21px);font-weight:500;line-height:1.7;margin:0 0 24px}
+#page-info .library-inline-image{display:block;max-width:100%;height:auto;max-height:700px;object-fit:contain;margin:24px auto;border:1px solid #bca783}
+#page-info .library-body{font-size:16px;line-height:1.85;max-width:none}
+@media(max-width:720px){#page-info .library-news-card{flex-direction:column}#page-info .library-news-cover{width:100%;min-width:0;max-height:240px}#page-info .library-news-content{padding:20px}}

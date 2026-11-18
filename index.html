@@ -268,7 +268,7 @@
             <p id="libraryNotice" class="members-message" role="status" aria-live="polite"></p>
             <div id="libraryBoard">
               <div class="panel library-toolbar"><label>Поиск в разделе<input id="librarySearch" type="search" placeholder="Название или текст документа"></label></div>
-              <div id="libraryList" class="library-grid"></div>
+              <div id="libraryList" class="library-news-feed"></div>
             </div>
           </div>
           <article class="panel treasury-section" id="libraryReader" hidden>
@@ -281,9 +281,11 @@
             <h2 id="libraryEditorHeading">Новый документ</h2>
             <label>Название<input name="title" required minlength="3" maxlength="160"></label>
             <label hidden>Категория<select name="category" required><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+            <label>Краткое содержание (для ленты)<textarea name="summary" maxlength="600" rows="3" placeholder="Короткая аннотация статьи"></textarea></label>
+            <label>Ссылка на обложку статьи<input type="url" name="cover_image_url" maxlength="2000" placeholder="https://example.com/cover.jpg"></label>
             <label>Содержание<textarea name="body" required maxlength="30000" rows="13" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
             <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
-            <p class="store-muted">Поддерживается простая разметка: # заголовок, ## подзаголовок, **жирный**, - пункт списка, [текст](https://адрес).</p>
+            <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются по прямым HTTPS-ссылкам.</p>
             <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
           </form>
         </section>

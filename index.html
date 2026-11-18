@@ -255,6 +255,32 @@
           <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
         </section>
+        <section class="page" id="page-calendar">
+          <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
+          <div class="store-actions" role="group" aria-label="Календарь и мероприятия">
+            <button type="button" class="secondary-button" data-calendar-panel="calendarCreatePanel" id="calendarCreateButton" hidden>+ Создать мероприятие</button>
+            <button type="button" class="secondary-button" data-calendar-panel="calendarListPanel">Список событий</button>
+            <button type="button" class="secondary-button" data-calendar-panel="calendarMyPanel">Мои записи</button>
+            <button type="button" class="secondary-button" id="calendarRefresh">Обновить</button>
+          </div>
+          <p class="members-message" id="calendarNotice" role="status" aria-live="polite"></p>
+          <form id="calendarCreatePanel" class="panel treasury-form calendar-panel" hidden>
+            <h2 id="calendarFormHeading">Новое мероприятие</h2>
+            <label>Название<input name="title" required minlength="3" maxlength="150" placeholder="Собрание братства"></label>
+            <label>Категория<select name="category"><option value="meeting">Собрание</option><option value="work">Совместная работа</option><option value="expedition">Поход</option><option value="fair">Ярмарка</option><option value="holiday">Праздник</option><option value="other">Другое</option></select></label>
+            <label>Место<input name="location" maxlength="200" placeholder="Сухдол"></label>
+            <div class="calendar-date-fields"><label>Начало<input name="starts_at" type="datetime-local" required></label><label>Окончание (необязательно)<input name="ends_at" type="datetime-local"></label></div>
+            <label>Описание<textarea name="description" rows="3" maxlength="5000"></textarea></label>
+            <div class="treasury-actions"><button type="submit" class="secondary-button" id="calendarSave">Создать</button><button type="button" class="secondary-button" id="calendarCancelEdit">Отмена</button></div>
+          </form>
+          <article id="calendarListPanel" class="panel calendar-panel" hidden><h2>Ближайшие мероприятия</h2><div id="calendarList" class="work-list"></div></article>
+          <article id="calendarMyPanel" class="panel calendar-panel" hidden><h2>Мои записи</h2><div id="calendarMyList" class="work-list"></div></article>
+          <article id="calendarBoardPanel" class="panel treasury-section">
+            <div class="calendar-month-nav"><button type="button" class="secondary-button" id="calendarPrev" aria-label="Предыдущий месяц">←</button><h2 id="calendarMonthTitle"></h2><button type="button" class="secondary-button" id="calendarNext" aria-label="Следующий месяц">→</button></div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <h3 id="calendarDayHeading">События выбранного дня</h3><div id="calendarDayEvents" class="work-list"></div>
+          </article>
+        </section>
         <section class="page" id="page-market">
           <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
           <div class="store-actions" role="group" aria-label="Разделы рынка">

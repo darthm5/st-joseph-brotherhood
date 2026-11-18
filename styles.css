@@ -302,3 +302,7 @@ button { font: inherit; }
 
 /* Market v1.3.3 completed trades */
 #page-market .market-ad-completed{border:2px solid #819187;background:rgba(100,125,105,.08);}
+
+/* Calendar v1.4 */
+.calendar-month-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.calendar-month-nav h2{text-align:center;margin:0;text-transform:capitalize}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:22px}.calendar-weekday{text-align:center;font-weight:700;opacity:.75;padding:8px 0}.calendar-cell{font:inherit;min-height:66px;background:rgba(255,245,221,.05);color:inherit;border:1px solid rgba(180,147,89,.35);border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.calendar-cell:hover{border-color:#c8a35e}.calendar-cell.selected{outline:2px solid #c8a35e}.calendar-cell.has-events{background:rgba(127,153,91,.17)}.calendar-cell small{font-size:10px;color:#c8a35e}.calendar-date-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.calendar-event-card{margin-bottom:12px}@media(max-width:580px){.calendar-grid{gap:3px}.calendar-cell{min-height:48px;font-size:12px}.calendar-cell small{font-size:8px}.calendar-date-fields{grid-template-columns:1fr}}

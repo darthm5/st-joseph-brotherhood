@@ -29,6 +29,7 @@ const treasuryPage = document.getElementById("page-treasury");
 const storehousePage = document.getElementById("page-storehouse");
 const workPage = document.getElementById("page-work");
 const marketPage = document.getElementById("page-market");
+const calendarPage = document.getElementById("page-calendar");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -134,6 +135,7 @@ function navigate(page) {
   storehousePage.classList.toggle("active-page", page === "storehouse");
   workPage.classList.toggle("active-page", page === "work");
   marketPage.classList.toggle("active-page", page === "market");
+  calendarPage.classList.toggle("active-page", page === "calendar");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -144,6 +146,7 @@ function navigate(page) {
   if (page === "storehouse") loadStorehouse();
   if (page === "work") loadWork();
   if (page === "market") loadMarket();
+  if (page === "calendar") loadCalendar();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -156,7 +159,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -1375,4 +1378,72 @@ marketEl('marketCreatePanel').addEventListener('submit',async e=>{
   marketBusy=true;
   try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;marketResetForm();marketOpenPanel(null,true);showToast(editing?'Объявление обновлено':'Объявление опубликовано');await loadMarket();}
   catch(err){showToast('Ошибка: '+err.message);}finally{marketBusy=false;}
+});
+
+
+// Calendar v1.4 — only one auxiliary panel at a time.
+const calEl=id=>document.getElementById(id);
+const calCategories={meeting:'Собрание',work:'Совместная работа',expedition:'Поход',fair:'Ярмарка',holiday:'Праздник',other:'Другое'};
+let calEvents=[],calAttendees=[],calPeople=new Map(),calMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calDay=new Date().getDate(),calPanel=null,calEditing=null,calBusy=false,calToken=0;
+function calNode(tag,txt,cls){const el=document.createElement(tag);if(txt!==undefined&&txt!==null)el.textContent=txt;if(cls)el.className=cls;return el;}
+function calDate(v){return new Date(v).toLocaleString('ru-RU',{dateStyle:'medium',timeStyle:'short'});}
+function calLocalInput(v){if(!v)return '';const d=new Date(v);const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function calOpen(id){calPanel=calPanel===id?null:id;for(const el of document.querySelectorAll('.calendar-panel'))el.hidden=el.id!==calPanel;calEl('calendarBoardPanel').hidden=!!calPanel;for(const b of document.querySelectorAll('[data-calendar-panel]'))b.setAttribute('aria-expanded',String(b.dataset.calendarPanel===calPanel));}
+function calReset(){calEditing=null;calEl('calendarCreatePanel').reset();calEl('calendarFormHeading').textContent='Новое мероприятие';calEl('calendarSave').textContent='Создать';}
+function calEventCard(ev){
+ const card=calNode('article',null,'work-card calendar-event-card');const head=calNode('div',null,'work-card-top');head.append(calNode('strong',ev.title),calNode('span',ev.status==='cancelled'?'Отменено':calCategories[ev.category]||'Событие','treasury-status'));card.append(head);
+ card.append(calNode('p','📅 '+calDate(ev.starts_at)+(ev.ends_at?' — '+calDate(ev.ends_at):'')));
+ if(ev.location)card.append(calNode('p','📍 '+ev.location));if(ev.description)card.append(calNode('p',ev.description));
+ const attendees=calAttendees.filter(a=>a.event_id===ev.id),mine=attendees.some(a=>a.user_id===currentSession?.user?.id);
+ card.append(calNode('p','Участники ('+attendees.length+'): '+(attendees.map(a=>calPeople.get(a.user_id)||'Участник').join(', ')||'Пока никто не записался'),'store-muted'));
+ const actions=calNode('div',null,'treasury-actions');
+ if(ev.status==='scheduled'&&new Date(ev.starts_at)>new Date()&&accessState.mode==='approved'){
+  const b=calNode('button',mine?'Отменить участие':'Буду участвовать','secondary-button');b.type='button';b.addEventListener('click',()=>calRpc(mine?'guild_event_leave':'guild_event_join',{p_event_id:ev.id},mine?'Запись отменена':'Вы записаны'));actions.append(b);
+ }
+ if(accessState.mode==='admin'&&ev.status==='scheduled'){
+  const edit=calNode('button','Изменить','secondary-button');edit.type='button';edit.addEventListener('click',()=>{calReset();calEditing=ev.id;const f=calEl('calendarCreatePanel');for(const key of ['title','description','category','location'])f.elements.namedItem(key).value=ev[key]||'';f.elements.namedItem('starts_at').value=calLocalInput(ev.starts_at);f.elements.namedItem('ends_at').value=calLocalInput(ev.ends_at);calEl('calendarFormHeading').textContent='Редактировать мероприятие';calEl('calendarSave').textContent='Сохранить';calPanel=null;calOpen('calendarCreatePanel');});actions.append(edit);
+  const cancel=calNode('button','Отменить мероприятие','secondary-button');cancel.type='button';cancel.addEventListener('click',()=>{if(confirm('Отменить мероприятие «'+ev.title+'»?'))calRpc('guild_event_cancel',{p_event_id:ev.id},'Мероприятие отменено');});actions.append(cancel);
+ }
+ if(actions.childElementCount)card.append(actions);return card;
+}
+function calFill(container,events,empty){container.replaceChildren();for(const ev of events)container.append(calEventCard(ev));if(!events.length)container.append(calNode('p',empty,'store-muted'));}
+function calRender(){
+ const year=calMonth.getFullYear(),month=calMonth.getMonth();calEl('calendarMonthTitle').textContent=calMonth.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+ const grid=calEl('calendarGrid');grid.replaceChildren();for(const d of ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'])grid.append(calNode('div',d,'calendar-weekday'));
+ const offset=(new Date(year,month,1).getDay()+6)%7;for(let i=0;i<offset;i++)grid.append(calNode('div','', 'calendar-empty'));
+ const last=new Date(year,month+1,0).getDate();for(let day=1;day<=last;day++){
+  const count=calEvents.filter(ev=>{const dt=new Date(ev.starts_at);return dt.getFullYear()===year&&dt.getMonth()===month&&dt.getDate()===day&&ev.status==='scheduled';}).length;
+  const btn=calNode('button',null,'calendar-cell'+(day===calDay?' selected':'')+(count?' has-events':''));btn.type='button';btn.append(calNode('span',String(day)));if(count)btn.append(calNode('small',String(count)+' событ.'));btn.addEventListener('click',()=>{calDay=day;calRender();});grid.append(btn);
+ }
+ const dayEvents=calEvents.filter(ev=>{const dt=new Date(ev.starts_at);return dt.getFullYear()===year&&dt.getMonth()===month&&dt.getDate()===calDay;});
+ calEl('calendarDayHeading').textContent='События на '+calDay+' '+calMonth.toLocaleDateString('ru-RU',{month:'long'});calFill(calEl('calendarDayEvents'),dayEvents,'На этот день мероприятий нет.');
+ const now=new Date();calFill(calEl('calendarList'),calEvents.filter(ev=>ev.status==='scheduled'&&new Date(ev.starts_at)>=now).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)),'Ближайших мероприятий нет.');
+ const myId=currentSession?.user?.id,ids=new Set(calAttendees.filter(a=>a.user_id===myId).map(a=>a.event_id));calFill(calEl('calendarMyList'),calEvents.filter(ev=>ids.has(ev.id)).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)),'Вы пока не записаны на мероприятия.');
+}
+async function loadCalendar(){
+ if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+ const token=++calToken;calEl('calendarCreateButton').hidden=accessState.mode!=='admin';calEl('calendarNotice').textContent='Загрузка событий…';
+ try{
+  const [events,attendees,people]=await Promise.all([
+   supabaseClient.from('guild_events').select('id,title,description,category,location,starts_at,ends_at,status,created_by').order('starts_at',{ascending:true}).limit(2000),
+   supabaseClient.from('guild_event_attendees').select('event_id,user_id,joined_at').limit(5000),
+   supabaseClient.from('profiles').select('id,character_first_name,character_last_name').limit(2000)
+  ]);
+  for(const r of [events,attendees,people])if(r.error)throw r.error;if(token!==calToken)return;
+  calEvents=events.data||[];calAttendees=attendees.data||[];calPeople=new Map((people.data||[]).map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));calRender();calEl('calendarNotice').textContent='';
+ }catch(err){if(token===calToken)calEl('calendarNotice').textContent='Ошибка загрузки календаря: '+err.message;}
+}
+async function calRpc(name,args,success){if(calBusy)return;calBusy=true;try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(success);await loadCalendar();}catch(err){showToast('Ошибка: '+err.message);}finally{calBusy=false;}}
+for(const b of document.querySelectorAll('[data-calendar-panel]'))b.addEventListener('click',()=>{if(b.dataset.calendarPanel==='calendarCreatePanel'&&calPanel!=='calendarCreatePanel')calReset();calOpen(b.dataset.calendarPanel);});
+calEl('calendarCancelEdit').addEventListener('click',()=>{calReset();calPanel='calendarCreatePanel';calOpen('calendarCreatePanel');});
+calEl('calendarRefresh').addEventListener('click',loadCalendar);
+for(const [id,delta] of [['calendarPrev',-1],['calendarNext',1]])calEl(id).addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1);calDay=1;calRender();});
+calEl('calendarCreatePanel').addEventListener('submit',async e=>{
+ e.preventDefault();if(calBusy||accessState.mode!=='admin')return;const f=e.currentTarget;
+ const start=f.elements.namedItem('starts_at').value,end=f.elements.namedItem('ends_at').value;
+ if(!start||(end&&new Date(end)<=new Date(start)))return showToast('Проверьте даты мероприятия.');
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_location:f.elements.namedItem('location').value.trim(),p_starts_at:new Date(start).toISOString(),p_ends_at:end?new Date(end).toISOString():null};
+ if(calEditing)args.p_event_id=calEditing;const rpc=calEditing?'guild_event_update':'guild_event_create';calBusy=true;
+ try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;showToast(calEditing?'Мероприятие обновлено':'Мероприятие создано');calReset();calPanel='calendarCreatePanel';calOpen('calendarCreatePanel');await loadCalendar();}
+ catch(err){showToast('Ошибка: '+err.message);}finally{calBusy=false;}
 });

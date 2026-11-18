@@ -149,7 +149,7 @@ function navigate(page) {
   if (page === "work") loadWork();
   if (page === "market") loadMarket();
   if (page === "calendar") loadCalendar();
-  if (page === "info") loadLibrary();
+  if (page === "info") { libHome(); loadLibrary(); }
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -1455,20 +1455,40 @@ calEl('calendarCreatePanel').addEventListener('submit',async e=>{
 // Library v1.5 — all writes use admin-only Supabase RPCs.
 const libCategories={charter:'Устав братства',rules:'Законы и правила',announcements:'Объявления',guides:'Руководства'};
 const libEl=id=>document.getElementById(id);
-let libDocuments=[],libMode='board',libEditing=null,libSelected=null,libToken=0,libBusy=false;
+let libDocuments=[],libMode='home',libCategory=null,libEditing=null,libSelected=null,libToken=0,libBusy=false;
 function libNode(tag,value,cls){
  const el=document.createElement(tag);
  if(value!==undefined&&value!==null)el.textContent=String(value);
  if(cls)el.className=cls;
  return el;
 }
+function libHome(){
+ libCategory=null;libSelected=null;libEditing=null;
+ libEl('librarySearch').value='';
+ libShow('home');
+}
+function libOpenCategory(category){
+ if(!Object.hasOwn(libCategories,category))return;
+ libCategory=category;libSelected=null;libEditing=null;
+ libEl('librarySearch').value='';
+ libEl('librarySectionTitle').textContent=libCategories[category];
+ libShow('board');libRender();
+}
 function libShow(mode){
- if((mode==='editor')&&accessState.mode!=='admin')return;
+ if(mode==='editor'&&accessState.mode!=='admin')return;
  libMode=mode;
+ libEl('libraryCategories').hidden=mode!=='home';
+ libEl('librarySection').hidden=mode==='home';
  libEl('libraryBoard').hidden=mode!=='board';
  libEl('libraryReader').hidden=mode!=='reader';
  libEl('libraryEditor').hidden=mode!=='editor';
- libEl('libraryBackButton').hidden=mode==='board';
+ libEl('libraryCreateButton').hidden=mode!=='board'||accessState.mode!=='admin';
+ libEl('libraryRefreshButton').hidden=mode!=='board';
+ libEl('libraryBackButton').textContent=mode==='board'?'← К разделам':'← К документам';
+}
+function libBack(){
+ if(libMode==='board')libHome();
+ else libShow('board');
 }
 function libInline(text,parent){
  // Render a deliberately small safe Markdown subset without injecting HTML.
@@ -1497,10 +1517,10 @@ function libBody(text,container){
 }
 function libRender(){
  const search=libEl('librarySearch').value.trim().toLocaleLowerCase('ru');
- const cat=libEl('libraryCategory').value;
- const items=libDocuments.filter(d=>(cat==='all'||d.category===cat)&&(!search||(d.title+' '+d.body).toLocaleLowerCase('ru').includes(search)));
+ const cat=libCategory;
+ const items=libDocuments.filter(d=>(d.category===cat)&&(!search||(d.title+' '+d.body).toLocaleLowerCase('ru').includes(search)));
  const list=libEl('libraryList');list.replaceChildren();
- if(!items.length){list.append(libNode('p','Документы не найдены.','store-muted'));return;}
+ if(!items.length){list.append(libNode('p','В этом разделе пока нет документов.','store-muted'));return;}
  for(const d of items){
   const card=libNode('article',null,'panel library-card');
   const header=libNode('div',null,'treasury-heading');
@@ -1529,12 +1549,12 @@ function libRead(id){
  libShow('reader');
 }
 function libEdit(id=null){
- if(accessState.mode!=='admin')return;
+ if(accessState.mode!=='admin'||!libCategory)return;
  const d=id?libDocuments.find(x=>x.id===id):null;
  libEditing=d?.id||null;
  const f=libEl('libraryEditor');f.reset();
  f.elements.namedItem('title').value=d?.title||'';
- f.elements.namedItem('category').value=d?.category||'charter';
+ f.elements.namedItem('category').value=d?.category||libCategory;
  f.elements.namedItem('body').value=d?.body||'';
  f.elements.namedItem('is_pinned').checked=!!d?.is_pinned;
  libEl('libraryEditorHeading').textContent=d?'Редактирование документа':'Новый документ';
@@ -1544,8 +1564,8 @@ function libEdit(id=null){
 async function loadLibrary(){
  if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
  const token=++libToken;
- libEl('libraryCreateButton').hidden=accessState.mode!=='admin';
  if(accessState.mode!=='admin'&&libMode==='editor')libShow('board');
+ libEl('libraryCreateButton').hidden=libMode!=='board'||accessState.mode!=='admin';
  libEl('libraryNotice').textContent='Загрузка библиотеки…';
  try{
   const {data,error}=await supabaseClient.from('guild_documents').select('id,title,category,body,is_pinned,created_by,updated_at').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(1000);
@@ -1563,17 +1583,18 @@ async function libRpc(name,args,success){
  finally{libBusy=false;}
 }
 libEl('libraryCreateButton').addEventListener('click',()=>libEdit());
-libEl('libraryBackButton').addEventListener('click',()=>libShow('board'));
+libEl('libraryBackButton').addEventListener('click',libBack);
 libEl('libraryCancelButton').addEventListener('click',()=>libShow('board'));
+document.querySelectorAll('[data-library-category]').forEach(button=>button.addEventListener('click',()=>libOpenCategory(button.dataset.libraryCategory)));
 libEl('libraryRefreshButton').addEventListener('click',loadLibrary);
 libEl('librarySearch').addEventListener('input',libRender);
-libEl('libraryCategory').addEventListener('change',libRender);
 libEl('libraryEditor').addEventListener('submit',async event=>{
  event.preventDefault();if(accessState.mode!=='admin'||libBusy)return;
  const f=event.currentTarget;
  const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_is_pinned:f.elements.namedItem('is_pinned').checked};
  if(!args.p_title||!args.p_body)return showToast('Заполните название и содержание.');
  if(libEditing)args.p_document_id=libEditing;
+ else args.p_category=libCategory;
  const ok=await libRpc(libEditing?'guild_document_update':'guild_document_create',args,libEditing?'Документ обновлён':'Документ опубликован');
  if(ok){libEditing=null;f.reset();libShow('board');}
 });

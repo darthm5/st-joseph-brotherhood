@@ -327,3 +327,19 @@ button { font: inherit; }
 .library-pin{display:flex!important;align-items:center;gap:10px}
 .library-pin input{width:auto!important}
 @media(max-width:700px){.library-toolbar{grid-template-columns:1fr}}
+
+/* Library 1.5.1 — medieval category landing */
+#page-info [hidden]{display:none!important}
+.library-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:22px 0 30px}
+.library-category-tile{position:relative;min-height:210px;padding:27px 22px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;text-align:center;color:#3c2a19;border:3px double #89632f;border-radius:6px;background:radial-gradient(ellipse at 50% 30%,#f8eccd 0%,#e8d2a0 75%,#cbb17a 100%);box-shadow:inset 0 0 0 5px rgba(255,246,217,.65),inset 0 0 28px rgba(102,61,21,.16),0 7px 16px rgba(30,15,5,.25);transition:transform .16s,box-shadow .16s}
+.library-category-tile:before,.library-category-tile:after{content:'❧';position:absolute;color:#8d6a39;font-size:25px;line-height:1}
+.library-category-tile:before{top:9px;left:14px}.library-category-tile:after{bottom:9px;right:14px;transform:rotate(180deg)}
+.library-category-tile:hover,.library-category-tile:focus-visible{transform:translateY(-3px);box-shadow:inset 0 0 0 5px rgba(255,246,217,.8),inset 0 0 28px rgba(102,61,21,.13),0 10px 24px rgba(30,15,5,.35);outline:2px solid #b69a5c;outline-offset:2px}
+.library-category-tile strong{font-family:Georgia,'Times New Roman',serif;font-size:clamp(20px,2.5vw,29px);font-weight:700;color:#552f23}
+.library-category-tile small{font-family:Georgia,serif;font-size:14px;color:#6c5134;line-height:1.4}
+.library-tile-icon{font-size:39px;filter:sepia(.3)}
+.library-tile-action{font-family:Georgia,serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#795329;border-top:1px solid rgba(114,82,40,.35);padding-top:9px;margin-top:3px}
+.library-section-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0 20px}
+.library-section-top h2{font-family:Georgia,serif;font-size:25px;color:#ead8b5;flex:1;min-width:180px;margin:0}
+#page-info .library-toolbar{grid-template-columns:1fr}
+@media(max-width:640px){.library-category-grid{grid-template-columns:1fr;gap:14px}.library-category-tile{min-height:180px}.library-section-top h2{flex-basis:100%;order:-1}}

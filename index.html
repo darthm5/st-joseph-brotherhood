@@ -257,18 +257,19 @@
         </section>
         <section class="page" id="page-info">
           <div class="page-title-block"><div class="eyebrow">Книги и указы</div><h1>Библиотека братства</h1><p>Устав, правила, объявления и руководства.</p></div>
-          <div class="store-actions" role="group" aria-label="Управление библиотекой">
-            <button type="button" class="secondary-button" id="libraryCreateButton" hidden>+ Новый документ</button>
-            <button type="button" class="secondary-button" id="libraryBackButton" hidden>← К библиотеке</button>
-            <button type="button" class="secondary-button" id="libraryRefreshButton">Обновить</button>
+          <div id="libraryCategories" class="library-category-grid" aria-label="Разделы библиотеки">
+            <button type="button" class="library-category-tile" data-library-category="charter"><span class="library-tile-icon">📜</span><strong>Устав братства</strong><small>Основы и традиции нашего братства</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="rules"><span class="library-tile-icon">⚖️</span><strong>Законы и правила</strong><small>Порядок, права и обязанности</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="announcements"><span class="library-tile-icon">📯</span><strong>Объявления</strong><small>Вести и указы братства</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="guides"><span class="library-tile-icon">📖</span><strong>Руководства</strong><small>Ремёсла, знания и наставления</small><span class="library-tile-action">Открыть свитки ›</span></button>
           </div>
-          <p id="libraryNotice" class="members-message" role="status" aria-live="polite"></p>
-          <div id="libraryBoard">
-            <div class="panel library-toolbar">
-              <label>Поиск по библиотеке<input id="librarySearch" type="search" placeholder="Название или текст документа"></label>
-              <label>Категория<select id="libraryCategory"><option value="all">Все разделы</option><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+          <div id="librarySection" hidden>
+            <div class="library-section-top"><button type="button" class="secondary-button" id="libraryBackButton">← К разделам</button><h2 id="librarySectionTitle"></h2><button type="button" class="secondary-button" id="libraryCreateButton" hidden>+ Создать документ</button><button type="button" class="secondary-button" id="libraryRefreshButton">Обновить</button></div>
+            <p id="libraryNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="libraryBoard">
+              <div class="panel library-toolbar"><label>Поиск в разделе<input id="librarySearch" type="search" placeholder="Название или текст документа"></label></div>
+              <div id="libraryList" class="library-grid"></div>
             </div>
-            <div id="libraryList" class="library-grid"></div>
           </div>
           <article class="panel treasury-section" id="libraryReader" hidden>
             <div class="treasury-heading"><h2 id="libraryReaderTitle"></h2><span id="libraryReaderCategory" class="treasury-status"></span></div>
@@ -279,7 +280,7 @@
           <form id="libraryEditor" class="panel treasury-form" hidden>
             <h2 id="libraryEditorHeading">Новый документ</h2>
             <label>Название<input name="title" required minlength="3" maxlength="160"></label>
-            <label>Категория<select name="category" required><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+            <label hidden>Категория<select name="category" required><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
             <label>Содержание<textarea name="body" required maxlength="30000" rows="13" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
             <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
             <p class="store-muted">Поддерживается простая разметка: # заголовок, ## подзаголовок, **жирный**, - пункт списка, [текст](https://адрес).</p>

@@ -1422,7 +1422,7 @@ function calRender(){
 }
 async function loadCalendar(){
  if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
- const token=++calToken;calEl('calendarCreateButton').hidden=accessState.mode!=='admin';calEl('calendarNotice').textContent='Загрузка событий…';
+ const token=++calToken;const calendarAdmin=accessState.mode==='admin';calEl('calendarCreateButton').hidden=!calendarAdmin;if(!calendarAdmin&&calPanel==='calendarCreatePanel'){calPanel=null;calOpen('calendarBoardPanel');}calEl('calendarNotice').textContent='Загрузка событий…';
  try{
   const [events,attendees,people]=await Promise.all([
    supabaseClient.from('guild_events').select('id,title,description,category,location,starts_at,ends_at,status,created_by').order('starts_at',{ascending:true}).limit(2000),
@@ -1434,7 +1434,7 @@ async function loadCalendar(){
  }catch(err){if(token===calToken)calEl('calendarNotice').textContent='Ошибка загрузки календаря: '+err.message;}
 }
 async function calRpc(name,args,success){if(calBusy)return;calBusy=true;try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(success);await loadCalendar();}catch(err){showToast('Ошибка: '+err.message);}finally{calBusy=false;}}
-for(const b of document.querySelectorAll('[data-calendar-panel]'))b.addEventListener('click',()=>{if(b.dataset.calendarPanel==='calendarCreatePanel'&&calPanel!=='calendarCreatePanel')calReset();calOpen(b.dataset.calendarPanel);});
+for(const b of document.querySelectorAll('[data-calendar-panel]'))b.addEventListener('click',()=>{if(b.dataset.calendarPanel==='calendarCreatePanel'){if(accessState.mode!=='admin')return;if(calPanel!=='calendarCreatePanel')calReset();}calOpen(b.dataset.calendarPanel);});
 calEl('calendarCancelEdit').addEventListener('click',()=>{calReset();calPanel='calendarCreatePanel';calOpen('calendarCreatePanel');});
 calEl('calendarRefresh').addEventListener('click',loadCalendar);
 for(const [id,delta] of [['calendarPrev',-1],['calendarNext',1]])calEl(id).addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+delta,1);calDay=1;calRender();});

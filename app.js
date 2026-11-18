@@ -26,6 +26,7 @@ const membersPage = document.getElementById("page-members");
 const managementPage = document.getElementById("page-management");
 const craftsPage = document.getElementById("page-crafts");
 const treasuryPage = document.getElementById("page-treasury");
+const storehousePage = document.getElementById("page-storehouse");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -128,6 +129,7 @@ function navigate(page) {
   membersPage.classList.toggle("active-page", page === "members");
   craftsPage.classList.toggle("active-page", page === "crafts");
   treasuryPage.classList.toggle("active-page", page === "treasury");
+  storehousePage.classList.toggle("active-page", page === "storehouse");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -135,6 +137,7 @@ function navigate(page) {
   if (page === "members") loadMembers();
   if (page === "crafts") loadDirectory();
   if (page === "treasury") loadTreasury();
+  if (page === "storehouse") loadStorehouse();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -147,7 +150,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury") {
+  } else if (page === "treasury" || page === "storehouse") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -801,4 +804,183 @@ document.getElementById("treasuryManualForm").addEventListener("submit",async e=
   treasuryBusy=true;
   try {const {error}=await supabaseClient.rpc("treasury_add_transaction",{p_amount:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();showToast("Операция записана");await loadTreasury();}
   catch(err){showToast("Ошибка: "+err.message);}finally{treasuryBusy=false;}
+});
+
+
+// v1.0 — кладовая. Запись только через Supabase RPC; интерфейс не предоставляет прямой INSERT.
+const storeNumber = new Intl.NumberFormat("ru-RU");
+let storeBusy = false;
+let storeLoadToken = 0;
+let storeItems = [];
+let storeBalances = new Map();
+let storeCategories = [];
+let storeProfiles = new Map();
+const storeEl = id => document.getElementById(id);
+function storeText(parent, tag, text, cls = "") {
+  const element = document.createElement(tag);
+  element.textContent = String(text ?? "");
+  if (cls) element.className = cls;
+  parent.appendChild(element);
+  return element;
+}
+function storeItemName(id) { return storeItems.find(item => item.id === id)?.name || "Неизвестный предмет"; }
+function storeDate(value) { return value ? new Date(value).toLocaleString("ru-RU") : "—"; }
+function storeStatus(value) { return ({pending:"Ожидает",approved:"Подтверждена",rejected:"Отклонена"})[value] || value; }
+function storeRecord(parent, title, details, quantity = null, status = "") {
+  const row = document.createElement("div"); row.className = "treasury-row";
+  const main = document.createElement("div");
+  storeText(main,"strong",title); storeText(main,"small",details);
+  row.appendChild(main);
+  if (quantity !== null) storeText(row,"b",`${quantity > 0 ? "+" : ""}${storeNumber.format(quantity)} шт.`,quantity < 0 ? "treasury-negative" : "treasury-positive");
+  if (status) storeText(row,"span",status,"treasury-status");
+  parent.appendChild(row); return row;
+}
+async function storeAllRows(table, columns, sortColumn = "created_at") {
+  const all = [];
+  const chunk = 1000;
+  for (let offset = 0; ; offset += chunk) {
+    const {data,error} = await supabaseClient.from(table).select(columns).order(sortColumn,{ascending:false}).range(offset,offset + chunk - 1);
+    if (error) throw error;
+    all.push(...(data || []));
+    if (!data || data.length < chunk) break;
+    if (offset >= 99000) throw new Error("Слишком много записей. Требуется серверная агрегация остатков.");
+  }
+  return all;
+}
+function storePopulateSelect(select, items, emptyLabel) {
+  const selected = select.value;
+  select.replaceChildren(new Option(emptyLabel,""));
+  for (const item of items) select.add(new Option(`${item.name} (${item.category})`,item.id));
+  if (items.some(i => i.id === selected)) select.value = selected;
+}
+function renderStoreCatalog() {
+  const query = storeEl("storeSearch").value.trim().toLocaleLowerCase("ru");
+  const category = storeEl("storeCategory").value;
+  const onlyAvailable = storeEl("storeOnlyAvailable").checked;
+  const filtered = storeItems.filter(item =>
+    (!query || item.name.toLocaleLowerCase("ru").includes(query)) &&
+    (!category || item.category === category) &&
+    (!onlyAvailable || (storeBalances.get(item.id) || 0) > 0)
+  );
+  storeEl("storeFilteredCount").textContent = `${filtered.length} из ${storeItems.length}`;
+  const root = storeEl("storeCatalog"); root.replaceChildren();
+  if (!filtered.length) {storeText(root,"p","Предметов по выбранным условиям нет.","store-muted");return;}
+  for (const item of filtered) {
+    const row = document.createElement("div");row.className="store-item";
+    const details = document.createElement("div");
+    storeText(details,"strong",item.name);
+    storeText(details,"small",item.category);
+    if (item.description) storeText(details,"small",item.description);
+    row.appendChild(details);
+    storeText(row,"b",`${storeNumber.format(storeBalances.get(item.id)||0)} ${item.unit || "шт."}`);
+    const action=document.createElement("button");action.type="button";action.className="secondary-button";action.textContent="Заявка";
+    action.addEventListener("click",()=>{
+      storeEl("storeRequestForm").elements.item.value=item.id;
+      storeEl("storeRequestForm").scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    row.appendChild(action);root.appendChild(row);
+  }
+}
+async function loadStorehouse() {
+  if (!supabaseClient || !currentSession?.user || !["approved","admin"].includes(accessState.mode)) return;
+  const token=++storeLoadToken;
+  const userId=currentSession.user.id;
+  const isAdmin=accessState.mode==="admin";
+  storeEl("storeManualForm").hidden=!isAdmin;
+  storeEl("storeAddForm").hidden=!isAdmin;
+  storeEl("storeAdminRequests").hidden=!isAdmin;
+  storeEl("storeNotice").textContent="Сверяем амбарные книги…";
+  try {
+    const [items,transactions,requests,profiles] = await Promise.all([
+      storeAllRows("storage_items","id,name,category,unit,description","name"),
+      storeAllRows("storage_transactions","id,item_id,member_id,quantity,description,recorded_by,created_at"),
+      storeAllRows("storage_requests","id,item_id,user_id,request_type,quantity,comment,status,created_at,reviewed_at"),
+      storeAllRows("profiles","id,character_first_name,character_last_name","created_at")
+    ]);
+    if (token!==storeLoadToken || currentSession?.user?.id!==userId || !storehousePage.classList.contains("active-page")) return;
+    storeItems=items.sort((a,b)=>a.name.localeCompare(b.name,"ru"));
+    storeCategories=[...new Set(items.map(i=>i.category))].sort((a,b)=>a.localeCompare(b,"ru"));
+    storeProfiles=new Map(profiles.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(" ")||"Участник"]));
+    storeBalances=new Map(items.map(item=>[item.id,0]));
+    for (const t of transactions) storeBalances.set(t.item_id,(storeBalances.get(t.item_id)||0)+Number(t.quantity));
+    storeEl("storeItemCount").textContent=storeNumber.format(items.length);
+    storeEl("storeInStock").textContent=storeNumber.format(items.filter(item=>(storeBalances.get(item.id)||0)>0).length);
+    storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length);
+    const categorySelect=storeEl("storeCategory");const currentCategory=categorySelect.value;
+    categorySelect.replaceChildren(new Option("Все категории",""));
+    for (const c of storeCategories) categorySelect.add(new Option(c,c));
+    if(storeCategories.includes(currentCategory))categorySelect.value=currentCategory;
+    const datalist=storeEl("storeCategoryOptions");datalist.replaceChildren();
+    for(const c of storeCategories)datalist.appendChild(new Option(c,c));
+    for(const formId of ["storeRequestForm","storeManualForm"])storePopulateSelect(storeEl(formId).elements.item,storeItems,"Выберите предмет");
+    const members=profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(storeProfiles.get(a.id)||"").localeCompare(storeProfiles.get(b.id)||"","ru"));
+    const memberSelect=storeEl("storeManualForm").elements.member;const selectedMember=memberSelect.value;
+    memberSelect.replaceChildren(new Option("Общая операция",""));
+    for(const p of members)memberSelect.add(new Option(storeProfiles.get(p.id),p.id));
+    if(members.some(p=>p.id===selectedMember))memberSelect.value=selectedMember;
+    renderStoreCatalog();
+    const own=storeEl("storeOwnRequests");own.replaceChildren();
+    const mine=requests.filter(r=>r.user_id===userId);
+    if(!mine.length)storeText(own,"p","Вы пока не подавали заявок.");
+    for(const r of mine.slice(0,100)) {
+      const sign=r.request_type==="deposit"?1:-1;
+      storeRecord(own,`${storeItemName(r.item_id)} — ${r.request_type==="deposit"?"передача":"выдача"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity),storeStatus(r.status));
+    }
+    const pendingBox=storeEl("storePendingList");pendingBox.replaceChildren();
+    if(isAdmin) {
+      const pending=requests.filter(r=>r.status==="pending");
+      if(!pending.length)storeText(pendingBox,"p","Заявок на рассмотрении нет.");
+      for(const r of pending) {
+        const sign=r.request_type==="deposit"?1:-1;
+        const row=storeRecord(pendingBox,`${storeItemName(r.item_id)} · ${storeProfiles.get(r.user_id)||"Участник"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity));
+        const actions=document.createElement("div");actions.className="treasury-actions";
+        for(const [label,approve] of [["Подтвердить",true],["Отклонить",false]]) {
+          const btn=document.createElement("button");btn.type="button";btn.className="secondary-button";btn.textContent=label;
+          btn.addEventListener("click",async()=>{
+            if(storeBusy || !window.confirm(`${label} заявку: ${storeItemName(r.item_id)} (${r.quantity} шт.)?`))return;
+            storeBusy=true;btn.disabled=true;
+            try {const {error}=await supabaseClient.rpc("storage_review_request",{p_request_id:r.id,p_approve:approve});if(error)throw error;showToast("Заявка обработана");await loadStorehouse();}
+            catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;btn.disabled=false;}
+          });actions.appendChild(btn);
+        }row.appendChild(actions);
+      }
+    }
+    const history=storeEl("storeHistory");history.replaceChildren();
+    if(!transactions.length)storeText(history,"p","Операций пока нет.");
+    for(const t of transactions.slice(0,100)) {
+      const unit=storeItems.find(i=>i.id===t.item_id)?.unit||"шт.";
+      const row=storeRecord(history,storeItemName(t.item_id),`${storeDate(t.created_at)} · ${t.description} · ${storeProfiles.get(t.member_id)||"Общая операция"}`,null);
+      storeText(row,"b",`${Number(t.quantity)>0?"+":""}${storeNumber.format(Number(t.quantity))} ${unit}`,Number(t.quantity)<0?"treasury-negative":"treasury-positive");
+    }
+    storeEl("storeHistoryHint").textContent=transactions.length>100?`Показаны последние 100 из ${transactions.length} операций. Все операции учтены в остатках.`:"";
+    storeEl("storeNotice").textContent="Данные обновлены. Остатки рассчитаны по всей доступной истории операций.";
+  } catch(err) {storeEl("storeNotice").textContent="Ошибка загрузки кладовой: "+err.message;}
+}
+for(const id of ["storeSearch","storeCategory","storeOnlyAvailable"])storeEl(id).addEventListener(id==="storeCategory"?"change":"input",renderStoreCatalog);
+storeEl("storeRefresh").addEventListener("click",loadStorehouse);
+storeEl("storeRequestForm").addEventListener("submit",async event=>{
+  event.preventDefault();if(storeBusy)return;
+  const form=event.currentTarget;const quantity=Number(form.elements.quantity.value);
+  if(!Number.isSafeInteger(quantity)||quantity<=0)return showToast("Укажите положительное целое количество.");
+  if(!form.elements.item.value)return showToast("Выберите предмет.");
+  storeBusy=true;
+  try {const {error}=await supabaseClient.rpc("storage_submit_request",{p_item_id:form.elements.item.value,p_request_type:form.elements.type.value,p_quantity:quantity,p_comment:form.elements.comment.value.trim()});if(error)throw error;form.reset();showToast("Заявка отправлена");await loadStorehouse();}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+});
+storeEl("storeManualForm").addEventListener("submit",async event=>{
+  event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
+  const form=event.currentTarget;const quantity=Number(form.elements.quantity.value);
+  if(!Number.isSafeInteger(quantity)||quantity<=0)return showToast("Укажите положительное целое количество.");
+  const signed=form.elements.type.value==="withdraw"?-quantity:quantity;
+  if(!form.elements.item.value)return showToast("Выберите предмет.");
+  if(!window.confirm(`Записать ${signed<0?"выдачу":"поступление"} ${quantity} шт. предмета «${storeItemName(form.elements.item.value)}»?`))return;
+  storeBusy=true;
+  try {const {error}=await supabaseClient.rpc("storage_add_transaction",{p_item_id:form.elements.item.value,p_quantity:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();showToast("Операция записана");await loadStorehouse();}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+});
+storeEl("storeAddForm").addEventListener("submit",async event=>{
+  event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
+  const form=event.currentTarget;storeBusy=true;
+  try {const {error}=await supabaseClient.rpc("storage_add_item",{p_name:form.elements.name.value.trim(),p_category:form.elements.category.value.trim(),p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();showToast("Предмет добавлен в каталог");await loadStorehouse();}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
 });

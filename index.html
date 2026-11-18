@@ -194,6 +194,50 @@
           <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
           <article class="panel treasury-section"><h2>Журнал операций</h2><div id="treasuryHistory" class="treasury-list"></div></article>
         </section>
+        <section class="page" id="page-storehouse">
+          <div class="page-title-block"><div class="eyebrow">Амбарная книга братства</div><h1>Кладовая</h1><p>Ресурсы, запасы, передача имущества и записи кладовщика.</p></div>
+          <div class="store-stats">
+            <article class="panel"><small>Наименований в каталоге</small><h2 id="storeItemCount">—</h2></article>
+            <article class="panel"><small>Видов ресурсов в наличии</small><h2 id="storeInStock">—</h2></article>
+            <article class="panel"><small>Заявок на рассмотрении</small><h2 id="storePendingCount">—</h2></article>
+          </div>
+          <p id="storeNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div class="panel store-toolbar">
+            <label>Поиск предмета<input type="search" id="storeSearch" placeholder="Например: железная руда"></label>
+            <label>Категория<select id="storeCategory"><option value="">Все категории</option></select></label>
+            <label class="store-check"><input type="checkbox" id="storeOnlyAvailable"> Только в наличии</label>
+            <button type="button" class="secondary-button" id="storeRefresh">Обновить</button>
+          </div>
+          <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div></article>
+          <div class="treasury-forms">
+            <form id="storeRequestForm" class="panel treasury-form"><h2>Заявка на ресурсы</h2><p>Передача или выдача учитывается после подтверждения администрации.</p>
+              <label>Предмет<select name="item" required><option value="">Выберите предмет</option></select></label>
+              <label>Действие<select name="type"><option value="deposit">Передать в кладовую</option><option value="withdraw">Получить из кладовой</option></select></label>
+              <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
+              <label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Для чего нужны ресурсы или откуда они"></textarea></label>
+              <button type="submit" class="secondary-button">Отправить заявку</button>
+            </form>
+            <form id="storeManualForm" class="panel treasury-form" hidden><h2>Операция кладовщика</h2>
+              <label>Предмет<select name="item" required><option value="">Выберите предмет</option></select></label>
+              <label>Действие<select name="type"><option value="deposit">Приход</option><option value="withdraw">Расход</option></select></label>
+              <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
+              <label>Участник (необязательно)<select name="member"><option value="">Общая операция</option></select></label>
+              <label>Основание<input name="description" minlength="3" maxlength="500" required placeholder="Например: выдача кузнецу"></label>
+              <button type="submit" class="secondary-button">Записать операцию</button>
+            </form>
+          </div>
+          <form id="storeAddForm" class="panel treasury-form store-add" hidden><h2>Добавить предмет в каталог</h2>
+            <div class="store-add-fields"><label>Название<input name="name" minlength="2" maxlength="150" required></label>
+              <label>Категория<input name="category" maxlength="100" list="storeCategoryOptions" required></label>
+              <label>Единица измерения<input name="unit" value="шт." maxlength="30" required></label></div>
+            <datalist id="storeCategoryOptions"></datalist>
+            <label>Описание (необязательно)<textarea name="description" maxlength="1000" rows="2"></textarea></label>
+            <button type="submit" class="secondary-button">Добавить предмет</button>
+          </form>
+          <article class="panel treasury-section"><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="storeOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
+          <article class="panel treasury-section"><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
+        </section>
         <section class="page" id="page-management">
           <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>

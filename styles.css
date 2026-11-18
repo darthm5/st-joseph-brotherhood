@@ -282,3 +282,11 @@ button { font: inherit; }
 
 /* Рабочая доска скрывается при открытии любой панели. */
 #workBoardPanel[hidden]{display:none!important}
+
+/* Market v1.3 — one compact panel at a time */
+#page-market [hidden]{display:none!important}
+.market-panel{margin-bottom:18px}
+.market-filters{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px;margin:14px 0}
+.market-filters label{min-width:0}
+.market-filters select,.market-filters input{width:100%;min-width:0}
+@media(max-width:760px){.market-filters{grid-template-columns:1fr}}

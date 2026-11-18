@@ -24,6 +24,7 @@ const profilePage = document.getElementById("page-profile");
 const placeholderPage = document.getElementById("page-placeholder");
 const membersPage = document.getElementById("page-members");
 const managementPage = document.getElementById("page-management");
+const craftsPage = document.getElementById("page-crafts");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -124,11 +125,13 @@ function navigate(page) {
   navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === page));
   profilePage.classList.toggle("active-page", page === "profile");
   membersPage.classList.toggle("active-page", page === "members");
+  craftsPage.classList.toggle("active-page", page === "crafts");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
   if (page === "management") loadAdminPanel();
   if (page === "members") loadMembers();
+  if (page === "crafts") loadDirectory();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -136,6 +139,9 @@ function navigate(page) {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "members") {
+    homePage.classList.remove("active-page");
+    placeholderPage.classList.remove("active-page");
+  } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -605,3 +611,90 @@ document.getElementById("adminRefresh").addEventListener("click", loadAdminPanel
 // Always begin behind the access gate until Supabase confirms the user status.
 updateNavigationAccess();
 navigate("waiting");
+
+
+// Directory of approved members only; server-side RLS remains the source of access control.
+const directoryGrid = document.getElementById("directoryGrid");
+const directoryMessage = document.getElementById("directoryMessage");
+const directoryDetails = document.getElementById("directoryDetails");
+const directoryDetailsBody = document.getElementById("directoryDetailsBody");
+const directorySearch = document.getElementById("directorySearch");
+const directoryLevel = document.getElementById("directoryLevel");
+const directorySort = document.getElementById("directorySort");
+let directoryKind = "masteries", directoryCategory = null, directoryProfiles = [], directorySequence = 0;
+function directorySkills(p) {
+  const raw = p[directoryKind];
+  return Array.isArray(raw) ? raw.filter(x => x && typeof x.name === "string" && Number.isInteger(Number(x.level)) && Number(x.level)>=1 && Number(x.level)<=10) : [];
+}
+function directoryEntry(name) {
+  return directoryProfiles.flatMap(p => directorySkills(p).filter(x => x.name === name).map(x => ({p, level:Number(x.level)})));
+}
+function directoryMemberDetails(p) {
+  directoryDetailsBody.replaceChildren();
+  directoryDetailsBody.append(photoNode(p, "member-detail-photo"));
+  const body = element("div", "member-detail-text");
+  body.append(element("div", "eyebrow", "Анкета персонажа"));
+  body.append(element("h2", "", characterName(p)));
+  detailField(body, "Звание", p.game_rank);
+  detailField(body, "Возраст", p.character_age == null ? null : p.character_age + " лет");
+  detailField(body, "Работы", memberJobs(p));
+  detailField(body, "Мастерства", memberMasteries(p));
+  detailField(body, "О персонаже", p.about);
+  directoryDetailsBody.append(body);
+  directoryDetails.hidden = false;
+  directoryGrid.hidden = true;
+  directoryDetails.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderDirectory() {
+  directoryDetails.hidden = true;
+  directoryGrid.hidden = false;
+  document.getElementById("directoryLevelValue").textContent = directoryLevel.value;
+  document.getElementById("directoryJobs").classList.toggle("directory-selected",directoryKind === "jobs");
+  document.getElementById("directoryMasteries").classList.toggle("directory-selected",directoryKind === "masteries");
+  document.getElementById("directoryBack").hidden = !directoryCategory;
+  directoryGrid.replaceChildren();
+  const term = directorySearch.value.trim().toLocaleLowerCase();
+  const min = Number(directoryLevel.value);
+  if (!directoryCategory) {
+    const names = directoryKind === "jobs" ? JOB_NAMES : MASTERY_NAMES;
+    for (const name of names) {
+      const matches = directoryEntry(name).filter(x=>x.level>=min);
+      if (!name.toLocaleLowerCase().includes(term) && !matches.some(x=>characterName(x.p).toLocaleLowerCase().includes(term))) continue;
+      const button=element("button","directory-category"); button.type="button";
+      button.append(element("span","directory-category-icon",directoryKind==="jobs"?"⚒":"♜"));
+      button.append(element("strong","",name));
+      button.append(element("small","",matches.length+" специалистов · высший уровень "+(matches.length?Math.max(...matches.map(x=>x.level)):"—")));
+      button.addEventListener("click",()=>{directoryCategory=name;directorySearch.value="";renderDirectory();});
+      directoryGrid.append(button);
+    }
+    directoryMessage.textContent = "Категории: " + directoryGrid.children.length;
+  } else {
+    const heading=element("h2","directory-heading",directoryCategory);
+    directoryGrid.append(heading);
+    const matches=directoryEntry(directoryCategory).filter(x=>x.level>=min && characterName(x.p).toLocaleLowerCase().includes(term));
+    matches.sort((a,b)=>directorySort.value==="desc"?b.level-a.level:a.level-b.level);
+    directoryMessage.textContent="Специалисты: "+matches.length;
+    for (const {p,level} of matches) {
+      const card=element("button","directory-person");card.type="button";
+      card.append(photoNode(p,"member-photo"));
+      const body=element("div","directory-person-info");body.append(element("strong","",characterName(p)));body.append(element("small","",p.game_rank||"Член братства"));
+      const progress=element("div","directory-progress");const fill=element("div","directory-progress-fill");fill.style.width=(level*10)+"%";progress.append(fill);body.append(progress);card.append(body);
+      card.append(element("strong","directory-person-level",level+"/10"));
+      card.addEventListener("click",()=>directoryMemberDetails(p));directoryGrid.append(card);
+    }
+    if (!matches.length) directoryGrid.append(element("p","members-message","Специалисты не найдены."));
+  }
+}
+async function loadDirectory() {
+  const seq=++directorySequence;directoryProfiles=[];directoryGrid.replaceChildren();directoryMessage.textContent="Загружаем справочник…";
+  if (!currentSession?.user || !supabaseClient) {directoryMessage.textContent="Войдите через Discord.";return;}
+  const {data,error}=await supabaseClient.from("profiles").select("id,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank").eq("membership_status","approved");
+  if (seq!==directorySequence || !currentSession?.user) return;
+  if(error){directoryMessage.textContent="Не удалось загрузить справочник: "+error.message;return;}
+  directoryProfiles=(data||[]).filter(p=>p.character_first_name?.trim() && p.character_last_name?.trim());renderDirectory();
+}
+document.getElementById("directoryJobs").addEventListener("click",()=>{directoryKind="jobs";directoryCategory=null;directorySearch.value="";renderDirectory();});
+document.getElementById("directoryMasteries").addEventListener("click",()=>{directoryKind="masteries";directoryCategory=null;directorySearch.value="";renderDirectory();});
+document.getElementById("directoryBack").addEventListener("click",()=>{directoryCategory=null;directorySearch.value="";renderDirectory();});
+document.getElementById("directoryCloseMember").addEventListener("click",()=>{directoryDetails.hidden=true;directoryGrid.hidden=false;});
+directorySearch.addEventListener("input",renderDirectory);directoryLevel.addEventListener("input",renderDirectory);directorySort.addEventListener("change",renderDirectory);

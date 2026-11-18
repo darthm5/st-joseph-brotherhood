@@ -170,6 +170,18 @@
             <div class="member-details-body" id="memberDetailsBody"></div>
           </article>
         </section>
+        <section class="page" id="page-crafts">
+          <div class="page-title-block"><div class="eyebrow">Ремесленная книга братства</div><h1>Справочник специалистов</h1><p>Работы и мастерства принятых членов братства. Выберите специализацию, чтобы увидеть мастеров и их уровни.</p></div>
+          <div class="panel directory-controls">
+            <div class="directory-tabs"><button type="button" id="directoryJobs" class="secondary-button">Работы</button><button type="button" id="directoryMasteries" class="secondary-button">Мастерства</button></div>
+            <label for="directorySearch">Поиск специализации или участника</label><input id="directorySearch" type="search" placeholder="Название или имя персонажа">
+            <label for="directoryLevel">Минимальный уровень: <strong id="directoryLevelValue">1</strong>/10</label><input id="directoryLevel" type="range" min="1" max="10" value="1">
+            <label for="directorySort">Сортировка специалистов</label><select id="directorySort"><option value="desc">Высший уровень сначала</option><option value="asc">Низший уровень сначала</option></select>
+            <button type="button" class="secondary-button" id="directoryBack" hidden>← Все специализации</button>
+          </div>
+          <p id="directoryMessage" class="members-message" role="status"></p><div id="directoryGrid" class="directory-grid"></div>
+          <article id="directoryDetails" class="panel member-details" hidden><button type="button" class="secondary-button" id="directoryCloseMember">← Вернуться к специалистам</button><div id="directoryDetailsBody" class="member-details-body"></div></article>
+        </section>
         <section class="page" id="page-management">
           <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>

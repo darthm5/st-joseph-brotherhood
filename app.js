@@ -25,6 +25,7 @@ const placeholderPage = document.getElementById("page-placeholder");
 const membersPage = document.getElementById("page-members");
 const managementPage = document.getElementById("page-management");
 const craftsPage = document.getElementById("page-crafts");
+const treasuryPage = document.getElementById("page-treasury");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -126,12 +127,14 @@ function navigate(page) {
   profilePage.classList.toggle("active-page", page === "profile");
   membersPage.classList.toggle("active-page", page === "members");
   craftsPage.classList.toggle("active-page", page === "crafts");
+  treasuryPage.classList.toggle("active-page", page === "treasury");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
   if (page === "management") loadAdminPanel();
   if (page === "members") loadMembers();
   if (page === "crafts") loadDirectory();
+  if (page === "treasury") loadTreasury();
   if (page === "home") {
     homePage.classList.add("active-page");
     placeholderPage.classList.remove("active-page");
@@ -142,6 +145,9 @@ function navigate(page) {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "crafts") {
+    homePage.classList.remove("active-page");
+    placeholderPage.classList.remove("active-page");
+  } else if (page === "treasury") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -698,3 +704,101 @@ document.getElementById("directoryMasteries").addEventListener("click",()=>{dire
 document.getElementById("directoryBack").addEventListener("click",()=>{directoryCategory=null;directorySearch.value="";renderDirectory();});
 document.getElementById("directoryCloseMember").addEventListener("click",()=>{directoryDetails.hidden=true;directoryGrid.hidden=false;});
 directorySearch.addEventListener("input",renderDirectory);directoryLevel.addEventListener("input",renderDirectory);directorySort.addEventListener("change",renderDirectory);
+
+
+// v0.9 — казна. No direct writes to finance tables: all changes go through RLS-protected RPCs.
+const moneyFormat = new Intl.NumberFormat("ru-RU");
+const treasuryNotice = document.getElementById("treasuryNotice");
+let treasuryBusy = false;
+function treasuryText(parent, tag, value, className = "") {
+  const el = document.createElement(tag);
+  el.textContent = String(value ?? "");
+  if (className) el.className = className;
+  parent.appendChild(el);
+  return el;
+}
+function treasuryRow(parent, title, subtitle, amount, status) {
+  const row = document.createElement("div"); row.className = "treasury-row";
+  const details = document.createElement("div");
+  treasuryText(details, "strong", title);
+  treasuryText(details, "small", subtitle);
+  row.appendChild(details);
+  if (amount !== null) treasuryText(row, "b", `${amount > 0 ? "+" : ""}${moneyFormat.format(amount)} гр.`, amount < 0 ? "treasury-negative" : "treasury-positive");
+  if (status) treasuryText(row, "span", status, "treasury-status");
+  parent.appendChild(row); return row;
+}
+function treasuryDate(value) { return value ? new Date(value).toLocaleString("ru-RU") : "—"; }
+function treasuryStatus(value) {return ({pending:"Ожидает",approved:"Подтверждена",rejected:"Отклонена"})[value] || value;}
+async function loadTreasury() {
+  if (!supabaseClient || !currentSession?.user || !["approved","admin"].includes(accessState.mode)) return;
+  treasuryNotice.textContent = "Загружаем счётную книгу…";
+  const userId = currentSession.user.id;
+  const ownBox = document.getElementById("treasuryOwnRequests");
+  const pendingBox = document.getElementById("treasuryPendingList");
+  const historyBox = document.getElementById("treasuryHistory");
+  const adminForm = document.getElementById("treasuryManualForm");
+  const adminRequests = document.getElementById("treasuryAdminRequests");
+  const isAdmin = accessState.mode === "admin";
+  adminForm.hidden = !isAdmin; adminRequests.hidden = !isAdmin;
+  try {
+    const [txResult, reqResult, profilesResult] = await Promise.all([
+      supabaseClient.from("treasury_transactions").select("id,member_id,amount,description,created_at,recorded_by").order("created_at",{ascending:false}).limit(500),
+      supabaseClient.from("treasury_requests").select("id,user_id,amount,comment,status,created_at,reviewed_at").order("created_at",{ascending:false}).limit(500),
+      supabaseClient.from("profiles").select("id,character_first_name,character_last_name").limit(1000)
+    ]);
+    for (const result of [txResult,reqResult,profilesResult]) if(result.error) throw result.error;
+    if (currentSession?.user?.id !== userId || !treasuryPage.classList.contains("active-page")) return;
+    const tx = txResult.data || [], requests = reqResult.data || [], profiles = profilesResult.data || [];
+    const names = new Map(profiles.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(" ") || "Участник"]));
+    const sum = tx.reduce((n,t)=>n+Number(t.amount),0);
+    document.getElementById("treasuryBalance").textContent = moneyFormat.format(sum);
+    document.getElementById("treasuryIncome").textContent = moneyFormat.format(tx.reduce((n,t)=>n+Math.max(0,Number(t.amount)),0));
+    document.getElementById("treasuryExpenses").textContent = moneyFormat.format(tx.reduce((n,t)=>n+Math.max(0,-Number(t.amount)),0));
+    ownBox.replaceChildren(); pendingBox.replaceChildren(); historyBox.replaceChildren();
+    const mine = requests.filter(r=>r.user_id===userId);
+    if(!mine.length) treasuryText(ownBox,"p","Вы ещё не подавали заявок.");
+    for(const r of mine) treasuryRow(ownBox,treasuryStatus(r.status),`${treasuryDate(r.created_at)} · ${r.comment || "Без комментария"}`,Number(r.amount));
+    if(isAdmin) {
+      const pending = requests.filter(r=>r.status==="pending");
+      if(!pending.length) treasuryText(pendingBox,"p","Заявок на рассмотрении нет.");
+      for(const r of pending) {
+        const row = treasuryRow(pendingBox,names.get(r.user_id)||"Участник",`${treasuryDate(r.created_at)} · ${r.comment || "Без комментария"}`,Number(r.amount));
+        const actions=document.createElement("div");actions.className="treasury-actions";
+        for(const [label,approved] of [["Подтвердить",true],["Отклонить",false]]) {
+          const btn=document.createElement("button");btn.type="button";btn.className="secondary-button";btn.textContent=label;
+          btn.addEventListener("click",async()=>{
+            if(treasuryBusy || !window.confirm(`${label} заявку на ${moneyFormat.format(r.amount)} грошей?`)) return;
+            treasuryBusy=true;btn.disabled=true;
+            try {const {error}=await supabaseClient.rpc("treasury_review_request",{p_request_id:r.id,p_approve:approved});if(error)throw error;showToast("Заявка обработана");await loadTreasury();}
+            catch(e){showToast("Ошибка: "+e.message);}finally{treasuryBusy=false;btn.disabled=false;}
+          });actions.appendChild(btn);
+        }row.appendChild(actions);
+      }
+      const memberSelect=adminForm.elements.member;
+      memberSelect.replaceChildren(new Option("Без привязки к участнику",""));
+      for(const p of profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(names.get(a.id)||"").localeCompare(names.get(b.id)||""))) memberSelect.add(new Option(names.get(p.id),p.id));
+    }
+    if(!tx.length) treasuryText(historyBox,"p","Подтверждённых операций пока нет.");
+    for(const t of tx) treasuryRow(historyBox,t.description,`${treasuryDate(t.created_at)} · ${names.get(t.member_id)||"Общая операция"}`,Number(t.amount));
+    treasuryNotice.textContent = tx.length===500 ? "Показаны последние 500 операций. Для полного архива позже добавим постраничную загрузку." : "Данные обновлены.";
+  } catch(e) {treasuryNotice.textContent="Ошибка загрузки казны: "+e.message;}
+}
+document.getElementById("treasuryRefresh").addEventListener("click",loadTreasury);
+document.getElementById("treasuryRequestForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(treasuryBusy)return;
+  const form=e.currentTarget;const amount=Number(form.elements.amount.value);
+  if(!Number.isSafeInteger(amount)||amount<=0)return showToast("Введите целое положительное число грошей.");
+  treasuryBusy=true;
+  try {const {error}=await supabaseClient.rpc("treasury_submit_request",{p_amount:amount,p_comment:form.elements.comment.value.trim()});if(error)throw error;form.reset();showToast("Заявка отправлена на рассмотрение");await loadTreasury();}
+  catch(err){showToast("Ошибка: "+err.message);}finally{treasuryBusy=false;}
+});
+document.getElementById("treasuryManualForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(treasuryBusy || accessState.mode!=="admin")return;
+  const form=e.currentTarget;const amount=Number(form.elements.amount.value);
+  if(!Number.isSafeInteger(amount)||amount<=0)return showToast("Введите целое положительное число грошей.");
+  const signed=form.elements.type.value==="expense"?-amount:amount;
+  if(!window.confirm(`Записать ${signed<0?"расход":"поступление"} на ${moneyFormat.format(amount)} грошей?`))return;
+  treasuryBusy=true;
+  try {const {error}=await supabaseClient.rpc("treasury_add_transaction",{p_amount:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();showToast("Операция записана");await loadTreasury();}
+  catch(err){showToast("Ошибка: "+err.message);}finally{treasuryBusy=false;}
+});

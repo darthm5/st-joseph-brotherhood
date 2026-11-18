@@ -182,6 +182,18 @@
           <p id="directoryMessage" class="members-message" role="status"></p><div id="directoryGrid" class="directory-grid"></div>
           <article id="directoryDetails" class="panel member-details" hidden><button type="button" class="secondary-button" id="directoryCloseMember">← Вернуться к специалистам</button><div id="directoryDetailsBody" class="member-details-body"></div></article>
         </section>
+        <section class="page" id="page-treasury">
+          <div class="page-title-block"><div class="eyebrow">Счётная книга братства</div><h1>Казна</h1><p>Общий баланс, взносы, расходы и журнал подтверждённых операций.</p></div>
+          <div class="treasury-stats"><article class="panel"><small>Баланс казны</small><h2 id="treasuryBalance">—</h2><small>грошей</small></article><article class="panel"><small>Всего поступило</small><h2 id="treasuryIncome">—</h2></article><article class="panel"><small>Всего потрачено</small><h2 id="treasuryExpenses">—</h2></article></div>
+          <p id="treasuryNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div class="treasury-forms">
+            <form id="treasuryRequestForm" class="panel treasury-form"><h2>Подать заявку на взнос</h2><p>Заявка не изменит баланс, пока администратор не подтвердит передачу грошей в игре.</p><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Кому и когда переданы гроши"></textarea></label><button type="submit" class="secondary-button">Отправить заявку</button></form>
+            <form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
+          </div>
+          <article class="panel treasury-section"><div class="treasury-heading"><h2>Мои заявки</h2><button type="button" class="secondary-button" id="treasuryRefresh">Обновить казну</button></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
+          <article class="panel treasury-section"><h2>Журнал операций</h2><div id="treasuryHistory" class="treasury-list"></div></article>
+        </section>
         <section class="page" id="page-management">
           <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>

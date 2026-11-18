@@ -299,3 +299,6 @@ button { font: inherit; }
 #page-market .market-ad-deal{border:2px solid #d3a533;background:linear-gradient(110deg,rgba(215,165,44,.20),rgba(215,165,44,.055));}
 #page-market .market-ad-closed{opacity:.75;}
 #page-market .market-deal-person{font-weight:700;color:#e3bb56;margin:8px 0;}
+
+/* Market v1.3.3 completed trades */
+#page-market .market-ad-completed{border:2px solid #819187;background:rgba(100,125,105,.08);}

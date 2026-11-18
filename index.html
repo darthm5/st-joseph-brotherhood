@@ -260,6 +260,7 @@
           <div class="store-actions" role="group" aria-label="Разделы рынка">
             <button type="button" class="secondary-button" data-market-panel="marketCreatePanel" aria-expanded="false">Подать объявление</button>
             <button type="button" class="secondary-button" data-market-panel="marketMinePanel" aria-expanded="false">Мои объявления</button>
+            <button type="button" class="secondary-button" data-market-panel="marketArchivePanel" aria-expanded="false">История сделок</button>
             <button type="button" class="secondary-button" id="marketRefresh">Обновить</button>
           </div>
           <p id="marketNotice" class="members-message" role="status" aria-live="polite">Загружаем объявления…</p>
@@ -277,6 +278,7 @@
             <div class="treasury-actions"><button type="submit" class="secondary-button" id="marketSubmit">Опубликовать объявление</button><button type="button" class="secondary-button" id="marketCancelEdit">Отмена</button></div>
           </form>
           <article class="panel treasury-section market-panel" id="marketMinePanel" hidden><h2>Мои объявления</h2><div id="marketMineList" class="work-list"></div></article>
+          <article class="panel treasury-section market-panel" id="marketArchivePanel" hidden><h2>История завершённых сделок</h2><div id="marketArchiveList" class="work-list"></div></article>
           <article class="panel treasury-section" id="marketBoardPanel">
             <div class="treasury-heading"><h2>Все объявления</h2><span id="marketCount" class="store-muted"></span></div>
             <div class="market-filters">

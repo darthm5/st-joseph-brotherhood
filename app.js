@@ -1286,10 +1286,11 @@ function marketStartEdit(ad){
 }
 function marketAction(parent,label,fn){const b=marketNode('button',label,'secondary-button');b.type='button';b.addEventListener('click',fn);parent.append(b);}
 function marketCard(ad){
-  const card=marketNode('article',null,'work-card market-ad-'+(ad.status==='active'?'fresh':ad.status==='deal'?'deal':'closed'));const top=marketNode('div',null,'work-card-top');
-  const statusText=ad.status==='deal'?'Сделка':ad.status==='closed'?'Закрыто':marketTypeNames[ad.ad_type]||'Архив';
+  const card=marketNode('article',null,'work-card market-ad-'+(ad.status==='active'?'fresh':ad.status==='deal'?'deal':ad.status==='completed'?'completed':'closed'));const top=marketNode('div',null,'work-card-top');
+  const statusText=ad.status==='deal'?'Сделка':ad.status==='completed'?'Завершено':ad.status==='closed'?'Закрыто':marketTypeNames[ad.ad_type]||'Архив';
   top.append(marketNode('strong',ad.title),marketNode('span',statusText,'treasury-status'));card.append(top);
-  if(ad.status==='deal')card.append(marketNode('p','🤝 Сделка с '+(marketNames.get(ad.deal_with)||'участником братства'),'market-deal-person'));
+  if(['deal','completed'].includes(ad.status))card.append(marketNode('p',(ad.status==='completed'?'✓ Сделка завершена с ':'🤝 Сделка с ')+(marketNames.get(ad.deal_with)||'участником братства'),'market-deal-person'));
+  if(ad.status==='completed'&&ad.completed_at)card.append(marketNode('small','Дата завершения: '+new Date(ad.completed_at).toLocaleString('ru-RU')));
   const items=ad.market_ad_items||[];
   if(items.length){const list=marketNode('ul',null,'market-card-items');for(const it of items)list.append(marketNode('li',`${it.item_name} — ${it.quantity} ${it.unit||'шт.'} · ${it.price==null?'Цена договорная':it.price+' грошей/ед.'}`));card.append(list);}
   else card.append(marketNode('small',`${ad.category} · ${ad.quantity} шт. · ${ad.price==null?'Цена договорная':ad.price+' грошей'} (старое объявление)`));
@@ -1305,8 +1306,9 @@ function marketCard(ad){
     const actions=marketNode('div',null,'treasury-actions');
     if(mine){
       if(ad.status==='active'&&ad.ad_type!=='exchange'&&items.every(x=>x.item_id))marketAction(actions,'Изменить',()=>marketStartEdit(ad));
+      if(ad.status==='deal')marketAction(actions,'✓ Завершить сделку',()=>marketRpc('market_complete_deal',{p_id:ad.id},'Сделка завершена',`Подтвердить завершение сделки «${ad.title}»?`));
       if(ad.status==='deal')marketAction(actions,'Отменить сделку',()=>marketRpc('market_cancel_deal',{p_id:ad.id},'Объявление снова доступно','Отменить закреплённую сделку?'));
-      if(ad.status!=='deal')marketAction(actions,ad.status==='active'?'Закрыть':'Открыть',()=>marketRpc('market_set_status',{p_id:ad.id,p_status:ad.status==='active'?'closed':'active'},'Статус обновлён'));
+      if(['active','closed'].includes(ad.status))marketAction(actions,ad.status==='active'?'Закрыть':'Открыть',()=>marketRpc('market_set_status',{p_id:ad.id,p_status:ad.status==='active'?'closed':'active'},'Статус обновлён'));
     }
     marketAction(actions,'Удалить',()=>marketRpc('market_delete_ad',{p_id:ad.id},'Объявление удалено',`Удалить объявление «${ad.title}»?`));card.append(actions);
   }
@@ -1326,13 +1328,14 @@ function marketRender(){
   marketEl('marketCount').textContent=`Найдено: ${visible.length}`;
   const mine=marketEl('marketMineList');mine.replaceChildren();const own=marketRows.filter(ad=>ad.author_id===myId);
   for(const ad of own)mine.append(marketCard(ad));if(!own.length)mine.append(marketNode('p','Вы пока не размещали объявления.','store-muted'));
+  const archive=marketEl('marketArchiveList');archive.replaceChildren();const done=marketRows.filter(ad=>ad.status==='completed'&&ad.ad_type!=='exchange').sort((a,b)=>new Date(b.completed_at||b.created_at)-new Date(a.completed_at||a.created_at));for(const ad of done)archive.append(marketCard(ad));if(!done.length)archive.append(marketNode('p','Завершённых сделок пока нет.','store-muted'));
 }
 async function loadMarket(){
   if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
   const token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
   try{
     const [ads,people,catalog]=await Promise.all([
-      supabaseClient.from('market_ads').select('id,author_id,deal_with,deal_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price)').order('created_at',{ascending:false}).limit(1000),
+      supabaseClient.from('market_ads').select('id,author_id,deal_with,deal_at,completed_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price)').order('created_at',{ascending:false}).limit(1000),
       supabaseClient.from('profiles').select('id,character_first_name,character_last_name').limit(1000),
       supabaseClient.from('storage_items').select('id,name,category,unit,section').order('name').limit(5000)
     ]);

@@ -290,3 +290,6 @@ button { font: inherit; }
 .market-filters label{min-width:0}
 .market-filters select,.market-filters input{width:100%;min-width:0}
 @media(max-width:760px){.market-filters{grid-template-columns:1fr}}
+
+/* Market v1.3.1 multi-item editor */
+.market-item-rows{display:grid;gap:12px;margin:12px 0 18px}.market-item-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px;border:1px solid var(--line, #67543d);border-radius:8px}.market-item-row label{min-width:0}.market-item-row select,.market-item-row input{width:100%;min-width:0}.market-item-row label:nth-child(3){grid-column:1/-1}.market-item-row button{justify-self:start}.market-card-items{margin:10px 0;padding-left:24px}.market-card-items li{margin:4px 0}@media(max-width:640px){.market-item-row{grid-template-columns:1fr}.market-item-row label:nth-child(3){grid-column:auto}}

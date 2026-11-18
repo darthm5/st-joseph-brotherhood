@@ -256,7 +256,7 @@
           <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
         </section>
         <section class="page" id="page-market">
-          <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Продажа, покупка и обмен. Сделки совершаются в игре.</p></div>
+          <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
           <div class="store-actions" role="group" aria-label="Разделы рынка">
             <button type="button" class="secondary-button" data-market-panel="marketCreatePanel" aria-expanded="false">Подать объявление</button>
             <button type="button" class="secondary-button" data-market-panel="marketMinePanel" aria-expanded="false">Мои объявления</button>
@@ -266,23 +266,21 @@
           <form id="marketCreatePanel" class="panel treasury-form market-panel" hidden>
             <h2 id="marketFormTitle">Новое объявление</h2>
             <div class="work-form-grid">
-              <label>Тип<select name="ad_type" required><option value="sell">Продам</option><option value="buy">Куплю</option><option value="exchange">Обменяю</option></select></label>
-              <label>Категория<select name="category" required><option>Оружие</option><option>Броня</option><option>Одежда</option><option>Материалы</option><option>Инструменты</option><option>Еда и напитки</option><option>Алхимия</option><option>Услуги</option><option>Прочее</option></select></label>
+              <label>Тип объявления<select name="ad_type" required><option value="sell">Продам</option><option value="buy">Куплю</option></select></label>
+              <label>Заголовок<input name="title" minlength="3" maxlength="140" required placeholder="Например: Куплю руду и древесину"></label>
             </div>
-            <label>Название<input name="title" minlength="3" maxlength="140" required placeholder="Например: Железная руда"></label>
-            <label>Описание<textarea name="description" maxlength="3000" rows="3" placeholder="Условия торговли, качество товара и подробности"></textarea></label>
-            <div class="work-form-grid">
-              <label>Количество<input name="quantity" type="number" min="1" max="100000000" step="1" value="1" required></label>
-              <label>Цена, грошей (необязательно)<input name="price" type="number" min="0" step="1" placeholder="По договорённости"></label>
-            </div>
-            <label>Как связаться (необязательно)<input name="contact" maxlength="200" placeholder="Например: Discord или имя персонажа"></label>
+            <label>Описание<textarea name="description" maxlength="3000" rows="3" placeholder="Условия торговли и подробности"></textarea></label>
+            <div class="treasury-heading"><h3>Товары в объявлении</h3><button type="button" class="secondary-button" id="marketAddItem">+ Добавить позицию</button></div>
+            <p class="store-muted">Выбери раздел, категорию и товар из каталога кладовой. Цена указывается за единицу каждого товара.</p>
+            <div id="marketItemRows" class="market-item-rows"></div>
+            <label>Как связаться (необязательно)<input name="contact" maxlength="200" placeholder="Discord или имя персонажа"></label>
             <div class="treasury-actions"><button type="submit" class="secondary-button" id="marketSubmit">Опубликовать объявление</button><button type="button" class="secondary-button" id="marketCancelEdit">Отмена</button></div>
           </form>
           <article class="panel treasury-section market-panel" id="marketMinePanel" hidden><h2>Мои объявления</h2><div id="marketMineList" class="work-list"></div></article>
           <article class="panel treasury-section" id="marketBoardPanel">
             <div class="treasury-heading"><h2>Все объявления</h2><span id="marketCount" class="store-muted"></span></div>
             <div class="market-filters">
-              <label>Тип<select id="marketFilterType"><option value="all">Все</option><option value="sell">Продам</option><option value="buy">Куплю</option><option value="exchange">Обменяю</option></select></label>
+              <label>Тип<select id="marketFilterType"><option value="all">Все</option><option value="sell">Продам</option><option value="buy">Куплю</option></select></label>
               <label>Категория<select id="marketFilterCategory"><option value="all">Все категории</option></select></label>
               <label>Поиск<input id="marketSearch" type="search" placeholder="Название или описание"></label>
             </div>

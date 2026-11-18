@@ -1397,7 +1397,7 @@ function calEventCard(ev){
  const attendees=calAttendees.filter(a=>a.event_id===ev.id),mine=attendees.some(a=>a.user_id===currentSession?.user?.id);
  card.append(calNode('p','Участники ('+attendees.length+'): '+(attendees.map(a=>calPeople.get(a.user_id)||'Участник').join(', ')||'Пока никто не записался'),'store-muted'));
  const actions=calNode('div',null,'treasury-actions');
- if(ev.status==='scheduled'&&new Date(ev.starts_at)>new Date()&&accessState.mode==='approved'){
+ if(ev.status==='scheduled'&&new Date(ev.starts_at)>new Date()&&['approved','admin'].includes(accessState.mode)){
   const b=calNode('button',mine?'Отменить участие':'Буду участвовать','secondary-button');b.type='button';b.addEventListener('click',()=>calRpc(mine?'guild_event_leave':'guild_event_join',{p_event_id:ev.id},mine?'Запись отменена':'Вы записаны'));actions.append(b);
  }
  if(accessState.mode==='admin'&&ev.status==='scheduled'){

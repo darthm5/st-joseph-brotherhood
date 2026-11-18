@@ -257,3 +257,12 @@ button { font: inherit; }
 .store-cascade label { min-width:0; }
 .store-cascade select, .store-cascade input { width:100%; min-width:0; }
 @media(max-width:680px){ .store-cascade{grid-template-columns:1fr;} }
+
+/* v1.1.3: компактная панель действий и корректное скрытие всех форм */
+.store-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 18px}
+.store-actions button{flex:0 1 auto}
+.store-actions .store-action-active{background:#70502f;color:#fff0ce;border-color:#bd9251}
+#page-storehouse [hidden]{display:none!important}
+#page-storehouse .treasury-forms{display:block}
+#page-storehouse .treasury-forms form{margin-bottom:18px}
+@media(max-width:650px){.store-actions button{flex:1 1 calc(50% - 10px)}}

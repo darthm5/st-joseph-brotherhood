@@ -870,33 +870,32 @@ async function storeAllRows(table, columns, sortColumn = "created_at") {
   }
   return all;
 }
-// Каскадные фильтры для обеих форм: раздел → категория → поиск → предмет.
+// Каскадные фильтры: раздел → категория → предмет с текущим остатком.
 function storeCascade(form) {
   const section=form.querySelector('[data-store-section]');
   const category=form.querySelector('[data-store-category]');
-  const search=form.querySelector('[data-store-item-search]');
   const item=form.elements.namedItem('item');
   function refreshCategories() {
     category.replaceChildren(new Option('Выберите категорию',''));
     const cats=[...new Set(storeItems.filter(x=>(x.section||'materials')===section.value).map(x=>x.category))].sort((a,b)=>a.localeCompare(b,'ru'));
     for(const c of cats)category.add(new Option(c,c));
     category.disabled=!section.value;
-    category.value='';search.value='';search.disabled=true;
+    category.value='';
     refreshItems();
   }
   function refreshItems(keepSelection=false) {
     const old=keepSelection?item.value:'';
-    const q=search.value.trim().toLocaleLowerCase('ru');
     item.replaceChildren(new Option('Выберите предмет',''));
-    const matches=storeItems.filter(x=>(x.section||'materials')===section.value && x.category===category.value && (!q||x.name.toLocaleLowerCase('ru').includes(q)));
-    for(const x of matches)item.add(new Option(x.name,x.id));
+    const matches=storeItems.filter(x=>(x.section||'materials')===section.value && x.category===category.value).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+    for(const x of matches){
+      const balance=storeNumber.format(storeBalances.get(x.id)||0);
+      item.add(new Option(`${x.name} — ${balance} ${x.unit||'шт.'}`,x.id));
+    }
     item.disabled=!category.value;
-    search.disabled=!category.value;
     if(matches.some(x=>x.id===old))item.value=old;
   }
   section.addEventListener('change',refreshCategories);
-  category.addEventListener('change',()=>{search.value='';refreshItems();});
-  search.addEventListener('input',()=>refreshItems(true));
+  category.addEventListener('change',()=>refreshItems());
   return {
     update(){
       const current=item.value;
@@ -916,6 +915,26 @@ function storeCascade(form) {
 }
 const storeRequestCascade=storeCascade(storeEl('storeRequestForm'));
 const storeManualCascade=storeCascade(storeEl('storeManualForm'));
+const storePanelIds=['storeRequestForm','storeManualForm','storeAddForm','storeOwnRequestsPanel','storeAdminRequests','storeHistoryPanel'];
+let storeActivePanel=null;
+function storeOpenPanel(id, scroll=true){
+  if(id && !storePanelIds.includes(id))return;
+  if(id && ['storeManualForm','storeAddForm','storeAdminRequests'].includes(id) && accessState.mode!=='admin')return;
+  storeActivePanel=id;
+  for(const panelId of storePanelIds){
+    storeEl(panelId).hidden=panelId!==id;
+  }
+  for(const button of document.querySelectorAll('[data-store-panel]')){
+    const expanded=button.dataset.storePanel===id;
+    button.setAttribute('aria-expanded',String(expanded));
+    button.classList.toggle('store-action-active',expanded);
+  }
+  if(id && scroll)storeEl(id).scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+for(const button of document.querySelectorAll('[data-store-panel]')){
+  button.addEventListener('click',()=>storeOpenPanel(storeActivePanel===button.dataset.storePanel?null:button.dataset.storePanel));
+}
+
 function renderStoreCatalog() {
   const query = storeEl("storeSearch").value.trim().toLocaleLowerCase("ru");
   const category = storeEl("storeCategory").value;
@@ -940,7 +959,7 @@ function renderStoreCatalog() {
     const action=document.createElement("button");action.type="button";action.className="secondary-button";action.textContent="Заявка";
     action.addEventListener("click",()=>{
       storeRequestCascade.choose(item.id);
-      storeEl("storeRequestForm").scrollIntoView({behavior:"smooth",block:"start"});
+      storeOpenPanel("storeRequestForm");
     });
     row.appendChild(action);root.appendChild(row);
   }
@@ -950,9 +969,9 @@ async function loadStorehouse() {
   const token=++storeLoadToken;
   const userId=currentSession.user.id;
   const isAdmin=accessState.mode==="admin";
-  storeEl("storeManualForm").hidden=!isAdmin;
-  storeEl("storeAddForm").hidden=!isAdmin;
-  storeEl("storeAdminRequests").hidden=!isAdmin;
+  for(const button of document.querySelectorAll("[data-store-admin]"))button.hidden=!isAdmin;
+  if(!isAdmin && ["storeManualForm","storeAddForm","storeAdminRequests"].includes(storeActivePanel))storeActivePanel=null;
+  storeOpenPanel(storeActivePanel,false);
   storeEl("storeNotice").textContent="Сверяем амбарные книги…";
   try {
     const [items,transactions,requests,profiles] = await Promise.all([

@@ -202,6 +202,7 @@
             <article class="panel"><small>Заявок на рассмотрении</small><h2 id="storePendingCount">—</h2></article>
           </div>
           <p id="storeNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div class="store-tabs" role="tablist" aria-label="Раздел кладовой"><button type="button" id="storeTabMaterials" class="store-tab active" role="tab" aria-selected="true">Материалы</button><button type="button" id="storeTabProducts" class="store-tab" role="tab" aria-selected="false">Готовая продукция</button></div>
           <div class="panel store-toolbar">
             <label>Поиск предмета<input type="search" id="storeSearch" placeholder="Например: железная руда"></label>
             <label>Категория<select id="storeCategory"><option value="">Все категории</option></select></label>
@@ -228,7 +229,7 @@
           </div>
           <form id="storeAddForm" class="panel treasury-form store-add" hidden><h2>Добавить предмет в каталог</h2>
             <div class="store-add-fields"><label>Название<input name="name" minlength="2" maxlength="150" required></label>
-              <label>Категория<input name="category" maxlength="100" list="storeCategoryOptions" required></label>
+              <label>Раздел<select name="section" id="storeNewSection"><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label><label>Категория<input name="category" maxlength="100" list="storeCategoryOptions" required></label>
               <label>Единица измерения<input name="unit" value="шт." maxlength="30" required></label></div>
             <datalist id="storeCategoryOptions"></datalist>
             <label>Описание (необязательно)<textarea name="description" maxlength="1000" rows="2"></textarea></label>

@@ -812,6 +812,29 @@ const storeNumber = new Intl.NumberFormat("ru-RU");
 let storeBusy = false;
 let storeLoadToken = 0;
 let storeItems = [];
+let storeSection = "materials";
+const storeProductCategories = ["Броня","Оружие","Портняжное","Лучное","Ювелирное","Алхимия","Готовка","Пивоварение","Столярное"];
+function storeVisibleItems(){ return storeItems.filter(i => (i.section || "materials") === storeSection); }
+function storeSetSection(section){
+  storeSection=section;
+  for(const [id,value] of [["storeTabMaterials","materials"],["storeTabProducts","products"]]){const b=storeEl(id);b.classList.toggle("active",section===value);b.setAttribute("aria-selected",String(section===value));}
+  storeEl("storeCategory").value="";storeEl("storeSearch").value="";
+  storeEl("storeNewSection").value=section;
+  storeRenderFilters();renderStoreCatalog();
+}
+function storeRenderFilters(){
+  const categories=[...new Set(storeVisibleItems().map(i=>i.category))];
+  if(storeSection==="products")for(const c of storeProductCategories)if(!categories.includes(c))categories.push(c);
+  categories.sort((a,b)=>a.localeCompare(b,"ru"));
+  const select=storeEl("storeCategory"),old=select.value;select.replaceChildren(new Option("Все категории",""));
+  for(const c of categories)select.add(new Option(c,c));if(categories.includes(old))select.value=old;
+  const datalist=storeEl("storeCategoryOptions");datalist.replaceChildren();
+  const addCategories=storeEl("storeNewSection").value==="products"?storeProductCategories:[...new Set(storeItems.filter(i=>(i.section||"materials")==="materials").map(i=>i.category))].sort((a,b)=>a.localeCompare(b,"ru"));
+  for(const c of addCategories)datalist.appendChild(new Option(c,c));
+}
+storeEl("storeTabMaterials").addEventListener("click",()=>storeSetSection("materials"));
+storeEl("storeTabProducts").addEventListener("click",()=>storeSetSection("products"));
+storeEl("storeNewSection").addEventListener("change",storeRenderFilters);
 let storeBalances = new Map();
 let storeCategories = [];
 let storeProfiles = new Map();
@@ -857,12 +880,13 @@ function renderStoreCatalog() {
   const query = storeEl("storeSearch").value.trim().toLocaleLowerCase("ru");
   const category = storeEl("storeCategory").value;
   const onlyAvailable = storeEl("storeOnlyAvailable").checked;
-  const filtered = storeItems.filter(item =>
+  const visibleItems=storeVisibleItems();
+  const filtered = visibleItems.filter(item =>
     (!query || item.name.toLocaleLowerCase("ru").includes(query)) &&
     (!category || item.category === category) &&
     (!onlyAvailable || (storeBalances.get(item.id) || 0) > 0)
   );
-  storeEl("storeFilteredCount").textContent = `${filtered.length} из ${storeItems.length}`;
+  storeEl("storeFilteredCount").textContent = `${filtered.length} из ${visibleItems.length}`;
   const root = storeEl("storeCatalog"); root.replaceChildren();
   if (!filtered.length) {storeText(root,"p","Предметов по выбранным условиям нет.","store-muted");return;}
   for (const item of filtered) {
@@ -892,7 +916,7 @@ async function loadStorehouse() {
   storeEl("storeNotice").textContent="Сверяем амбарные книги…";
   try {
     const [items,transactions,requests,profiles] = await Promise.all([
-      storeAllRows("storage_items","id,name,category,unit,description","name"),
+      storeAllRows("storage_items","id,name,category,unit,description,section","name"),
       storeAllRows("storage_transactions","id,item_id,member_id,quantity,description,recorded_by,created_at"),
       storeAllRows("storage_requests","id,item_id,user_id,request_type,quantity,comment,status,created_at,reviewed_at"),
       storeAllRows("profiles","id,character_first_name,character_last_name","created_at")
@@ -906,12 +930,7 @@ async function loadStorehouse() {
     storeEl("storeItemCount").textContent=storeNumber.format(items.length);
     storeEl("storeInStock").textContent=storeNumber.format(items.filter(item=>(storeBalances.get(item.id)||0)>0).length);
     storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length);
-    const categorySelect=storeEl("storeCategory");const currentCategory=categorySelect.value;
-    categorySelect.replaceChildren(new Option("Все категории",""));
-    for (const c of storeCategories) categorySelect.add(new Option(c,c));
-    if(storeCategories.includes(currentCategory))categorySelect.value=currentCategory;
-    const datalist=storeEl("storeCategoryOptions");datalist.replaceChildren();
-    for(const c of storeCategories)datalist.appendChild(new Option(c,c));
+    storeRenderFilters();
     for(const formId of ["storeRequestForm","storeManualForm"])storePopulateSelect(storeEl(formId).elements.namedItem("item"),storeItems,"Выберите предмет");
     const members=profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(storeProfiles.get(a.id)||"").localeCompare(storeProfiles.get(b.id)||"","ru"));
     const memberSelect=storeEl("storeManualForm").elements.member;const selectedMember=memberSelect.value;
@@ -981,6 +1000,6 @@ storeEl("storeManualForm").addEventListener("submit",async event=>{
 storeEl("storeAddForm").addEventListener("submit",async event=>{
   event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
   const form=event.currentTarget;storeBusy=true;
-  try {const {error}=await supabaseClient.rpc("storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:form.elements.category.value.trim(),p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();showToast("Предмет добавлен в каталог");await loadStorehouse();}
+  try {const section=form.elements.namedItem("section").value;const category=form.elements.category.value.trim();if(section==="products"&&!storeProductCategories.includes(category))throw new Error("Выберите одну из девяти категорий готовой продукции");const {error}=await supabaseClient.rpc(section==="products"?"storage_add_product_item":"storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:category,p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();storeEl("storeNewSection").value=storeSection;showToast("Предмет добавлен в каталог");await loadStorehouse();}
   catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
 });

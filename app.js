@@ -14,6 +14,7 @@ const pageInfo = {
   crafts: ["Ремёсла", "Ремесленные специализации, мастера и их профессиональные навыки."],
   map: ["Карта", "Карта мира, поселения, маршруты и отмеченные места."],
   chronicle: ["Летопись", "История братства, важные события и памятные записи."],
+  ratusha: ["Ратуша", "Открытые и тайные голосования братства."],
   storehouse: ["Кладовая", "Общие запасы, материалы, имущество и движение ресурсов."],
   management: ["Управление", "Инструменты администрации, роли, звания и настройки резиденции."]
 };
@@ -32,6 +33,7 @@ const marketPage = document.getElementById("page-market");
 const calendarPage = document.getElementById("page-calendar");
 const libraryPage = document.getElementById("page-info");
 const chroniclePage = document.getElementById("page-chronicle");
+const ratushaPage = document.getElementById("page-ratusha");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -140,6 +142,7 @@ function navigate(page) {
   calendarPage.classList.toggle("active-page", page === "calendar");
   libraryPage.classList.toggle("active-page", page === "info");
   chroniclePage.classList.toggle("active-page", page === "chronicle");
+  ratushaPage.classList.toggle("active-page", page === "ratusha");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -152,6 +155,7 @@ function navigate(page) {
   if (page === "market") loadMarket();
   if (page === "calendar") loadCalendar();
   if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
+  if (page === "ratusha") { pollShow("board"); loadPolls(); }
   if (page === "info") { libHome(); loadLibrary(); }
   if (page === "home") {
     homePage.classList.add("active-page");
@@ -165,7 +169,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle" || page === "ratusha") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -1710,4 +1714,136 @@ chronEl('chronEditor').addEventListener('submit',async e=>{
  if(chronEditing)args.p_id=chronEditing;
  const ok=await chronRpc(chronEditing?'guild_chronicle_update':'guild_chronicle_create',args,chronEditing?'Запись обновлена':'Событие внесено в летопись');
  if(ok){chronEditing=null;f.reset();chronShow('timeline');}
+});
+
+
+// v1.7 — Ratusha voting. All reads and writes go through restricted Supabase RPCs.
+const pollEl=id=>document.getElementById(id);
+const pollText=(tag,value,cls)=>{const e=document.createElement(tag);if(value!==null&&value!==undefined)e.textContent=String(value);if(cls)e.className=cls;return e;};
+let pollRows=[],pollData=[],pollMode='board',pollSelected=null,pollFilter='active',pollLoadSeq=0,pollBusy=false;
+const pollActive=p=>!p.cancelled_at&&new Date(p.closes_at).getTime()>Date.now();
+const pollStatus=p=>p.cancelled_at?'Отменено':pollActive(p)?'Идёт голосование':'Завершено';
+const pollDate=value=>new Date(value).toLocaleString('ru-RU',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function pollShow(mode){
+ if(mode==='editor'&&accessState.mode!=='admin')return;
+ pollMode=mode;
+ pollEl('pollBoard').hidden=mode!=='board';pollEl('pollReader').hidden=mode!=='reader';pollEl('pollEditor').hidden=mode!=='editor';
+ pollEl('pollBackButton').hidden=mode==='board';pollEl('pollCreateButton').hidden=mode!=='board'||accessState.mode!=='admin';
+}
+function pollOrganize(rows){
+ const map=new Map();
+ for(const row of rows){
+  let p=map.get(row.poll_id);
+  if(!p){p={id:row.poll_id,title:row.title,description:row.description,visibility:row.visibility,closes_at:row.closes_at,created_at:row.created_at,cancelled_at:row.cancelled_at,options:[],myVoted:false};map.set(row.poll_id,p);}
+  p.options.push({id:row.option_id,label:row.option_label,position:row.option_position,votes:Number(row.votes)||0,mine:row.my_vote===true});
+  if(row.my_vote===true)p.myVoted=true;
+ }
+ return [...map.values()].map(p=>({...p,options:p.options.sort((a,b)=>a.position-b.position)})).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+}
+function pollRender(){
+ const list=pollEl('pollList');list.replaceChildren();
+ for(const b of document.querySelectorAll('[data-poll-filter]')){b.classList.toggle('ratusha-filter-active',b.dataset.pollFilter===pollFilter);b.setAttribute('aria-pressed',String(b.dataset.pollFilter===pollFilter));}
+ const visible=pollData.filter(p=>pollFilter==='all'||(pollFilter==='active'?pollActive(p):!pollActive(p)));
+ if(!visible.length){list.append(pollText('p',pollFilter==='active'?'Действующих голосований пока нет.':'Голосования не найдены.','ratusha-empty'));return;}
+ for(const p of visible){
+  const card=pollText('article',null,'panel ratusha-card');
+  const top=pollText('div',null,'ratusha-card-top');
+  top.append(pollText('span',p.visibility==='secret'?'🔒 Тайное':'⚖ Открытое','ratusha-kicker'));
+  top.append(pollText('span',pollStatus(p),'ratusha-status '+(pollActive(p)?'ratusha-live':'')));
+  card.append(top,pollText('h2',p.title));
+  if(p.description)card.append(pollText('p',p.description.length>250?p.description.slice(0,250)+'…':p.description,'ratusha-excerpt'));
+  card.append(pollText('p','До '+pollDate(p.closes_at)+' · '+p.options.reduce((sum,o)=>sum+o.votes,0)+' голосов','store-muted'));
+  if(p.myVoted)card.append(pollText('span','✓ Ваш голос учтён','ratusha-voted'));
+  const btn=pollText('button',pollActive(p)?'Открыть голосование →':'Посмотреть итоги →','secondary-button');btn.type='button';btn.addEventListener('click',()=>pollOpen(p.id));card.append(btn);list.append(card);
+ }
+}
+function pollOpen(id){
+ const p=pollData.find(x=>x.id===id);if(!p){pollShow('board');return;}
+ pollSelected=id;pollEl('pollReaderTitle').textContent=p.title;
+ pollEl('pollReaderType').textContent=(p.visibility==='secret'?'🔒 Тайное голосование':'⚖ Открытое голосование')+' · '+pollStatus(p);
+ pollEl('pollReaderDescription').textContent=p.description||'';
+ pollEl('pollReaderMeta').textContent='Начало: '+pollDate(p.created_at)+' · Завершение: '+pollDate(p.closes_at);
+ const options=pollEl('pollOptions');options.replaceChildren();
+ const canVote=pollActive(p)&&!p.myVoted;
+ for(const o of p.options){
+  if(canVote){const label=pollText('label',null,'ratusha-choice');const input=document.createElement('input');input.type='radio';input.name='pollOption';input.value=o.id;input.required=true;label.append(input,pollText('span',o.label));options.append(label);}
+ }
+ pollEl('pollVoteForm').hidden=!canVote;
+ const results=pollEl('pollResults');results.replaceChildren();
+ if(p.myVoted)results.append(pollText('p','✓ Вы уже отдали свой голос. Повторное голосование невозможно.','ratusha-voted'));
+ if(!pollActive(p))results.append(pollText('h3',p.cancelled_at?'Голосование отменено':'Итоги голосования'));
+ else results.append(pollText('h3','Текущие результаты'));
+ const total=p.options.reduce((sum,o)=>sum+o.votes,0);
+ for(const o of p.options){
+  const line=pollText('div',null,'ratusha-result');const head=pollText('div',null,'ratusha-result-label');
+  head.append(pollText('strong',o.label),pollText('span',o.votes+' ('+(total?Math.round(100*o.votes/total):0)+'%)'));line.append(head);
+  const track=pollText('div',null,'ratusha-track');const fill=pollText('div',null,'ratusha-fill');fill.style.width=(total?100*o.votes/total:0)+'%';track.append(fill);line.append(track);results.append(line);
+ }
+ results.append(pollText('p','Всего голосов: '+total,'store-muted'));
+ if(p.visibility==='public'){
+  const voters=pollText('div',null,'ratusha-voters');results.append(voters);
+  voters.append(pollText('h3','Кто и за что проголосовал'));
+  voters.append(pollText('p','Загрузка списка участников…','store-muted'));
+  const idAtRequest=id;
+  supabaseClient.rpc('guild_poll_public_voters',{p_poll_id:id}).then(({data,error})=>{
+   if(pollSelected!==idAtRequest||pollMode!=='reader')return;
+   voters.replaceChildren(pollText('h3','Кто и за что проголосовал'));
+   if(error){voters.append(pollText('p','Не удалось загрузить список: '+error.message,'store-muted'));return;}
+   if(!data?.length){voters.append(pollText('p','Голосов пока нет.','store-muted'));return;}
+   for(const o of p.options){const group=data.filter(v=>v.option_id===o.id);if(!group.length)continue;voters.append(pollText('h4',o.label));const ul=pollText('ul');for(const v of group)ul.append(pollText('li',v.voter_name||'Участник'));voters.append(ul);}
+  }).catch(err=>{if(pollSelected===idAtRequest&&pollMode==='reader')voters.replaceChildren(pollText('p','Ошибка: '+err.message,'store-muted'));});
+ }
+ const actions=pollEl('pollReaderActions');actions.replaceChildren();
+ if(accessState.mode==='admin'&&pollActive(p)){
+  const cancel=pollText('button','Отменить голосование','secondary-button');cancel.type='button';cancel.addEventListener('click',async()=>{if(confirm('Отменить голосование «'+p.title+'»?')){if(await pollRpc('guild_poll_cancel',{p_poll_id:p.id},'Голосование отменено'))pollShow('board');}});actions.append(cancel);
+ }
+ pollShow('reader');
+}
+async function loadPolls(){
+ if(!supabaseClient||!currentSession?.user||!['admin','approved'].includes(accessState.mode))return;
+ const token=++pollLoadSeq;pollEl('pollNotice').textContent='Загружаем голосования…';
+ pollEl('pollCreateButton').hidden=accessState.mode!=='admin'||pollMode!=='board';
+ try{const {data,error}=await supabaseClient.rpc('guild_poll_list');if(error)throw error;if(token!==pollLoadSeq)return;
+  pollRows=data||[];pollData=pollOrganize(pollRows);pollRender();
+  if(pollMode==='reader'&&pollSelected){if(pollData.some(p=>p.id===pollSelected))pollOpen(pollSelected);else pollShow('board');}
+  pollEl('pollNotice').textContent='';
+ }catch(err){if(token===pollLoadSeq)pollEl('pollNotice').textContent='Ошибка загрузки: '+err.message;}
+}
+async function pollRpc(name,args,message){
+ if(pollBusy)return false;pollBusy=true;
+ try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(message);await loadPolls();return true;}
+ catch(err){showToast('Ошибка: '+err.message);return false;}
+ finally{pollBusy=false;}
+}
+function pollAddOption(value=''){
+ const rows=pollEl('pollEditorOptions');if(rows.children.length>=12){showToast('Допускается не более 12 вариантов');return;}
+ const row=pollText('div',null,'ratusha-option-row');const input=document.createElement('input');input.type='text';input.maxLength=160;input.required=true;input.placeholder='Вариант '+(rows.children.length+1);input.value=value;
+ const remove=pollText('button','×','secondary-button');remove.type='button';remove.setAttribute('aria-label','Удалить вариант');remove.addEventListener('click',()=>{if(rows.children.length<=2){showToast('Необходимо хотя бы два варианта');return;}row.remove();});
+ row.append(input,remove);rows.append(row);
+}
+function pollNew(){
+ if(accessState.mode!=='admin')return;
+ const form=pollEl('pollEditor');form.reset();pollEl('pollEditorOptions').replaceChildren();pollAddOption();pollAddOption();
+ const local=new Date(Date.now()+86400000);const pad=n=>String(n).padStart(2,'0');
+ form.elements.namedItem('closes_at').value=[local.getFullYear(),pad(local.getMonth()+1),pad(local.getDate())].join('-')+'T'+pad(local.getHours())+':'+pad(local.getMinutes());
+ pollShow('editor');
+}
+pollEl('pollCreateButton').addEventListener('click',pollNew);
+pollEl('pollBackButton').addEventListener('click',()=>pollShow('board'));
+pollEl('pollCancelEditor').addEventListener('click',()=>pollShow('board'));
+pollEl('pollRefreshButton').addEventListener('click',loadPolls);
+pollEl('pollAddOption').addEventListener('click',()=>pollAddOption());
+for(const b of document.querySelectorAll('[data-poll-filter]'))b.addEventListener('click',()=>{pollFilter=b.dataset.pollFilter;pollRender();});
+pollEl('pollEditor').addEventListener('submit',async e=>{
+ e.preventDefault();if(accessState.mode!=='admin'||pollBusy)return;
+ const f=e.currentTarget,values=[...pollEl('pollEditorOptions').querySelectorAll('input')].map(i=>i.value.trim());
+ if(values.length<2||values.length>12||values.some(x=>!x)){showToast('Заполните от 2 до 12 вариантов');return;}
+ const date=new Date(f.elements.namedItem('closes_at').value);if(!Number.isFinite(date.getTime())||date<=new Date()){showToast('Укажите будущую дату завершения');return;}
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_visibility:f.elements.namedItem('visibility').value,p_closes_at:date.toISOString(),p_options:values};
+ const ok=await pollRpc('guild_poll_create',args,'Голосование опубликовано');if(ok){pollFilter='active';pollShow('board');pollRender();}
+});
+pollEl('pollVoteForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(pollBusy)return;const option=pollEl('pollVoteForm').querySelector('input[name="pollOption"]:checked');if(!option){showToast('Выберите вариант');return;}
+ const p=pollData.find(x=>x.id===pollSelected);if(!p||!pollActive(p)||p.myVoted)return;
+ const ok=await pollRpc('guild_poll_cast',{p_poll_id:p.id,p_option_id:option.value},'Ваш голос учтён');if(ok)pollOpen(p.id);
 });

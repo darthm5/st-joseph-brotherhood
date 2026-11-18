@@ -42,6 +42,7 @@
         <button class="nav-item" data-page="crafts"><span class="nav-icon">♜</span>Ремёсла</button>
         <button class="nav-item" data-page="map"><span class="nav-icon">⌖</span>Карта</button>
         <button class="nav-item" data-page="chronicle"><span class="nav-icon">▤</span>Летопись</button>
+        <button class="nav-item" data-page="ratusha"><span class="nav-icon">⚜</span>Ратуша</button>
         <button class="nav-item" data-page="storehouse"><span class="nav-icon">▣</span>Кладовая</button>
       </nav>
 
@@ -122,6 +123,7 @@
               <button class="quick-link" data-goto="members"><span>♙</span><span><b>Реестр участников</b><small>Лица и звания братства</small></span><i>→</i></button>
               <button class="quick-link" data-goto="crafts"><span>⚒</span><span><b>Цеха и ремёсла</b><small>Умения и специализации</small></span><i>→</i></button>
               <button class="quick-link" data-goto="chronicle"><span>▤</span><span><b>Летопись</b><small>События и история</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="ratusha"><span>⚜</span><span><b>Ратуша</b><small>Голосования и решения</small></span><i>→</i></button>
               <button class="quick-link" data-goto="management"><span>⚙</span><span><b>Совет братства</b><small>Внутреннее управление</small></span><i>→</i></button>
             </article>
           </div>
@@ -287,6 +289,40 @@
             <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
             <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются по прямым HTTPS-ссылкам.</p>
             <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
+          </form>
+        </section>
+        <section class="page" id="page-ratusha">
+          <div class="page-title-block"><div class="eyebrow">Vox Fraternitatis · Глас братства</div><h1>Ратуша братства</h1><p>Совет, выборы и решения. Один участник — один голос.</p></div>
+          <div class="ratusha-actions">
+            <button type="button" class="secondary-button" id="pollCreateButton" hidden>⚜ Созвать голосование</button>
+            <button type="button" class="secondary-button" id="pollBackButton" hidden>← К голосованиям</button>
+            <button type="button" class="secondary-button" id="pollRefreshButton">Обновить</button>
+          </div>
+          <p class="members-message" id="pollNotice" role="status" aria-live="polite"></p>
+          <div id="pollBoard">
+            <div class="ratusha-intro">✥ &nbsp; Решения, принятые общим гласом &nbsp; ✥</div>
+            <div class="ratusha-filters" role="group" aria-label="Фильтр голосований">
+              <button type="button" class="secondary-button" data-poll-filter="active">Действующие</button>
+              <button type="button" class="secondary-button" data-poll-filter="closed">Завершённые</button>
+              <button type="button" class="secondary-button" data-poll-filter="all">Все</button>
+            </div>
+            <div id="pollList" class="ratusha-list"></div>
+          </div>
+          <article id="pollReader" class="panel ratusha-reader" hidden>
+            <div id="pollReaderType" class="ratusha-kicker"></div><h2 id="pollReaderTitle"></h2>
+            <p id="pollReaderDescription" class="ratusha-description"></p><p id="pollReaderMeta" class="store-muted"></p>
+            <form id="pollVoteForm"><div id="pollOptions" class="ratusha-options"></div><button type="submit" class="secondary-button" id="pollVoteButton">Отдать голос</button></form>
+            <div id="pollResults" class="ratusha-results"></div><div id="pollReaderActions" class="treasury-actions"></div>
+          </article>
+          <form id="pollEditor" class="panel treasury-form" hidden>
+            <h2>Созвать голосование</h2>
+            <label>Название<input name="title" required minlength="5" maxlength="180" placeholder="Кого избрать старостой братства?"></label>
+            <label>Описание и условия<textarea name="description" rows="4" maxlength="5000" placeholder="Объясните, какое решение предстоит принять"></textarea></label>
+            <div class="ratusha-form-grid"><label>Тип голосования<select name="visibility" required><option value="public">Открытое — видно, кто за кого голосовал</option><option value="secret">Тайное — видны только итоги</option></select></label><label>Завершение голосования<input name="closes_at" type="datetime-local" required></label></div>
+            <div class="treasury-heading"><h3>Варианты ответа</h3><button type="button" class="secondary-button" id="pollAddOption">+ Добавить вариант</button></div>
+            <div id="pollEditorOptions" class="ratusha-editor-options"></div>
+            <p class="store-muted">От 2 до 12 вариантов. После публикации изменить варианты нельзя. Отменить голосование сможет администрация.</p>
+            <div class="treasury-actions"><button type="submit" class="secondary-button" id="pollSaveButton">Опубликовать голосование</button><button type="button" class="secondary-button" id="pollCancelEditor">Отмена</button></div>
           </form>
         </section>
         <section class="page" id="page-chronicle">

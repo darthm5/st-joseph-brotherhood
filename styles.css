@@ -382,3 +382,41 @@ button { font: inherit; }
 #page-chronicle .chron-lead{font-size:clamp(17px,2vw,21px);line-height:1.7;white-space:pre-wrap}
 #page-chronicle .chron-empty{font-family:Georgia,serif;padding:25px;color:#b7a07b}
 @media(max-width:720px){#page-chronicle .chron-timeline{padding-left:18px;margin-left:10px}#page-chronicle .chron-marker{left:-28px}#page-chronicle .chron-year{margin-left:-34px}#page-chronicle .chron-entry-card{flex-direction:column}#page-chronicle .chron-entry-image{width:100%;max-height:260px}#page-chronicle .chron-entry-content{padding:20px}}
+
+/* v1.7 Ratusha — medieval voting hall */
+#page-ratusha [hidden]{display:none!important}
+#page-ratusha .ratusha-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+#page-ratusha .ratusha-intro{text-align:center;font-family:Georgia,serif;color:#98713f;letter-spacing:.07em;margin:18px 0 24px}
+#page-ratusha .ratusha-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+#page-ratusha .ratusha-filter-active{background:#66412e;color:#f5e6c5;border-color:#a58350}
+#page-ratusha .ratusha-list{display:grid;gap:17px}
+#page-ratusha .ratusha-card{padding:24px;display:grid;gap:12px;border-left:4px solid #a77b3f}
+#page-ratusha .ratusha-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#page-ratusha .ratusha-kicker{font:700 12px Georgia,serif;letter-spacing:.06em;color:#855c2e}
+#page-ratusha .ratusha-card h2{font-size:clamp(21px,2.4vw,29px);margin:0}
+#page-ratusha .ratusha-excerpt{white-space:pre-wrap;line-height:1.6;margin:0}
+#page-ratusha .ratusha-card .secondary-button{justify-self:start}
+#page-ratusha .ratusha-status{font-size:12px;color:#795b47}
+#page-ratusha .ratusha-live{color:#276b46;font-weight:700}
+#page-ratusha .ratusha-voted{color:#276b46;font-size:13px;font-weight:700}
+#page-ratusha .ratusha-empty{font-family:Georgia,serif;color:#95744d;padding:22px}
+#page-ratusha .ratusha-reader{width:100%;box-sizing:border-box;padding:clamp(20px,4vw,44px);display:grid;gap:18px}
+#page-ratusha .ratusha-reader h2{font-size:clamp(25px,3vw,40px);margin:0}
+#page-ratusha .ratusha-description{white-space:pre-wrap;line-height:1.75;margin:0}
+#page-ratusha .ratusha-options{display:grid;gap:10px;margin-bottom:16px}
+#page-ratusha .ratusha-choice{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid #d5c19d;background:#fff8e8;cursor:pointer}
+#page-ratusha .ratusha-choice input{accent-color:#81572b;width:18px;height:18px}
+#page-ratusha .ratusha-results{display:grid;gap:13px}
+#page-ratusha .ratusha-results h3{margin:8px 0 0}
+#page-ratusha .ratusha-result{display:grid;gap:6px}
+#page-ratusha .ratusha-result-label{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+#page-ratusha .ratusha-track{height:12px;background:#e5d7bd;border:1px solid #cbb891;overflow:hidden;border-radius:2px}
+#page-ratusha .ratusha-fill{height:100%;background:linear-gradient(90deg,#815a30,#b58b47)}
+#page-ratusha .ratusha-voters{border-top:1px solid #d5c19d;padding-top:16px}
+#page-ratusha .ratusha-voters h4{margin:12px 0 4px}
+#page-ratusha .ratusha-voters ul{margin:4px 0 14px}
+#page-ratusha .ratusha-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#page-ratusha .ratusha-editor-options{display:grid;gap:8px}
+#page-ratusha .ratusha-option-row{display:flex;gap:8px}
+#page-ratusha .ratusha-option-row input{flex:1;min-width:0}
+@media(max-width:720px){#page-ratusha .ratusha-form-grid{grid-template-columns:1fr}#page-ratusha .ratusha-card{padding:18px}}

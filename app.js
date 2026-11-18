@@ -812,6 +812,7 @@ const storeNumber = new Intl.NumberFormat("ru-RU");
 let storeBusy = false;
 let storeLoadToken = 0;
 let storeItems = [];
+const storeEl = id => document.getElementById(id);
 let storeSection = "materials";
 const storeProductCategories = ["Броня","Оружие","Портняжное","Лучное","Ювелирное","Алхимия","Готовка","Пивоварение","Столярное"];
 function storeVisibleItems(){ return storeItems.filter(i => (i.section || "materials") === storeSection); }
@@ -838,7 +839,6 @@ storeEl("storeNewSection").addEventListener("change",storeRenderFilters);
 let storeBalances = new Map();
 let storeCategories = [];
 let storeProfiles = new Map();
-const storeEl = id => document.getElementById(id);
 function storeText(parent, tag, text, cls = "") {
   const element = document.createElement(tag);
   element.textContent = String(text ?? "");

@@ -279,3 +279,6 @@ button { font: inherit; }
 .work-card p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.5}
 .work-selected{outline:2px solid #a18a64}
 @media(max-width:760px){.work-form-grid{grid-template-columns:1fr}}
+
+/* Рабочая доска скрывается при открытии любой панели. */
+#workBoardPanel[hidden]{display:none!important}

@@ -1087,6 +1087,8 @@ function workNode(tag, content, className='') {
 function workOpenPanel(id) {
   workPanel = workPanel===id ? null : id;
   for(const panel of document.querySelectorAll('.work-panel'))panel.hidden=panel.id!==workPanel;
+  // Показываем основную доску только когда дополнительные панели закрыты.
+  workEl('workBoardPanel').hidden=Boolean(workPanel);
   for(const button of document.querySelectorAll('[data-work-panel]')){
     const expanded=button.dataset.workPanel===workPanel;
     button.setAttribute('aria-expanded',String(expanded));

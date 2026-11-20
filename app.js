@@ -602,14 +602,28 @@ function renderAdminList() {
     });
     const rankGroup = element("label");
     rankGroup.append(element("span", "", "Игровое звание"));
-    const rankInput = element("input");
-    rankInput.type = "text"; rankInput.maxLength = 60; rankInput.value = p.game_rank || "Кандидат";
+    const rankInput = element("select");
+    rankInput.setAttribute("aria-label", "Выберите ранг гильдии");
+    const rankOptions = [
+      "Глава гильдии", "Старейшина гильдии", "Казначей", "Писарь", "Купец",
+      "Гильдмастер", "Мастер", "Подмастерье", "Возница", "Последователь", "Послушник"
+    ];
+    const currentRank = (p.game_rank || "").trim();
+    const placeholder = element("option", "", "— Выберите ранг —");
+    placeholder.value = ""; placeholder.disabled = true;
+    rankInput.append(placeholder);
+    for (const rankName of rankOptions) {
+      const option = element("option", "", rankName);
+      option.value = rankName;
+      rankInput.append(option);
+    }
+    rankInput.value = rankOptions.includes(currentRank) ? currentRank : "";
     rankGroup.append(rankInput);
     const saveRank = element("button", "secondary-button", "Сохранить звание");
     saveRank.type = "button";
     saveRank.addEventListener("click", async () => {
-      const rank = rankInput.value.trim();
-      if (rank.length < 2 || rank.length > 60) return showToast("Звание должно содержать от 2 до 60 символов.");
+      const rank = rankInput.value;
+      if (!rankOptions.includes(rank)) return showToast("Выберите ранг из списка.");
       if (rank === p.game_rank) return showToast("Звание не изменилось.");
       if (!confirm(`Назначить персонажу «${characterName(p)}» звание «${rank}»?`)) return;
       await adminMutation("admin_set_member_rank", {target_user_id:p.id, new_rank:rank}, saveRank);

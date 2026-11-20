@@ -34,6 +34,7 @@ const calendarPage = document.getElementById("page-calendar");
 const libraryPage = document.getElementById("page-info");
 const chroniclePage = document.getElementById("page-chronicle");
 const ratushaPage = document.getElementById("page-ratusha");
+const mapPage = document.getElementById("page-map");
 const waitingPage = document.getElementById("page-waiting");
 let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
@@ -143,6 +144,7 @@ function navigate(page) {
   libraryPage.classList.toggle("active-page", page === "info");
   chroniclePage.classList.toggle("active-page", page === "chronicle");
   ratushaPage.classList.toggle("active-page", page === "ratusha");
+  mapPage.classList.toggle("active-page", page === "map");
   managementPage.classList.toggle("active-page", page === "management");
   waitingPage.classList.toggle("active-page", page === "waiting");
   if (page === "waiting") showWaiting();
@@ -156,6 +158,7 @@ function navigate(page) {
   if (page === "calendar") loadCalendar();
   if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
   if (page === "ratusha") { hallShow("home"); }
+  if (page === "map") { guildMapLoad(); }
   if (page === "info") { libHome(); loadLibrary(); }
   if (page === "home") {
     homePage.classList.add("active-page");
@@ -169,7 +172,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle" || page === "ratusha") {
+  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle" || page === "ratusha" || page === "map") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -2339,3 +2342,86 @@ awardEl('awardTypeForm').addEventListener('submit',async e=>{
 awardEl('awardGrantForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=e.currentTarget;await awardRpc('guild_award_grant',{p_award_type_id:f.elements.namedItem('award_type_id').value,p_recipient_id:f.elements.namedItem('recipient_id').value,p_reason:f.elements.namedItem('reason').value.trim(),p_awarded_on:f.elements.namedItem('awarded_on').value},'Награда вручена');
 });
+
+
+// v2.2 Cartographic Chamber. All coordinates are normalized to the base image.
+const gm = id => document.getElementById(id);
+const guildMapState = {region:'kuttenberg',markers:[],routes:[],draft:[],point:null,editing:null,scale:1};
+const guildMapCategories = {
+ marker:[['resource','Ресурсы'],['trade','Торговля'],['meeting','Место сбора'],['workshop','Мастерская'],['warning','Опасность'],['other','Другое']],
+ route:[['trade','Торговый путь'],['expedition','Экспедиция'],['resource','Добыча'],['patrol','Патруль'],['other','Другое']]
+};
+const gmSvgNS='http://www.w3.org/2000/svg';
+function gmSvg(tag,attrs){const el=document.createElementNS(gmSvgNS,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));return el;}
+function gmStatus(s){gm('guildMapStatus').textContent=s;}
+function gmMode(){return gm('guildMapMode').value;}
+function gmEscape(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function gmAllowed(r){return accessState.mode==='admin'||r.created_by===currentSession?.user?.id;}
+function gmCategorySelect(kind,selected){gm('guildMapCategory').replaceChildren(...guildMapCategories[kind].map(([v,l])=>{const e=document.createElement('option');e.value=v;e.textContent=l;return e;}));if(selected)gm('guildMapCategory').value=selected;}
+function gmEdit(kind,record=null){
+ guildMapState.editing=record?{kind,id:record.id}:null;
+ gm('guildMapEditor').hidden=false;gm('guildMapEditorTitle').textContent=record?'Редактирование':'Новая '+(kind==='marker'?'метка':'маршрут');
+ gm('guildMapTitle').value=record?.title||'';gm('guildMapDescription').value=record?.description||'';
+ gmCategorySelect(kind,record?.category);gm('guildMapVisibility').value=record?.visibility||'guild';
+ gm('guildMapColorWrap').hidden=kind!=='route';gm('guildMapColor').value=record?.color||'#b88a4a';
+ gm('guildMapEditorHint').textContent=kind==='route'?'Маршрут состоит из выбранных точек карты.':'Координаты сохраняются относительно изображения.';
+ gm('guildMapSave').dataset.kind=kind;
+}
+function gmClose(){gm('guildMapEditor').hidden=true;guildMapState.editing=null;guildMapState.point=null;guildMapState.draft=[];gm('guildMapDraftActions').hidden=true;gm('guildMapMode').value='view';gmRender();}
+function gmXY(event){const r=gm('guildMapSvg').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))};}
+function gmDraw(){
+ const s=gm('guildMapSvg');s.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;const mine=r=>!only||r.created_by===currentSession?.user?.id;
+ if(gm('guildMapShowRoutes').checked){for(const r of st.routes.filter(mine)){
+ const line=gmSvg('polyline',{points:r.points.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:r.color||'#b88a4a','stroke-width':5,'stroke-linecap':'round','stroke-linejoin':'round',class:'gm-route'});
+ line.addEventListener('click',e=>{e.stopPropagation();gmSelect('route',r.id)});s.append(line);
+ }}
+ if(st.draft.length){s.append(gmSvg('polyline',{points:st.draft.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:'#f7e8b0','stroke-width':5,'stroke-dasharray':'12 7'}));for(const p of st.draft)s.append(gmSvg('circle',{cx:p.x*1000,cy:p.y*700,r:7,fill:'#f7e8b0'}));}
+ if(gm('guildMapShowMarkers').checked){for(const r of st.markers.filter(mine)){
+ const g=gmSvg('g',{class:'gm-pin'});g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:12,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':3}));
+ const t=gmSvg('text',{x:r.x*1000+17,y:r.y*700+5,fill:'#fff2d5','font-size':20,'paint-order':'stroke',stroke:'#3d2920','stroke-width':4});t.textContent=r.title;g.append(t);g.addEventListener('click',e=>{e.stopPropagation();gmSelect('marker',r.id)});s.append(g);
+ }}
+ if(st.point)s.append(gmSvg('circle',{cx:st.point.x*1000,cy:st.point.y*700,r:10,fill:'#e6b95d',stroke:'#4b2a21','stroke-width':3}));
+}
+function gmSelect(kind,id){const r=guildMapState[kind==='marker'?'markers':'routes'].find(x=>x.id===id);if(!r)return;gmStatus(`${kind==='marker'?'Метка':'Маршрут'}: ${r.title}${r.description?' — '+r.description:''}`);}
+function gmRender(){gmDraw();const list=gm('guildMapList');list.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;
+ const entries=[...st.markers.map(r=>({...r,kind:'marker'})),...st.routes.map(r=>({...r,kind:'route'}))].filter(r=>!only||r.created_by===currentSession?.user?.id);
+ entries.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+ for(const r of entries){const item=document.createElement('div');item.className='map-record';const heading=document.createElement('strong');heading.textContent=(r.kind==='marker'?'⌖ ':'↝ ')+r.title;item.append(heading);
+ const meta=document.createElement('small');meta.textContent= r.visibility==='guild'?'Общая':r.visibility==='personal'?'Личная':'Руководству';item.append(meta);
+ if(r.description){const desc=document.createElement('p');desc.textContent=r.description;item.append(desc);}
+ const buttons=document.createElement('div');buttons.className='map-record-buttons';const focus=document.createElement('button');focus.type='button';focus.className='secondary-button';focus.textContent='Показать';focus.onclick=()=>gmSelect(r.kind,r.id);buttons.append(focus);
+ if(gmAllowed(r)){const edit=document.createElement('button');edit.type='button';edit.className='secondary-button';edit.textContent='Изменить';edit.onclick=()=>{gm('guildMapMode').value='view';gmEdit(r.kind,r);};buttons.append(edit);
+ const del=document.createElement('button');del.type='button';del.className='secondary-button';del.textContent='Удалить';del.onclick=()=>gmDelete(r);buttons.append(del);}
+ item.append(buttons);list.append(item);
+ }
+ if(!entries.length)list.textContent='Пока нет записей для выбранного слоя.';
+}
+async function guildMapLoad(){if(!supabaseClient||!currentSession?.user)return;gmStatus('Загружаем метки и маршруты…');const region=guildMapState.region;
+ const [a,b]=await Promise.all([supabaseClient.from('guild_map_markers').select('*').eq('map_key',region).order('created_at',{ascending:false}),supabaseClient.from('guild_map_routes').select('*').eq('map_key',region).order('created_at',{ascending:false})]);
+ if(region!==guildMapState.region)return;if(a.error||b.error){gmStatus('Ошибка загрузки: '+(a.error||b.error).message);return;}
+ guildMapState.markers=a.data||[];guildMapState.routes=b.data||[];gmStatus(`Метки: ${a.data.length} · Маршруты: ${b.data.length}`);gmRender();
+}
+async function gmSave(){const kind=gm('guildMapSave').dataset.kind;const title=gm('guildMapTitle').value.trim();if(!title){showToast('Укажите название');return;}
+ const st=guildMapState;const edit=st.editing;const old=edit?st[kind==='marker'?'markers':'routes'].find(r=>r.id===edit.id):null;
+ const data={title,description:gm('guildMapDescription').value.trim(),category:gm('guildMapCategory').value,visibility:gm('guildMapVisibility').value};
+ if(kind==='marker') {const p=old?{x:old.x,y:old.y}:st.point;if(!p){showToast('Сначала выберите место на карте');return;}Object.assign(data,p);}
+ else {data.color=gm('guildMapColor').value;data.points=old?.points||st.draft;if(data.points.length<2){showToast('Нужно минимум две точки маршрута');return;}}
+ const table='guild_map_'+(kind==='marker'?'markers':'routes');
+ const query=edit?supabaseClient.from(table).update(data).eq('id',edit.id):supabaseClient.from(table).insert({...data,map_key:st.region,created_by:currentSession.user.id});
+ const {error}=await query;if(error){showToast('Ошибка сохранения: '+error.message);return;}gmClose();showToast('Запись сохранена');await guildMapLoad();
+}
+async function gmDelete(r){if(!confirm(`Удалить «${r.title}»?`))return;const {error}=await supabaseClient.from('guild_map_'+(r.kind==='marker'?'markers':'routes')).delete().eq('id',r.id);if(error){showToast(error.message);return;}showToast('Запись удалена');await guildMapLoad();}
+function gmBase(){const st=guildMapState;const paper=gm('guildMapStage');const img='/'+'';const file=st.region==='kuttenberg'?'map-kuttenberg.jpg':'map-trosky.jpg';
+ paper.style.backgroundImage=`url("${file}")`;gm('guildMapViewport').classList.toggle('map-with-image',false);
+ const test=new Image();test.onload=()=>{if(st.region===(file.includes('kuttenberg')?'kuttenberg':'trosky'))gm('guildMapViewport').classList.add('map-with-image');};test.src=file;
+}
+gm('guildMapRegion').addEventListener('change',()=>{guildMapState.region=gm('guildMapRegion').value;gmClose();gmBase();guildMapLoad();});
+gm('guildMapMode').addEventListener('change',(event)=>{const value=event.target.value;gmClose();gm('guildMapMode').value=value;gmStatus(gmMode()==='marker'?'Нажмите на карту, чтобы поставить метку.':gmMode()==='route'?'Нажимайте на карту, чтобы отметить точки маршрута.':'Режим просмотра');});
+gm('guildMapSvg').addEventListener('click',e=>{const mode=gmMode();if(mode==='view')return;const p=gmXY(e);if(mode==='marker'){guildMapState.point=p;gmEdit('marker');gmRender();}else{guildMapState.draft.push(p);gm('guildMapDraftActions').hidden=false;gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();}});
+gm('guildMapRouteDone').onclick=()=>{if(guildMapState.draft.length<2){showToast('Нужно минимум две точки');return;}gmEdit('route');};
+gm('guildMapUndo').onclick=()=>{guildMapState.draft.pop();gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();};
+gm('guildMapSave').onclick=gmSave;gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
+for(const id of ['guildMapShowMarkers','guildMapShowRoutes','guildMapShowMineOnly'])gm(id).onchange=gmRender;
+function gmZoom(n){guildMapState.scale=Math.max(1,Math.min(3,guildMapState.scale*n));gm('guildMapStage').style.width=`${guildMapState.scale*100}%`;gm('guildMapStage').style.height=`${guildMapState.scale*100}%`;}
+gm('guildMapZoomIn').onclick=()=>gmZoom(1.25);gm('guildMapZoomOut').onclick=()=>gmZoom(.8);gm('guildMapZoomReset').onclick=()=>{guildMapState.scale=1;gmZoom(1);};
+gmBase();

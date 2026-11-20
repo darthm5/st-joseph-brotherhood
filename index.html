@@ -556,6 +556,24 @@
             <div id="adminList" class="admin-list"></div>
           </div>
         </section>
+        <section class="page" id="page-map">
+          <div class="page-title-block"><div class="eyebrow">Tabula Bohemiae · Картографическая палата</div><h1>Карта братства</h1><p>Метки, торговые пути и маршруты. Все утверждённые участники могут создавать записи.</p></div>
+          <div class="panel map-panel">
+            <div class="map-toolbar">
+              <label>Земли <select id="guildMapRegion"><option value="kuttenberg">Куттенберг</option><option value="trosky">Троски</option></select></label>
+              <label>Режим <select id="guildMapMode"><option value="view">Просмотр</option><option value="marker">Поставить метку</option><option value="route">Нарисовать маршрут</option></select></label>
+              <button type="button" class="secondary-button" id="guildMapRefresh">Обновить</button>
+              <button type="button" class="secondary-button" id="guildMapZoomIn">＋</button><button type="button" class="secondary-button" id="guildMapZoomOut">−</button>
+              <button type="button" class="secondary-button" id="guildMapZoomReset">Сброс масштаба</button>
+            </div>
+            <p class="members-message" id="guildMapStatus">Загрузка карты…</p>
+            <div class="map-layout"><div class="map-viewport" id="guildMapViewport"><div class="map-stage" id="guildMapStage"><div class="map-paper"><div class="map-paper-title">TABULA BOHEMIAE</div><div class="map-paper-sub">Для точной привязки меток добавьте разрешённое изображение карты в файл <code>map-kuttenberg.jpg</code> или <code>map-trosky.jpg</code>.</div></div><svg id="guildMapSvg" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-label="Метки и маршруты"></svg></div></div>
+            <aside class="map-side"><div class="map-filter"><h3>Слои карты</h3><label><input type="checkbox" id="guildMapShowMarkers" checked> Метки</label><label><input type="checkbox" id="guildMapShowRoutes" checked> Маршруты</label><label><input type="checkbox" id="guildMapShowMineOnly"> Только мои</label></div>
+            <div id="guildMapEditor" hidden><h3 id="guildMapEditorTitle">Новая запись</h3><label>Название<input id="guildMapTitle" maxlength="120" placeholder="Например, залежи железа"></label><label>Описание<textarea id="guildMapDescription" maxlength="3000" rows="3"></textarea></label><label>Категория<select id="guildMapCategory"></select></label><label>Видимость<select id="guildMapVisibility"><option value="guild">Всем участникам</option><option value="personal">Только мне</option><option value="leadership">Мне и администрации</option></select></label><label id="guildMapColorWrap" hidden>Цвет маршрута<input type="color" id="guildMapColor" value="#b88a4a"></label><div class="map-editor-buttons"><button type="button" class="primary-button" id="guildMapSave">Сохранить</button><button type="button" class="secondary-button" id="guildMapCancel">Отмена</button></div><p class="map-hint" id="guildMapEditorHint"></p></div>
+            <div id="guildMapDraftActions" hidden><p id="guildMapDraftCount"></p><button type="button" class="secondary-button" id="guildMapUndo">Убрать точку</button><button type="button" class="primary-button" id="guildMapRouteDone">Завершить маршрут</button></div>
+            <h3>Записи братства</h3><div id="guildMapList" class="map-records"></div></aside></div>
+          </div>
+        </section>
         <section class="page" id="page-placeholder">
           <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>
           <article class="panel placeholder-panel">

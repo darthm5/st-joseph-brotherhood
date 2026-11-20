@@ -155,7 +155,7 @@ function navigate(page) {
   if (page === "market") loadMarket();
   if (page === "calendar") loadCalendar();
   if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
-  if (page === "ratusha") { pollShow("board"); loadPolls(); }
+  if (page === "ratusha") { hallShow("home"); }
   if (page === "info") { libHome(); loadLibrary(); }
   if (page === "home") {
     homePage.classList.add("active-page");
@@ -1846,4 +1846,144 @@ pollEl('pollVoteForm').addEventListener('submit',async e=>{
  e.preventDefault();if(pollBusy)return;const option=pollEl('pollVoteForm').querySelector('input[name="pollOption"]:checked');if(!option){showToast('Выберите вариант');return;}
  const p=pollData.find(x=>x.id===pollSelected);if(!p||!pollActive(p)||p.myVoted)return;
  const ok=await pollRpc('guild_poll_cast',{p_poll_id:p.id,p_option_id:option.value},'Ваш голос учтён');if(ok)pollOpen(p.id);
+});
+
+
+// v1.8 — Ratusha decrees and delegated officers; server RPC enforces authorization.
+const decreeEl=id=>document.getElementById(id);
+const decreeNode=(tag,value,cls)=>{const e=document.createElement(tag);if(value!==undefined&&value!==null)e.textContent=String(value);if(cls)e.className=cls;return e;};
+const decreeKinds={decree:'Указ',order:'Распоряжение',resolution:'Постановление совета'};
+let hallMode='home',decreeRows=[],decreeOfficersRows=[],decreePeople=new Map(),decreeCanIssue=false,decreeMode='board',decreeFilter='active',decreeSelected=null,decreeEditing=null,decreeBusy=false,decreeSequence=0;
+function hallShow(mode){
+ hallMode=mode;
+ decreeEl('hallHub').hidden=mode!=='home';
+ decreeEl('hallPollSection').hidden=mode!=='polls';
+ decreeEl('hallDecreeSection').hidden=mode!=='decrees';
+ if(mode==='polls'){pollShow('board');loadPolls();}
+ if(mode==='decrees'){decreeShow('board');loadDecrees();}
+}
+decreeEl('hallToPolls').addEventListener('click',()=>hallShow('polls'));
+decreeEl('hallToDecrees').addEventListener('click',()=>hallShow('decrees'));
+for(const b of document.querySelectorAll('[data-hall-home]'))b.addEventListener('click',()=>hallShow('home'));
+const decreeDate=v=>{if(!v)return '—';const [y,m,d]=String(v).slice(0,10).split('-');return `${d}.${m}.${y}`;};
+const decreeNumber=d=>`№ ${String(d.decree_number).padStart(3,'0')}/${d.decree_year}`;
+const decreeName=id=>decreePeople.get(id)||'Участник братства';
+const decreeMayManage=d=>decreeCanIssue&&!d.repealed_at&&(accessState.mode==='admin'||d.signed_by===currentSession?.user?.id);
+function decreeShow(mode){
+ if(mode==='editor'&&!decreeCanIssue)return;
+ if(mode==='officers'&&accessState.mode!=='admin')return;
+ decreeMode=mode;
+ for(const [name,id] of [['board','decreeBoard'],['reader','decreeReader'],['editor','decreeEditor'],['officers','decreeOfficersPanel']])decreeEl(id).hidden=mode!==name;
+ decreeEl('decreeBack').hidden=mode==='board';
+ decreeEl('decreeCreate').hidden=mode!=='board'||!decreeCanIssue;
+ decreeEl('decreeOfficers').hidden=mode!=='board'||accessState.mode!=='admin';
+}
+function decreeRender(){
+ const list=decreeEl('decreeList');list.replaceChildren();
+ for(const b of document.querySelectorAll('[data-decree-filter]'))b.classList.toggle('ratusha-filter-active',b.dataset.decreeFilter===decreeFilter);
+ const rows=decreeRows.filter(d=>decreeFilter==='all'||(decreeFilter==='active'?!d.repealed_at:!!d.repealed_at));
+ if(!rows.length){list.append(decreeNode('p','В этом разделе пока нет указов.','store-muted'));return;}
+ for(const d of rows){
+  const card=decreeNode('article',null,'panel decree-card');
+  const kicker=decreeNode('div',`${decreeKinds[d.kind]||'Документ'} ${decreeNumber(d)} · ${decreeDate(d.issued_on)}`,'ratusha-kicker');
+  card.append(kicker,decreeNode('h2',d.title));
+  card.append(decreeNode('p',d.body.slice(0,240)+(d.body.length>240?'…':''),'decree-excerpt'));
+  const footer=decreeNode('div',null,'decree-footer');
+  footer.append(decreeNode('small','Подписал: '+decreeName(d.signed_by)));
+  footer.append(decreeNode('span',d.repealed_at?'Утратил силу':'Действует',d.repealed_at?'decree-status-repealed':'decree-status-active'));
+  card.append(footer);
+  const read=decreeNode('button','Читать грамоту','secondary-button');read.type='button';read.addEventListener('click',()=>decreeRead(d.id));card.append(read);list.append(card);
+ }
+}
+function decreeRead(id){
+ const d=decreeRows.find(x=>x.id===id);if(!d)return decreeShow('board');decreeSelected=id;
+ decreeEl('decreeReaderKicker').textContent=`${decreeKinds[d.kind]||'Документ'} ${decreeNumber(d)}`;
+ decreeEl('decreeReaderTitle').textContent=d.title;
+ decreeEl('decreeReaderMeta').textContent=`Издан: ${decreeDate(d.issued_on)} · Подписал: ${decreeName(d.signed_by)}`;
+ decreeEl('decreeReaderBody').textContent=d.body;
+ const status=decreeEl('decreeReaderStatus');status.replaceChildren();
+ if(d.repealed_at){status.append(decreeNode('h3','Утратил силу'));status.append(decreeNode('p','Причина: '+(d.repeal_reason||'Не указана')));}
+ else status.append(decreeNode('p','⚜ Действующий документ','decree-status-active'));
+ const actions=decreeEl('decreeReaderActions');actions.replaceChildren();
+ if(decreeMayManage(d)){
+  const edit=decreeNode('button','Изменить','secondary-button');edit.type='button';edit.addEventListener('click',()=>decreeEdit(id));actions.append(edit);
+  const repeal=decreeNode('button','Отменить указ','secondary-button');repeal.type='button';repeal.addEventListener('click',async()=>{
+   const reason=prompt('Укажите причину отмены (не менее 3 символов):');if(reason===null)return;
+   if(reason.trim().length<3){showToast('Укажите причину отмены.');return;}
+   if(!confirm('Отменить этот указ? Он останется в архиве.'))return;
+   await decreeRpc('guild_decree_repeal',{p_decree_id:id,p_reason:reason.trim()},'Указ отменён');
+  });actions.append(repeal);
+ }
+ decreeShow('reader');
+}
+function decreeEdit(id=null){
+ if(!decreeCanIssue)return;
+ const d=id?decreeRows.find(x=>x.id===id):null;
+ if(d&&!decreeMayManage(d))return;
+ decreeEditing=d?.id||null;const f=decreeEl('decreeEditor');f.reset();
+ f.elements.namedItem('kind').value=d?.kind||'decree';
+ f.elements.namedItem('decree_year').value=d?.decree_year||1403;
+ f.elements.namedItem('issued_on').value=d?.issued_on||'1403-01-01';
+ f.elements.namedItem('title').value=d?.title||'';
+ f.elements.namedItem('body').value=d?.body||'';
+ decreeEl('decreeEditorTitle').textContent=d?'Изменить указ':'Издать указ';
+ decreeEl('decreeSave').textContent=d?'Сохранить изменения':'Издать указ';decreeShow('editor');
+}
+async function loadDecrees(){
+ if(!supabaseClient||!currentSession?.user||!['admin','approved'].includes(accessState.mode))return;
+ const seq=++decreeSequence;decreeEl('decreeNotice').textContent='Загружаем реестр…';
+ try{
+  const [docs,can,officers,people]=await Promise.all([
+   supabaseClient.from('guild_decrees').select('id,decree_number,decree_year,kind,title,body,issued_on,signed_by,created_at,updated_at,repealed_at,repealed_by,repeal_reason').order('issued_on',{ascending:false}).order('decree_number',{ascending:false}).limit(1000),
+   supabaseClient.rpc('guild_decree_can_issue'),
+   supabaseClient.rpc('guild_decree_officers_list'),
+   supabaseClient.from('profiles').select('id,character_first_name,character_last_name,membership_status').eq('membership_status','approved').limit(1000)
+  ]);
+  for(const r of [docs,can,officers,people])if(r.error)throw r.error;
+  if(seq!==decreeSequence)return;
+  decreeRows=docs.data||[];decreeCanIssue=can.data===true;decreeOfficersRows=officers.data||[];
+  decreePeople=new Map((people.data||[]).map(p=>[p.id,([p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник братства')]));
+  decreeEl('decreeNotice').textContent='';decreeRender();
+  if(decreeMode==='reader'&&decreeSelected)decreeRead(decreeSelected);
+  else if(decreeMode==='officers')decreeRenderOfficers();
+  else if(decreeMode==='board')decreeShow('board');
+ }catch(err){if(seq===decreeSequence)decreeEl('decreeNotice').textContent='Ошибка загрузки: '+err.message;}
+}
+async function decreeRpc(fn,args,message){
+ if(decreeBusy)return false;decreeBusy=true;
+ try{const {error}=await supabaseClient.rpc(fn,args);if(error)throw error;showToast(message);await loadDecrees();return true;}
+ catch(err){showToast('Ошибка: '+err.message);return false;}
+ finally{decreeBusy=false;}
+}
+function decreeRenderOfficers(){
+ const list=decreeEl('decreeOfficersList');list.replaceChildren();
+ if(accessState.mode!=='admin')return;
+ if(!decreePeople.size){list.append(decreeNode('p','Нет принятых участников.'));return;}
+ const appointed=new Set(decreeOfficersRows.map(o=>o.user_id));
+ for(const [id,name] of [...decreePeople.entries()].sort((a,b)=>a[1].localeCompare(b[1],'ru'))){
+  const row=decreeNode('div',null,'decree-officer-row');row.append(decreeNode('span',name));
+  const isOfficer=appointed.has(id);
+  const btn=decreeNode('button',isOfficer?'Отозвать полномочия':'Назначить руководителем','secondary-button');btn.type='button';
+  btn.addEventListener('click',async()=>{
+   if(!confirm((isOfficer?'Отозвать полномочия у ':'Назначить руководителем ')+name+'?'))return;
+   const ok=await decreeRpc('guild_decree_officer_set',{p_user_id:id,p_enabled:!isOfficer},isOfficer?'Полномочия отозваны':'Руководитель назначен');
+   if(ok)decreeRenderOfficers();
+  });row.append(btn);list.append(row);
+ }
+}
+decreeEl('decreeCreate').addEventListener('click',()=>decreeEdit());
+decreeEl('decreeOfficers').addEventListener('click',()=>{decreeShow('officers');decreeRenderOfficers();});
+decreeEl('decreeBack').addEventListener('click',()=>decreeShow('board'));
+decreeEl('decreeCancel').addEventListener('click',()=>decreeShow('board'));
+decreeEl('decreeRefresh').addEventListener('click',loadDecrees);
+for(const b of document.querySelectorAll('[data-decree-filter]'))b.addEventListener('click',()=>{decreeFilter=b.dataset.decreeFilter;decreeRender();});
+decreeEl('decreeEditor').addEventListener('submit',async e=>{
+ e.preventDefault();if(!decreeCanIssue||decreeBusy)return;
+ const f=e.currentTarget,year=Number(f.elements.namedItem('decree_year').value);
+ const args={p_decree_year:year,p_kind:f.elements.namedItem('kind').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_issued_on:f.elements.namedItem('issued_on').value};
+ if(!Number.isInteger(year)||year<1300||year>2200||!args.p_title||!args.p_body)return showToast('Проверьте поля указа.');
+ if(args.p_issued_on.slice(0,4)!==String(year))return showToast('Игровой год должен совпадать с годом даты издания.');
+ if(decreeEditing)args.p_decree_id=decreeEditing;
+ const ok=await decreeRpc(decreeEditing?'guild_decree_update':'guild_decree_create',args,decreeEditing?'Указ обновлён':'Указ издан');
+ if(ok){decreeEditing=null;f.reset();decreeShow('board');}
 });

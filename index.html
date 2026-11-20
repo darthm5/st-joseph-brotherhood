@@ -293,6 +293,12 @@
         </section>
         <section class="page" id="page-ratusha">
           <div class="page-title-block"><div class="eyebrow">Vox Fraternitatis · Глас братства</div><h1>Ратуша братства</h1><p>Совет, выборы и решения. Один участник — один голос.</p></div>
+          <div id="hallHub" class="hall-hub">
+            <button type="button" id="hallToPolls" class="hall-tile"><span class="hall-tile-icon">⚖</span><strong>Голосования</strong><small>Глас братства и решения совета</small></button>
+            <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы и распоряжения</strong><small>Официальные грамоты и решения</small></button>
+          </div>
+          <div id="hallPollSection" hidden>
+            <button type="button" class="secondary-button hall-home-button" data-hall-home>← К ратуше</button>
           <div class="ratusha-actions">
             <button type="button" class="secondary-button" id="pollCreateButton" hidden>⚜ Созвать голосование</button>
             <button type="button" class="secondary-button" id="pollBackButton" hidden>← К голосованиям</button>
@@ -324,6 +330,51 @@
             <p class="store-muted">От 2 до 12 вариантов. После публикации изменить варианты нельзя. Отменить голосование сможет администрация.</p>
             <div class="treasury-actions"><button type="submit" class="secondary-button" id="pollSaveButton">Опубликовать голосование</button><button type="button" class="secondary-button" id="pollCancelEditor">Отмена</button></div>
           </form>
+          </div>
+          <div id="hallDecreeSection" hidden>
+            <div class="ratusha-actions">
+              <button type="button" class="secondary-button" data-hall-home>← К ратуше</button>
+              <button type="button" class="secondary-button" id="decreeCreate" hidden>✒ Издать указ</button>
+              <button type="button" class="secondary-button" id="decreeOfficers" hidden>⚜ Назначить руководителей</button>
+              <button type="button" class="secondary-button" id="decreeBack" hidden>← К реестру</button>
+              <button type="button" class="secondary-button" id="decreeRefresh">Обновить</button>
+            </div>
+            <p id="decreeNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="decreeBoard">
+              <div class="ratusha-intro">✥ &nbsp; Реестр указов и распоряжений &nbsp; ✥</div>
+              <div class="ratusha-filters" role="group" aria-label="Статус указов">
+                <button type="button" class="secondary-button" data-decree-filter="active">Действующие</button>
+                <button type="button" class="secondary-button" data-decree-filter="repealed">Отменённые</button>
+                <button type="button" class="secondary-button" data-decree-filter="all">Все</button>
+              </div>
+              <div id="decreeList" class="decree-list"></div>
+            </div>
+            <article id="decreeReader" class="panel decree-reader" hidden>
+              <p id="decreeReaderKicker" class="ratusha-kicker"></p>
+              <h2 id="decreeReaderTitle"></h2>
+              <p id="decreeReaderMeta" class="store-muted"></p>
+              <div id="decreeReaderBody" class="decree-text"></div>
+              <div id="decreeReaderStatus"></div>
+              <div id="decreeReaderActions" class="treasury-actions"></div>
+            </article>
+            <form id="decreeEditor" class="panel treasury-form" hidden>
+              <h2 id="decreeEditorTitle">Издать указ</h2>
+              <div class="ratusha-form-grid">
+                <label>Вид документа<select name="kind" required><option value="decree">Указ</option><option value="order">Распоряжение</option><option value="resolution">Постановление совета</option></select></label>
+                <label>Игровой год<input name="decree_year" type="number" min="1300" max="2200" value="1403" required></label>
+              </div>
+              <label>Дата издания (игровая)<input name="issued_on" type="date" required></label>
+              <label>Заголовок<input name="title" minlength="3" maxlength="180" required placeholder="О порядке деятельности ремесленников"></label>
+              <label>Текст указа<textarea name="body" rows="14" maxlength="30000" required placeholder="Во исполнение решений совета постановляется…"></textarea></label>
+              <p class="store-muted">Номер присваивается автоматически. Подписантом будет ваш персонаж.</p>
+              <div class="treasury-actions"><button type="submit" class="secondary-button" id="decreeSave">Опубликовать</button><button type="button" class="secondary-button" id="decreeCancel">Отмена</button></div>
+            </form>
+            <div id="decreeOfficersPanel" class="panel" hidden>
+              <h2>Полномочия руководителей</h2>
+              <p class="store-muted">Назначенные участники могут издавать указы, изменять и отменять собственные документы. Назначение доступно только администраторам сайта.</p>
+              <div id="decreeOfficersList" class="decree-officer-list"></div>
+            </div>
+          </div>
         </section>
         <section class="page" id="page-chronicle">
           <div class="page-title-block"><div class="eyebrow">Anno Domini · Память поколений</div><h1>Летопись братства</h1><p>События, деяния и судьбы, навеки вписанные в историю нашего братства.</p></div>

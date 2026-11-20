@@ -2380,8 +2380,8 @@ function gmDraw(){
  if(st.draft.length){s.append(gmSvg('polyline',{points:st.draft.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:'#f7e8b0','stroke-width':2,'stroke-dasharray':'7 5'}));for(const p of st.draft)s.append(gmSvg('circle',{cx:p.x*1000,cy:p.y*700,r:3,fill:'#f7e8b0'}));}
  if(gm('guildMapShowMarkers').checked){for(const r of st.markers.filter(mine)){
  const g=gmSvg('g',{class:'gm-pin'});
- g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:8,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':1.4}));
- const icon=gmSvg('text',{x:r.x*1000,y:r.y*700+3.5,'text-anchor':'middle',fill:'#fff2d5','font-size':11,'font-weight':'bold'});
+ g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:5,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':1}));
+ const icon=gmSvg('text',{x:r.x*1000,y:r.y*700+2.3,'text-anchor':'middle',fill:'#fff2d5','font-size':7,'font-weight':'bold'});
  icon.textContent=gmMarkerIcons[r.category]||gmMarkerIcons.other;g.append(icon);
  const title=gmSvg('title',{});title.textContent=r.title;g.append(title);
  g.addEventListener('click',e=>{e.stopPropagation();gmSelect('marker',r.id)});s.append(g);

@@ -2352,6 +2352,8 @@ const guildMapCategories = {
  route:[['trade','Торговый путь'],['expedition','Экспедиция'],['resource','Добыча'],['patrol','Патруль'],['other','Другое']]
 };
 const gmSvgNS='http://www.w3.org/2000/svg';
+const gmMarkerIcons={resource:'⛏',trade:'⚖',meeting:'⚑',workshop:'⚒',warning:'!',other:'✦'};
+
 function gmSvg(tag,attrs){const el=document.createElementNS(gmSvgNS,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));return el;}
 function gmStatus(s){gm('guildMapStatus').textContent=s;}
 function gmMode(){return gm('guildMapMode').value;}
@@ -2372,15 +2374,19 @@ function gmXY(event){const r=gm('guildMapSvg').getBoundingClientRect();return {x
 function gmDraw(){
  const s=gm('guildMapSvg');s.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;const mine=r=>!only||r.created_by===currentSession?.user?.id;
  if(gm('guildMapShowRoutes').checked){for(const r of st.routes.filter(mine)){
- const line=gmSvg('polyline',{points:r.points.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:r.color||'#b88a4a','stroke-width':5,'stroke-linecap':'round','stroke-linejoin':'round',class:'gm-route'});
+ const line=gmSvg('polyline',{points:r.points.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:r.color||'#b88a4a','stroke-width':2,'stroke-linecap':'round','stroke-linejoin':'round',class:'gm-route'});
  line.addEventListener('click',e=>{e.stopPropagation();gmSelect('route',r.id)});s.append(line);
  }}
- if(st.draft.length){s.append(gmSvg('polyline',{points:st.draft.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:'#f7e8b0','stroke-width':5,'stroke-dasharray':'12 7'}));for(const p of st.draft)s.append(gmSvg('circle',{cx:p.x*1000,cy:p.y*700,r:7,fill:'#f7e8b0'}));}
+ if(st.draft.length){s.append(gmSvg('polyline',{points:st.draft.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:'#f7e8b0','stroke-width':2,'stroke-dasharray':'7 5'}));for(const p of st.draft)s.append(gmSvg('circle',{cx:p.x*1000,cy:p.y*700,r:3,fill:'#f7e8b0'}));}
  if(gm('guildMapShowMarkers').checked){for(const r of st.markers.filter(mine)){
- const g=gmSvg('g',{class:'gm-pin'});g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:12,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':3}));
- const t=gmSvg('text',{x:r.x*1000+17,y:r.y*700+5,fill:'#fff2d5','font-size':20,'paint-order':'stroke',stroke:'#3d2920','stroke-width':4});t.textContent=r.title;g.append(t);g.addEventListener('click',e=>{e.stopPropagation();gmSelect('marker',r.id)});s.append(g);
+ const g=gmSvg('g',{class:'gm-pin'});
+ g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:8,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':1.4}));
+ const icon=gmSvg('text',{x:r.x*1000,y:r.y*700+3.5,'text-anchor':'middle',fill:'#fff2d5','font-size':11,'font-weight':'bold'});
+ icon.textContent=gmMarkerIcons[r.category]||gmMarkerIcons.other;g.append(icon);
+ const title=gmSvg('title',{});title.textContent=r.title;g.append(title);
+ g.addEventListener('click',e=>{e.stopPropagation();gmSelect('marker',r.id)});s.append(g);
  }}
- if(st.point)s.append(gmSvg('circle',{cx:st.point.x*1000,cy:st.point.y*700,r:10,fill:'#e6b95d',stroke:'#4b2a21','stroke-width':3}));
+ if(st.point)s.append(gmSvg('circle',{cx:st.point.x*1000,cy:st.point.y*700,r:5,fill:'#e6b95d',stroke:'#4b2a21','stroke-width':3}));
 }
 function gmSelect(kind,id){const r=guildMapState[kind==='marker'?'markers':'routes'].find(x=>x.id===id);if(!r)return;gmStatus(`${kind==='marker'?'Метка':'Маршрут'}: ${r.title}${r.description?' — '+r.description:''}`);}
 function gmRender(){gmDraw();const list=gm('guildMapList');list.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;
@@ -2422,6 +2428,22 @@ gm('guildMapRouteDone').onclick=()=>{if(guildMapState.draft.length<2){showToast(
 gm('guildMapUndo').onclick=()=>{guildMapState.draft.pop();gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();};
 gm('guildMapSave').onclick=gmSave;gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
 for(const id of ['guildMapShowMarkers','guildMapShowRoutes','guildMapShowMineOnly'])gm(id).onchange=gmRender;
-function gmZoom(n){guildMapState.scale=Math.max(1,Math.min(3,guildMapState.scale*n));gm('guildMapStage').style.width=`${guildMapState.scale*100}%`;gm('guildMapStage').style.height='auto';}
-gm('guildMapZoomIn').onclick=()=>gmZoom(1.25);gm('guildMapZoomOut').onclick=()=>gmZoom(.8);gm('guildMapZoomReset').onclick=()=>{guildMapState.scale=1;gmZoom(1);};
+function gmZoom(n,clientX,clientY){
+ const viewport=gm('guildMapViewport'),stage=gm('guildMapStage');
+ const before=guildMapState.scale,after=Math.max(1,Math.min(8,before*n));
+ if(after===before)return;
+ const rect=viewport.getBoundingClientRect();
+ const x=clientX===undefined?rect.width/2:clientX-rect.left;
+ const y=clientY===undefined?rect.height/2:clientY-rect.top;
+ const mapX=(viewport.scrollLeft+x)/before,mapY=(viewport.scrollTop+y)/before;
+ guildMapState.scale=after;stage.style.width=`${after*100}%`;
+ viewport.scrollLeft=mapX*after-x;viewport.scrollTop=mapY*after-y;
+}
+gm('guildMapZoomIn').onclick=()=>gmZoom(1.35);
+gm('guildMapZoomOut').onclick=()=>gmZoom(1/1.35);
+gm('guildMapZoomReset').onclick=()=>{const st=guildMapState.scale;gmZoom(1/st);gm('guildMapViewport').scrollTo(0,0);};
+gm('guildMapViewport').addEventListener('wheel',e=>{
+ if(e.ctrlKey||e.metaKey)return;
+ e.preventDefault();gmZoom(e.deltaY<0?1.18:1/1.18,e.clientX,e.clientY);
+},{passive:false});
 gmBase();

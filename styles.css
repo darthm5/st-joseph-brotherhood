@@ -539,3 +539,8 @@ button { font: inherit; }
 /* v2.2.1: keep map image geometry at its original 2048x1706 ratio. */
 .map-stage{height:auto;aspect-ratio:2048 / 1706;min-height:0}
 @media(max-width:850px){.map-stage{min-height:0}}
+
+/* v2.2.2: precise zoom and compact map symbols */
+.map-stage{min-width:0;min-height:0;flex-shrink:0;}
+.map-stage svg .gm-pin text{pointer-events:none;}
+.map-stage svg .gm-route{stroke-width:2;}

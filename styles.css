@@ -459,3 +459,38 @@ button { font: inherit; }
 #page-ratusha #petitionResolution{margin-top:22px}
 #page-ratusha #petitionResolution label{display:grid;gap:7px;margin:12px 0}
 #page-ratusha #petitionResolution textarea,#page-ratusha #petitionResolution select{width:100%;box-sizing:border-box}
+
+/* v2.0 — medieval living hierarchy tree */
+#page-ratusha #hallCouncilSection [hidden]{display:none!important}
+#page-ratusha .council-banner{text-align:center;padding:25px 20px 20px;background:linear-gradient(140deg,#f5e7c6,#d4b481);border:2px solid #a27c47;color:#54371c;border-radius:8px 8px 0 0}
+#page-ratusha .council-banner span{font-size:12px;letter-spacing:2px}
+#page-ratusha .council-banner h2{font:normal 29px Georgia,serif;margin:10px 0}
+#page-ratusha .council-banner p{font-size:13px;margin:0}
+#page-ratusha .council-scroll{overflow-x:auto;overflow-y:visible;border:2px solid #a27c47;border-top:0;background:repeating-linear-gradient(30deg,#e9d6b0,#e9d6b0 50px,#ead9b8 50px,#ead9b8 100px);padding:24px 12px 34px}
+#page-ratusha .council-tree{min-width:620px;display:flex;flex-direction:column;align-items:center;color:#50351e}
+#page-ratusha .council-tier{position:relative;display:flex;flex-direction:column;align-items:center;width:100%;padding-bottom:30px}
+#page-ratusha .council-tier:not(:last-child)::after{content:"";position:absolute;bottom:0;left:50%;height:30px;width:3px;background:#9c7341}
+#page-ratusha .council-tier-heading{display:flex;align-items:center;flex-direction:column;text-align:center;gap:6px;background:#f8edcf;border:2px solid #a27c47;border-radius:6px;box-shadow:0 2px 8px #422a181e;padding:8px 16px;margin-bottom:20px;max-width:520px;position:relative}
+#page-ratusha .council-rank-number{background:#916a39;color:#fff0cc;padding:3px 11px;border-radius:20px;font-weight:bold;font-size:12px}
+#page-ratusha .council-tier-heading h3{font:normal 21px Georgia,serif;margin:0;color:#51351d}
+#page-ratusha .council-rank-description{font-size:13px;line-height:1.5;margin:0;white-space:pre-wrap}
+#page-ratusha .council-people{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:15px 25px;padding:18px 15px 0;width:min(100%,1100px);border-top:3px solid #9c7341}
+#page-ratusha .council-people::before{content:"";position:absolute;top:-20px;left:50%;height:20px;width:3px;background:#9c7341}
+#page-ratusha .council-person{cursor:pointer;position:relative;display:flex;align-items:center;flex-direction:column;gap:7px;border:1px solid #a27c47;background:#f6e8c9;border-radius:8px;min-width:125px;width:145px;max-width:175px;padding:13px 9px;box-shadow:0 3px 7px #39240f26;color:#4b301b;font:inherit}
+#page-ratusha .council-person::before{content:"";position:absolute;top:-20px;left:50%;height:20px;width:2px;background:#9c7341}
+#page-ratusha .council-person:hover{background:#fff1d1;transform:translateY(-2px)}
+#page-ratusha .council-person strong{text-align:center;font:normal bold 14px Georgia,serif;overflow-wrap:anywhere}
+#page-ratusha .council-portrait{width:84px;height:84px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;border:4px double #8d632e;background:#d7bb8a;box-shadow:0 2px 5px #0002}
+#page-ratusha .council-portrait img{width:100%;height:100%;object-fit:cover}
+#page-ratusha .council-fallback{font-size:36px;color:#76552c}
+#page-ratusha .council-vacant{font:italic 14px Georgia,serif;color:#90714d;border:1px dashed #aa8e65;padding:16px 25px;background:#f3e5c5}
+#page-ratusha .council-unranked{opacity:.9}
+#page-ratusha .council-profile{padding:28px}
+#page-ratusha .council-profile-header{display:flex;align-items:center;gap:25px;margin:25px 0}
+#page-ratusha .council-profile-header .council-portrait{width:128px;height:128px;flex-shrink:0}
+#page-ratusha .council-description-editor{padding:25px}
+#page-ratusha .council-description-form{padding:14px 0;border-bottom:1px solid #aa967c;display:grid;gap:9px}
+#page-ratusha .council-description-form label{display:grid;gap:8px;font-weight:bold}
+#page-ratusha .council-description-form textarea{width:100%;box-sizing:border-box;padding:10px;font:14px Arial,sans-serif}
+#page-ratusha .council-description-form button{justify-self:start}
+@media(max-width:700px){#page-ratusha .council-banner h2{font-size:22px}#page-ratusha .council-profile-header{flex-direction:column;text-align:center}}

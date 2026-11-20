@@ -1860,13 +1860,16 @@ function hallShow(mode){
  decreeEl('hallPollSection').hidden=mode!=='polls';
  decreeEl('hallDecreeSection').hidden=mode!=='decrees';
  decreeEl('hallPetitionSection').hidden=mode!=='petitions';
+ decreeEl('hallCouncilSection').hidden=mode!=='council';
  if(mode==='polls'){pollShow('board');loadPolls();}
  if(mode==='decrees'){decreeShow('board');loadDecrees();}
  if(mode==='petitions'){petitionShow('board');loadPetitions();}
+ if(mode==='council'){councilShow('tree');loadCouncil();}
 }
 decreeEl('hallToPolls').addEventListener('click',()=>hallShow('polls'));
 decreeEl('hallToDecrees').addEventListener('click',()=>hallShow('decrees'));
 decreeEl('hallToPetitions').addEventListener('click',()=>hallShow('petitions'));
+decreeEl('hallToCouncil').addEventListener('click',()=>hallShow('council'));
 for(const b of document.querySelectorAll('[data-hall-home]'))b.addEventListener('click',()=>hallShow('home'));
 const decreeDate=v=>{if(!v)return '—';const [y,m,d]=String(v).slice(0,10).split('-');return `${d}.${m}.${y}`;};
 const decreeNumber=d=>`№ ${String(d.decree_number).padStart(3,'0')}/${d.decree_year}`;
@@ -2113,3 +2116,105 @@ petitionEl('petitionResolution').addEventListener('submit',async e=>{
  if(args.p_response.length<3)return showToast('Напишите официальный ответ.');
  if(await petitionRpc('guild_petition_resolve',args,'Решение опубликовано'))petitionRead(petitionSelected);
 });
+
+
+// v2.0 — the hierarchy is a view of existing profiles.game_rank, NOT a second assignment system.
+const councilEl=id=>document.getElementById(id);
+const councilRanks=[
+ [11,'Глава гильдии'],[10,'Старейшина гильдии'],[9,'Казначей'],[8,'Писарь'],[7,'Купец'],[6,'Гильдмастер'],[5,'Мастер'],[4,'Подмастерье'],[3,'Возница'],[2,'Последователь'],[1,'Послушник']
+];
+const councilNode=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!==undefined&&txt!==null)e.textContent=String(txt);if(cls)e.className=cls;return e;};
+let councilPeople=[],councilDescriptions=new Map(),councilSeq=0,councilMode='tree',councilBusy=false;
+function councilShow(mode){
+ if(mode==='descriptions'&&accessState.mode!=='admin')return;
+ councilMode=mode;
+ councilEl('councilTreePanel').hidden=mode!=='tree';
+ councilEl('councilProfile').hidden=mode!=='profile';
+ councilEl('councilDescriptions').hidden=mode!=='descriptions';
+ councilEl('councilDescriptionsButton').hidden=accessState.mode!=='admin'||mode!=='tree';
+}
+function councilRankLevel(rank){
+ const normalized=String(rank||'').toLocaleLowerCase('ru').replace(/ё/g,'е').trim().replace(/\s+/g,' ');
+ for(const [level,name] of councilRanks)if(name.toLocaleLowerCase('ru').replace(/ё/g,'е')===normalized)return level;
+ return null;
+}
+function councilPortrait(p){
+ const frame=councilNode('div',null,'council-portrait');
+ const url=safePhoto(p.character_photo_url);
+ if(url){const img=councilNode('img');img.src=url;img.alt='Портрет '+characterName(p);img.loading='lazy';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.replaceWith(councilNode('span','♙','council-fallback')));frame.append(img);}
+ else frame.append(councilNode('span','♙','council-fallback'));
+ return frame;
+}
+function councilOpenProfile(p){
+ const body=councilEl('councilProfileBody');body.replaceChildren();
+ const head=councilNode('div',null,'council-profile-header');head.append(councilPortrait(p));
+ const info=councilNode('div');info.append(councilNode('span','Анкета персонажа','eyebrow'),councilNode('h2',characterName(p)),councilNode('p',p.game_rank||'Без ранга'));
+ head.append(info);body.append(head);
+ detailField(body,'Возраст',p.character_age==null?'Не указан':p.character_age+' лет');
+ detailField(body,'Работы',memberJobs(p));detailField(body,'Мастерства',memberMasteries(p));
+ detailField(body,'О персонаже',p.about);
+ councilShow('profile');councilEl('hallCouncilSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function councilRender(){
+ const root=councilEl('councilTree');root.replaceChildren();
+ for(const [level,name] of councilRanks){
+  const group=councilNode('section',null,'council-tier');
+  const heading=councilNode('div',null,'council-tier-heading');
+  heading.append(councilNode('span',String(level),'council-rank-number'),councilNode('h3',name));
+  const description=councilDescriptions.get(level)||'';
+  if(description)heading.append(councilNode('p',description,'council-rank-description'));
+  group.append(heading);
+  const members=councilPeople.filter(p=>councilRankLevel(p.game_rank)===level).sort((a,b)=>characterName(a).localeCompare(characterName(b),'ru'));
+  const row=councilNode('div',null,'council-people');
+  if(!members.length){row.append(councilNode('div','Место свободно','council-vacant'));}
+  else for(const p of members){
+   const card=councilNode('button',null,'council-person');card.type='button';card.title='Открыть анкету: '+characterName(p);
+   card.append(councilPortrait(p),councilNode('strong',characterName(p)));
+   card.addEventListener('click',()=>councilOpenProfile(p));row.append(card);
+  }
+  group.append(row);root.append(group);
+ }
+ const unranked=councilPeople.filter(p=>councilRankLevel(p.game_rank)===null);
+ if(unranked.length){
+  const group=councilNode('section',null,'council-tier council-unranked');
+  const heading=councilNode('div',null,'council-tier-heading');heading.append(councilNode('h3','Без назначенного ранга'));
+  heading.append(councilNode('p','Персонажи с нераспознанным званием. Администратор может назначить один из 11 существующих рангов в управлении участниками.','council-rank-description'));
+  group.append(heading);const row=councilNode('div',null,'council-people');
+  for(const p of unranked){const b=councilNode('button',null,'council-person');b.type='button';b.append(councilPortrait(p),councilNode('strong',characterName(p)));b.addEventListener('click',()=>councilOpenProfile(p));row.append(b);}group.append(row);root.append(group);
+ }
+}
+function councilRenderEditor(){
+ const root=councilEl('councilDescriptionForms');root.replaceChildren();
+ if(accessState.mode!=='admin')return;
+ for(const [level,name] of councilRanks){
+  const form=councilNode('form',null,'council-description-form');
+  const label=councilNode('label',name);const input=councilNode('textarea');input.rows=3;input.maxLength=1000;input.required=false;input.value=councilDescriptions.get(level)||'';
+  label.append(input);const button=councilNode('button','Сохранить описание','secondary-button');button.type='submit';form.append(label,button);
+  form.addEventListener('submit',async e=>{
+   e.preventDefault();if(councilBusy)return;councilBusy=true;button.disabled=true;
+   try{const {error}=await supabaseClient.rpc('guild_rank_description_set',{p_rank_level:level,p_description:input.value.trim()});if(error)throw error;councilDescriptions.set(level,input.value.trim());showToast('Описание сохранено');councilRender();}
+   catch(err){showToast('Ошибка: '+err.message);}finally{councilBusy=false;button.disabled=false;}
+  });root.append(form);
+ }
+}
+async function loadCouncil(){
+ if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+ const token=++councilSeq;councilEl('councilNotice').textContent='Собираем древо братства…';
+ try{
+  const [people,descriptions]=await Promise.all([
+   supabaseClient.from('profiles').select('id,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank').eq('membership_status','approved').limit(3000),
+   supabaseClient.from('guild_rank_descriptions').select('rank_level,rank_name,description').order('rank_level',{ascending:false})
+  ]);
+  if(people.error)throw people.error;if(descriptions.error)throw descriptions.error;
+  if(token!==councilSeq)return;
+  councilPeople=(people.data||[]).filter(p=>p.character_first_name?.trim()&&p.character_last_name?.trim());
+  councilDescriptions=new Map((descriptions.data||[]).map(r=>[Number(r.rank_level),r.description||'']));
+  councilEl('councilNotice').textContent='В братстве: '+councilPeople.length+' персонажей';
+  councilEl('councilDescriptionsButton').hidden=accessState.mode!=='admin'||councilMode!=='tree';
+  councilRender();councilRenderEditor();
+ }catch(err){if(token===councilSeq)councilEl('councilNotice').textContent='Ошибка загрузки древа: '+err.message;}
+}
+councilEl('councilRefresh').addEventListener('click',loadCouncil);
+councilEl('councilDescriptionsButton').addEventListener('click',()=>councilShow('descriptions'));
+councilEl('councilDescriptionsBack').addEventListener('click',()=>councilShow('tree'));
+councilEl('councilProfileBack').addEventListener('click',()=>councilShow('tree'));

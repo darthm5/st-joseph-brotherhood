@@ -297,6 +297,7 @@
             <button type="button" id="hallToPolls" class="hall-tile"><span class="hall-tile-icon">⚖</span><strong>Голосования</strong><small>Глас братства и решения совета</small></button>
             <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы и распоряжения</strong><small>Официальные грамоты и решения</small></button>
             <button type="button" id="hallToPetitions" class="hall-tile"><span class="hall-tile-icon">✉</span><strong>Прошения</strong><small>Личные обращения к руководству</small></button>
+            <button type="button" id="hallToCouncil" class="hall-tile"><span class="hall-tile-icon">♛</span><strong>Совет братства</strong><small>Древо гильдии и анкеты персонажей</small></button>
           </div>
           <div id="hallPollSection" hidden>
             <button type="button" class="secondary-button hall-home-button" data-hall-home>← К ратуше</button>
@@ -375,6 +376,16 @@
               <p class="store-muted">Назначенные участники могут издавать указы, изменять и отменять собственные документы. Назначение доступно только администраторам сайта.</p>
               <div id="decreeOfficersList" class="decree-officer-list"></div>
             </div>
+          </div>
+          <div id="hallCouncilSection" hidden>
+            <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="councilRefresh">Обновить древо</button><button type="button" class="secondary-button" id="councilDescriptionsButton" hidden>✒ Описания рангов</button></div>
+            <p class="members-message" id="councilNotice" role="status" aria-live="polite"></p>
+            <div id="councilTreePanel">
+              <div class="council-banner"><span>⚜ ANNO DOMINI MCDIII ⚜</span><h2>Древо Братства Святого Иосифа Обручника</h2><p>Один брат — один ранг. Портрет открывает анкету персонажа.</p></div>
+              <div class="council-scroll"><div id="councilTree" class="council-tree"></div></div>
+            </div>
+            <article id="councilProfile" class="panel council-profile" hidden><button type="button" id="councilProfileBack" class="secondary-button">← К древу</button><div id="councilProfileBody"></div></article>
+            <div id="councilDescriptions" class="panel council-description-editor" hidden><div class="treasury-heading"><h2>Описания рангов</h2><button type="button" id="councilDescriptionsBack" class="secondary-button">← К древу</button></div><p class="store-muted">Описания видны всем членам братства. Изменять их могут только администраторы.</p><div id="councilDescriptionForms"></div></div>
           </div>
           <div id="hallPetitionSection" hidden>
             <div class="ratusha-actions">

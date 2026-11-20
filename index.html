@@ -296,6 +296,7 @@
           <div id="hallHub" class="hall-hub">
             <button type="button" id="hallToPolls" class="hall-tile"><span class="hall-tile-icon">⚖</span><strong>Голосования</strong><small>Глас братства и решения совета</small></button>
             <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы и распоряжения</strong><small>Официальные грамоты и решения</small></button>
+            <button type="button" id="hallToPetitions" class="hall-tile"><span class="hall-tile-icon">✉</span><strong>Прошения</strong><small>Личные обращения к руководству</small></button>
           </div>
           <div id="hallPollSection" hidden>
             <button type="button" class="secondary-button hall-home-button" data-hall-home>← К ратуше</button>
@@ -374,6 +375,50 @@
               <p class="store-muted">Назначенные участники могут издавать указы, изменять и отменять собственные документы. Назначение доступно только администраторам сайта.</p>
               <div id="decreeOfficersList" class="decree-officer-list"></div>
             </div>
+          </div>
+          <div id="hallPetitionSection" hidden>
+            <div class="ratusha-actions">
+              <button type="button" class="secondary-button" data-hall-home>← К ратуше</button>
+              <button type="button" class="secondary-button" id="petitionCreate">✒ Подать прошение</button>
+              <button type="button" class="secondary-button" id="petitionBack" hidden>← К прошениям</button>
+              <button type="button" class="secondary-button" id="petitionRefresh">Обновить</button>
+            </div>
+            <p id="petitionNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="petitionBoard">
+              <div class="ratusha-intro">✥ &nbsp; Личные прошения и обращения &nbsp; ✥</div>
+              <p class="store-muted">Ваши обращения видны только вам и уполномоченному руководству братства.</p>
+              <div class="ratusha-filters" role="group" aria-label="Реестр прошений">
+                <button type="button" class="secondary-button" id="petitionMine">Мои прошения</button>
+                <button type="button" class="secondary-button" id="petitionLeadership" hidden>На рассмотрении руководства</button>
+              </div>
+              <div id="petitionList" class="decree-list"></div>
+            </div>
+            <article id="petitionReader" class="panel decree-reader" hidden>
+              <p id="petitionReaderKicker" class="ratusha-kicker"></p>
+              <h2 id="petitionReaderTitle"></h2>
+              <p id="petitionReaderMeta" class="store-muted"></p>
+              <div id="petitionReaderBody" class="decree-text"></div>
+              <div id="petitionReaderResponse"></div>
+              <div id="petitionReaderActions" class="treasury-actions"></div>
+              <form id="petitionResolution" class="treasury-form" hidden>
+                <h3>Официальное решение</h3>
+                <label>Решение<select name="status" required><option value="approved">Одобрить</option><option value="rejected">Отклонить</option></select></label>
+                <label>Ответ руководства<textarea name="response" required minlength="3" maxlength="10000" rows="6" placeholder="Официальный ответ на прошение"></textarea></label>
+                <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionResolveSave">Вынести решение</button><button type="button" class="secondary-button" id="petitionResolveCancel">Отмена</button></div>
+              </form>
+            </article>
+            <form id="petitionEditor" class="panel treasury-form" hidden>
+              <h2>Подать прошение</h2>
+              <label>Вид обращения<select name="category" required>
+                <option value="request">Просьба</option><option value="complaint">Жалоба</option>
+                <option value="suggestion">Предложение</option><option value="resources">Запрос ресурсов</option>
+                <option value="other">Другое</option>
+              </select></label>
+              <label>Заголовок<input name="title" required minlength="3" maxlength="180" placeholder="Прошение к совету братства"></label>
+              <label>Текст прошения<textarea name="body" required minlength="5" maxlength="10000" rows="11" placeholder="Изложите суть вашего обращения..."></textarea></label>
+              <p class="store-muted">После подачи обращение сохраняется в личном архиве. Изменить текст поданного прошения нельзя.</p>
+              <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionSubmit">Отправить прошение</button><button type="button" class="secondary-button" id="petitionCancel">Отмена</button></div>
+            </form>
           </div>
         </section>
         <section class="page" id="page-chronicle">

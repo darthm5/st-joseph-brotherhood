@@ -444,3 +444,18 @@ button { font: inherit; }
 #page-ratusha .decree-officer-list{display:grid;gap:10px;margin-top:20px}
 #page-ratusha .decree-officer-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px;border-bottom:1px solid #c9b792}
 @media(max-width:650px){#page-ratusha .hall-hub{grid-template-columns:1fr}#page-ratusha .decree-officer-row{flex-direction:column;align-items:flex-start}}
+
+/* v1.9 — personal petitions */
+#page-ratusha #hallPetitionSection [hidden]{display:none!important}
+#page-ratusha .petition-status{font-size:12px;font-weight:700;padding:6px 10px;border:1px solid #a99167;border-radius:3px;white-space:nowrap}
+#page-ratusha .petition-status-submitted{color:#856129}
+#page-ratusha .petition-status-reviewing{color:#645294}
+#page-ratusha .petition-status-approved{color:#396b41}
+#page-ratusha .petition-status-rejected{color:#9a4c42}
+#page-ratusha .petition-selected{box-shadow:inset 0 0 0 2px #987548}
+#page-ratusha .petition-official-response{margin:26px 0;padding:24px;border:2px solid #a88c5e;background:rgba(204,177,123,.12)}
+#page-ratusha .petition-official-response h3{font-family:Georgia,serif;margin-top:0}
+#page-ratusha .petition-response-text{white-space:pre-wrap;line-height:1.75;overflow-wrap:anywhere}
+#page-ratusha #petitionResolution{margin-top:22px}
+#page-ratusha #petitionResolution label{display:grid;gap:7px;margin:12px 0}
+#page-ratusha #petitionResolution textarea,#page-ratusha #petitionResolution select{width:100%;box-sizing:border-box}

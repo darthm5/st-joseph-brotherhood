@@ -1859,11 +1859,14 @@ function hallShow(mode){
  decreeEl('hallHub').hidden=mode!=='home';
  decreeEl('hallPollSection').hidden=mode!=='polls';
  decreeEl('hallDecreeSection').hidden=mode!=='decrees';
+ decreeEl('hallPetitionSection').hidden=mode!=='petitions';
  if(mode==='polls'){pollShow('board');loadPolls();}
  if(mode==='decrees'){decreeShow('board');loadDecrees();}
+ if(mode==='petitions'){petitionShow('board');loadPetitions();}
 }
 decreeEl('hallToPolls').addEventListener('click',()=>hallShow('polls'));
 decreeEl('hallToDecrees').addEventListener('click',()=>hallShow('decrees'));
+decreeEl('hallToPetitions').addEventListener('click',()=>hallShow('petitions'));
 for(const b of document.querySelectorAll('[data-hall-home]'))b.addEventListener('click',()=>hallShow('home'));
 const decreeDate=v=>{if(!v)return '—';const [y,m,d]=String(v).slice(0,10).split('-');return `${d}.${m}.${y}`;};
 const decreeNumber=d=>`№ ${String(d.decree_number).padStart(3,'0')}/${d.decree_year}`;
@@ -1986,4 +1989,127 @@ decreeEl('decreeEditor').addEventListener('submit',async e=>{
  if(decreeEditing)args.p_decree_id=decreeEditing;
  const ok=await decreeRpc(decreeEditing?'guild_decree_update':'guild_decree_create',args,decreeEditing?'Указ обновлён':'Указ издан');
  if(ok){decreeEditing=null;f.reset();decreeShow('board');}
+});
+
+
+// v1.9 — private petitions: only authorized Supabase RPCs, no table SELECT.
+const petitionEl=id=>document.getElementById(id);
+const petitionNode=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined&&text!==null)e.textContent=String(text);if(cls)e.className=cls;return e;};
+const petitionCategories={request:'Просьба',complaint:'Жалоба',suggestion:'Предложение',resources:'Запрос ресурсов',other:'Другое'};
+const petitionStatuses={submitted:'Подано',reviewing:'На рассмотрении',approved:'Одобрено',rejected:'Отклонено'};
+let petitionRows=[],petitionMode='board',petitionFilter='mine',petitionSelected=null,petitionCanReview=false,petitionBusy=false,petitionSeq=0;
+function petitionShow(mode){
+ petitionMode=mode;
+ petitionEl('petitionBoard').hidden=mode!=='board';
+ petitionEl('petitionReader').hidden=mode!=='reader';
+ petitionEl('petitionEditor').hidden=mode!=='editor';
+ petitionEl('petitionBack').hidden=mode==='board';
+ petitionEl('petitionCreate').hidden=mode!=='board';
+ if(mode!=='reader')petitionEl('petitionResolution').hidden=true;
+}
+function petitionAuthor(p){
+ if(p.author_id===currentSession?.user?.id)return 'Вы';
+ return decreeName(p.author_id);
+}
+function petitionRender(){
+ const list=petitionEl('petitionList');list.replaceChildren();
+ const uid=currentSession?.user?.id;
+ const items=petitionRows.filter(p=>petitionFilter==='all'||p.author_id===uid);
+ if(!items.length){list.append(petitionNode('p','В этом разделе пока нет прошений.','store-muted'));return;}
+ for(const p of items){
+  const card=petitionNode('article',null,'panel decree-card');
+  const heading=petitionNode('div',null,'treasury-heading');
+  heading.append(petitionNode('h2',p.title),petitionNode('span',petitionStatuses[p.status]||p.status,'petition-status petition-status-'+p.status));
+  card.append(heading);
+  card.append(petitionNode('p',(petitionCategories[p.category]||p.category)+' · '+new Date(p.created_at).toLocaleDateString('ru-RU')+' · '+petitionAuthor(p),'store-muted'));
+  const excerpt=String(p.body).slice(0,260);
+  card.append(petitionNode('p',excerpt+(p.body.length>260?'…':''),'decree-excerpt'));
+  const button=petitionNode('button','Открыть прошение','secondary-button');button.type='button';
+  button.addEventListener('click',()=>petitionRead(p.id));card.append(button);list.append(card);
+ }
+}
+function petitionRead(id){
+ const p=petitionRows.find(r=>r.id===id);if(!p){petitionShow('board');return;}
+ petitionSelected=id;
+ petitionEl('petitionReaderKicker').textContent=(petitionCategories[p.category]||p.category)+' · '+(petitionStatuses[p.status]||p.status);
+ petitionEl('petitionReaderTitle').textContent=p.title;
+ petitionEl('petitionReaderMeta').textContent='Подано: '+new Date(p.created_at).toLocaleString('ru-RU')+' · Автор: '+petitionAuthor(p);
+ petitionEl('petitionReaderBody').textContent=p.body;
+ const response=petitionEl('petitionReaderResponse');response.replaceChildren();
+ if(p.response){
+  const block=petitionNode('div',null,'petition-official-response');
+  block.append(petitionNode('h3','✥ Официальный ответ руководства'));
+  block.append(petitionNode('p',p.response,'petition-response-text'));
+  block.append(petitionNode('small','Решение: '+(petitionStatuses[p.status]||p.status)+' · '+new Date(p.responded_at).toLocaleString('ru-RU'),'store-muted'));
+  response.append(block);
+ }
+ const actions=petitionEl('petitionReaderActions');actions.replaceChildren();
+ petitionEl('petitionResolution').hidden=true;
+ if(petitionCanReview&&['submitted','reviewing'].includes(p.status)){
+  if(p.status==='submitted'){
+   const review=petitionNode('button','Принять на рассмотрение','secondary-button');review.type='button';
+   review.addEventListener('click',async()=>{if(await petitionRpc('guild_petition_review',{p_petition_id:id},'Прошение принято на рассмотрение'))petitionRead(id);});
+   actions.append(review);
+  }
+  const resolve=petitionNode('button','Вынести решение','secondary-button');resolve.type='button';
+  resolve.addEventListener('click',()=>{petitionEl('petitionResolution').hidden=false;petitionEl('petitionResolution').reset();});
+  actions.append(resolve);
+ }
+ petitionShow('reader');
+}
+async function loadPetitions(){
+ if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+ const token=++petitionSeq;
+ petitionEl('petitionNotice').textContent='Загрузка прошений…';
+ try{
+  const [list,can]=await Promise.all([
+   supabaseClient.rpc('guild_petitions_list'),
+   supabaseClient.rpc('guild_petition_can_review')
+  ]);
+  if(list.error)throw list.error;
+  if(can.error)throw can.error;
+  if(token!==petitionSeq)return;
+  petitionRows=list.data||[];petitionCanReview=can.data===true;
+  petitionEl('petitionLeadership').hidden=!petitionCanReview;
+  if(!petitionCanReview)petitionFilter='mine';
+  petitionEl('petitionMine').classList.toggle('petition-selected',petitionFilter==='mine');
+  petitionEl('petitionLeadership').classList.toggle('petition-selected',petitionFilter==='all');
+  petitionRender();
+  if(petitionMode==='reader'&&petitionSelected){
+   if(petitionRows.some(p=>p.id===petitionSelected))petitionRead(petitionSelected);
+   else petitionShow('board');
+  }
+  petitionEl('petitionNotice').textContent='';
+ }catch(err){if(token===petitionSeq)petitionEl('petitionNotice').textContent='Не удалось загрузить прошения: '+err.message;}
+}
+async function petitionRpc(fn,args,message){
+ if(petitionBusy)return false;
+ petitionBusy=true;
+ try{
+  const {error}=await supabaseClient.rpc(fn,args);
+  if(error)throw error;
+  showToast(message);await loadPetitions();return true;
+ }catch(err){showToast('Ошибка: '+err.message);return false;}
+ finally{petitionBusy=false;}
+}
+petitionEl('petitionMine').addEventListener('click',()=>{petitionFilter='mine';petitionShow('board');loadPetitions();});
+petitionEl('petitionLeadership').addEventListener('click',()=>{if(!petitionCanReview)return;petitionFilter='all';petitionShow('board');loadPetitions();});
+petitionEl('petitionCreate').addEventListener('click',()=>{petitionEl('petitionEditor').reset();petitionShow('editor');});
+petitionEl('petitionBack').addEventListener('click',()=>petitionShow('board'));
+petitionEl('petitionCancel').addEventListener('click',()=>petitionShow('board'));
+petitionEl('petitionRefresh').addEventListener('click',loadPetitions);
+petitionEl('petitionResolveCancel').addEventListener('click',()=>{petitionEl('petitionResolution').hidden=true;});
+petitionEl('petitionEditor').addEventListener('submit',async e=>{
+ e.preventDefault();if(petitionBusy)return;
+ const f=e.currentTarget;
+ const args={p_category:f.elements.namedItem('category').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim()};
+ if(args.p_title.length<3||args.p_body.length<5)return showToast('Заполните заголовок и текст.');
+ if(await petitionRpc('guild_petition_submit',args,'Прошение подано')){petitionFilter='mine';petitionShow('board');loadPetitions();}
+});
+petitionEl('petitionResolution').addEventListener('submit',async e=>{
+ e.preventDefault();if(!petitionCanReview||!petitionSelected||petitionBusy)return;
+ const f=e.currentTarget;
+ const args={p_petition_id:petitionSelected,p_status:f.elements.namedItem('status').value,p_response:f.elements.namedItem('response').value.trim()};
+ if(args.p_response.length<3)return showToast('Напишите официальный ответ.');
+ if(await petitionRpc('guild_petition_resolve',args,'Решение опубликовано'))petitionRead(petitionSelected);
 });

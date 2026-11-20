@@ -486,6 +486,7 @@ function openMember(profile) {
   detailField(text, "Работы", memberJobs(profile));
   detailField(text, "Мастерства", memberMasteries(profile));
   detailField(text, "О персонаже", profile.about);
+  awardAttachToProfile(text,profile.id);
   memberDetailsBody.append(text);
   membersGrid.hidden = true;
   document.querySelector(".members-tools").hidden = true;
@@ -1875,15 +1876,18 @@ function hallShow(mode){
  decreeEl('hallDecreeSection').hidden=mode!=='decrees';
  decreeEl('hallPetitionSection').hidden=mode!=='petitions';
  decreeEl('hallCouncilSection').hidden=mode!=='council';
+ decreeEl('hallAwardsSection').hidden=mode!=='awards';
  if(mode==='polls'){pollShow('board');loadPolls();}
  if(mode==='decrees'){decreeShow('board');loadDecrees();}
  if(mode==='petitions'){petitionShow('board');loadPetitions();}
  if(mode==='council'){councilShow('tree');loadCouncil();}
+ if(mode==='awards'){awardShow('board');loadAwards();}
 }
 decreeEl('hallToPolls').addEventListener('click',()=>hallShow('polls'));
 decreeEl('hallToDecrees').addEventListener('click',()=>hallShow('decrees'));
 decreeEl('hallToPetitions').addEventListener('click',()=>hallShow('petitions'));
 decreeEl('hallToCouncil').addEventListener('click',()=>hallShow('council'));
+decreeEl('hallToAwards').addEventListener('click',()=>hallShow('awards'));
 for(const b of document.querySelectorAll('[data-hall-home]'))b.addEventListener('click',()=>hallShow('home'));
 const decreeDate=v=>{if(!v)return '—';const [y,m,d]=String(v).slice(0,10).split('-');return `${d}.${m}.${y}`;};
 const decreeNumber=d=>`№ ${String(d.decree_number).padStart(3,'0')}/${d.decree_year}`;
@@ -2167,6 +2171,7 @@ function councilOpenProfile(p){
  detailField(body,'Возраст',p.character_age==null?'Не указан':p.character_age+' лет');
  detailField(body,'Работы',memberJobs(p));detailField(body,'Мастерства',memberMasteries(p));
  detailField(body,'О персонаже',p.about);
+ awardAttachToProfile(body,p.id);
  councilShow('profile');councilEl('hallCouncilSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function councilRender(){
@@ -2232,3 +2237,105 @@ councilEl('councilRefresh').addEventListener('click',loadCouncil);
 councilEl('councilDescriptionsButton').addEventListener('click',()=>councilShow('descriptions'));
 councilEl('councilDescriptionsBack').addEventListener('click',()=>councilShow('tree'));
 councilEl('councilProfileBack').addEventListener('click',()=>councilShow('tree'));
+
+
+// v2.1 — manual awards, administered only through SQL-guarded RPCs.
+const awardEl=id=>document.getElementById(id);
+const awardNode=(tag,value,cls)=>{const e=document.createElement(tag);if(value!==undefined&&value!==null)e.textContent=String(value);if(cls)e.className=cls;return e;};
+const awardKinds={order:'Орден',medal:'Медаль',certificate:'Грамота',honorary:'Почётный знак',other:'Награда'};
+let awardTypes=[],awardGrants=[],awardPeople=[],awardPeopleMap=new Map(),awardMode='board',awardTab='people',awardEditing=null,awardBusy=false,awardSeq=0;
+const awardDate=value=>{if(!value)return '—';const [y,m,d]=String(value).slice(0,10).split('-');return [d,m,y].join('.');};
+const awardName=id=>awardPeopleMap.get(id)||'Участник братства';
+const awardType=id=>awardTypes.find(t=>t.id===id);
+function awardImage(type){
+ const wrap=awardNode('div',null,'award-medallion');const url=safePhoto(type?.image_url);
+ if(url){const img=awardNode('img');img.src=url;img.alt=type.name;img.loading='lazy';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.replaceWith(awardNode('span','✥')));wrap.append(img);}
+ else wrap.append(awardNode('span',type?.category==='certificate'?'📜':type?.category==='order'?'✠':'✥'));
+ return wrap;
+}
+function awardShow(mode){
+ if(mode!=='board'&&accessState.mode!=='admin')return;
+ awardMode=mode;awardEl('awardBoard').hidden=mode!=='board';awardEl('awardTypeForm').hidden=mode!=='type';awardEl('awardGrantForm').hidden=mode!=='grant';
+ awardEl('awardNewType').hidden=accessState.mode!=='admin'||mode!=='board';awardEl('awardNewGrant').hidden=accessState.mode!=='admin'||mode!=='board';
+}
+function awardEntry(grant,compact=false){
+ const type=awardType(grant.award_type_id);if(!type)return awardNode('div','Награда недоступна','award-record');
+ const item=awardNode('article',null,'award-record'+(grant.revoked_at?' award-revoked':''));item.append(awardImage(type));
+ const body=awardNode('div',null,'award-record-body');body.append(awardNode('strong',type.name),awardNode('span',(awardKinds[type.category]||'Награда')+' · '+awardDate(grant.awarded_on)));
+ if(!compact)body.append(awardNode('p','Награждён: '+awardName(grant.recipient_id)),awardNode('p','Основание: '+grant.reason),awardNode('small','Вручил: '+awardName(grant.granted_by)));
+ else body.append(awardNode('small',grant.reason));
+ if(grant.revoked_at)body.append(awardNode('p','Отозвана '+awardDate(grant.revoked_at)+'. Причина: '+(grant.revocation_reason||'Не указана')));
+ item.append(body);
+ if(accessState.mode==='admin'&&!grant.revoked_at){const revoke=awardNode('button','Отозвать','secondary-button award-revoke');revoke.type='button';revoke.addEventListener('click',()=>awardRevoke(grant));item.append(revoke);}
+ return item;
+}
+function awardRender(){
+ const root=awardEl('awardContent');root.replaceChildren();
+ awardEl('awardTabPeople').classList.toggle('active',awardTab==='people');awardEl('awardTabCatalog').classList.toggle('active',awardTab==='catalog');awardEl('awardTabHistory').classList.toggle('active',awardTab==='history');
+ if(awardTab==='catalog'){
+  const grid=awardNode('div',null,'award-catalog');
+  for(const type of awardTypes){const card=awardNode('article',null,'award-type-card');card.append(awardImage(type),awardNode('h3',type.name),awardNode('small',awardKinds[type.category]||'Награда'),awardNode('p',type.description||'Описание не указано'));
+   if(!type.is_active)card.append(awardNode('small','Архивная награда'));
+   if(accessState.mode==='admin'){const edit=awardNode('button','Изменить','secondary-button');edit.type='button';edit.addEventListener('click',()=>awardEditType(type));card.append(edit);}grid.append(card);}
+  root.append(grid);if(!awardTypes.length)root.append(awardNode('p','Каталог пока пуст.','store-muted'));return;
+ }
+ if(awardTab==='history'){
+  if(!awardGrants.length)root.append(awardNode('p','Пока не было награждений.','store-muted'));
+  for(const grant of awardGrants)root.append(awardEntry(grant));return;
+ }
+ const active=awardGrants.filter(g=>!g.revoked_at);const grouped=new Map();for(const g of active){if(!grouped.has(g.recipient_id))grouped.set(g.recipient_id,[]);grouped.get(g.recipient_id).push(g);}
+ if(!grouped.size)root.append(awardNode('p','Доска почёта ждёт первых достойных братьев и сестёр.','store-muted'));
+ for(const [id,grants] of grouped){const profile=awardPeople.find(p=>p.id===id);const card=awardNode('article',null,'award-honoree');const head=awardNode('div',null,'award-honoree-head');if(profile)head.append(councilPortrait(profile));head.append(awardNode('h3',awardName(id)));card.append(head);const medals=awardNode('div',null,'award-honoree-medals');for(const g of grants)medals.append(awardEntry(g,true));card.append(medals);root.append(card);}
+}
+async function loadAwards(){
+ if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
+ const seq=++awardSeq;awardEl('awardNotice').textContent='Открываем летопись наград…';
+ try{const [types,grants,people]=await Promise.all([
+  supabaseClient.from('guild_award_types').select('*').order('created_at',{ascending:false}).limit(1000),
+  supabaseClient.from('guild_award_grants').select('*').order('granted_at',{ascending:false}).limit(3000),
+  supabaseClient.from('profiles').select('id,character_first_name,character_last_name,character_photo_url,membership_status').eq('membership_status','approved').limit(3000)
+ ]);if(types.error)throw types.error;if(grants.error)throw grants.error;if(people.error)throw people.error;if(seq!==awardSeq)return;
+ awardTypes=types.data||[];awardGrants=grants.data||[];awardPeople=people.data||[];awardPeopleMap=new Map(awardPeople.map(p=>[p.id,characterName(p)]));
+ awardEl('awardNotice').textContent='Наград в каталоге: '+awardTypes.length+' · Награждений: '+awardGrants.filter(g=>!g.revoked_at).length;awardRender();
+ }catch(err){if(seq===awardSeq)awardEl('awardNotice').textContent='Ошибка загрузки наград: '+err.message;}
+}
+function awardAttachToProfile(parent,id){
+ const section=awardNode('section',null,'award-profile');section.append(awardNode('h3','⚜ Награды и заслуги'));
+ const list=awardNode('div',null,'award-profile-list');section.append(list);parent.append(section);
+ const render=()=>{list.replaceChildren();const grants=awardGrants.filter(g=>g.recipient_id===id&&!g.revoked_at);if(!grants.length){list.append(awardNode('p','Наград пока нет.','store-muted'));return;}for(const g of grants)list.append(awardEntry(g,true));};
+ if(awardTypes.length||awardGrants.length){render();return;}
+ list.append(awardNode('p','Загрузка наград…','store-muted'));
+ Promise.all([supabaseClient.from('guild_award_types').select('*').limit(1000),supabaseClient.from('guild_award_grants').select('*').eq('recipient_id',id).limit(500)]).then(([types,grants])=>{
+  if(types.error||grants.error)throw types.error||grants.error;
+  awardTypes=types.data||[];awardGrants=[...awardGrants.filter(g=>g.recipient_id!==id),...(grants.data||[])];render();
+ }).catch(()=>{list.replaceChildren(awardNode('p','Не удалось загрузить награды.','store-muted'));});
+}
+function awardEditType(type){
+ awardEditing=type?.id||null;const f=awardEl('awardTypeForm');f.reset();f.elements.namedItem('name').value=type?.name||'';f.elements.namedItem('category').value=type?.category||'medal';f.elements.namedItem('description').value=type?.description||'';f.elements.namedItem('image_url').value=type?.image_url||'';f.elements.namedItem('is_active').checked=type?.is_active??true;awardEl('awardTypeTitle').textContent=type?'Редактирование награды':'Создание награды';awardShow('type');
+}
+function awardGrantNew(){
+ const f=awardEl('awardGrantForm');f.reset();const awards=f.elements.namedItem('award_type_id'),people=f.elements.namedItem('recipient_id');awards.replaceChildren();people.replaceChildren();
+ for(const t of awardTypes.filter(t=>t.is_active))awards.add(new Option(t.name,t.id));for(const p of [...awardPeople].sort((a,b)=>characterName(a).localeCompare(characterName(b),'ru')))people.add(new Option(characterName(p),p.id));
+ if(!awards.length||!people.length){showToast('Нужны активная награда и принятый участник.');return;}
+ const now=new Date();f.elements.namedItem('awarded_on').value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');awardShow('grant');
+}
+async function awardRpc(name,args,success){if(awardBusy||accessState.mode!=='admin')return false;awardBusy=true;
+ try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;showToast(success);awardShow('board');await loadAwards();return true;}
+ catch(err){showToast('Ошибка: '+err.message);return false;}finally{awardBusy=false;}}
+async function awardRevoke(grant){const reason=window.prompt('Причина отзыва награды (обязательно):');if(reason===null)return;if(reason.trim().length<3){showToast('Укажите причину не короче 3 символов.');return;}
+ if(!window.confirm('Отозвать награду? Запись останется в истории.'))return;
+ await awardRpc('guild_award_revoke',{p_grant_id:grant.id,p_reason:reason.trim()},'Награда отозвана');}
+awardEl('awardRefresh').addEventListener('click',loadAwards);
+awardEl('awardNewType').addEventListener('click',()=>awardEditType(null));
+awardEl('awardNewGrant').addEventListener('click',awardGrantNew);
+awardEl('awardTypeCancel').addEventListener('click',()=>awardShow('board'));
+awardEl('awardGrantCancel').addEventListener('click',()=>awardShow('board'));
+for(const [id,tab] of [['awardTabPeople','people'],['awardTabCatalog','catalog'],['awardTabHistory','history']])awardEl(id).addEventListener('click',()=>{awardTab=tab;awardRender();});
+awardEl('awardTypeForm').addEventListener('submit',async e=>{
+ e.preventDefault();const f=e.currentTarget;const args={p_name:f.elements.namedItem('name').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_image_url:f.elements.namedItem('image_url').value.trim()||null};
+ if(awardEditing)await awardRpc('guild_award_type_update',{p_award_type_id:awardEditing,...args,p_is_active:f.elements.namedItem('is_active').checked},'Награда изменена');
+ else await awardRpc('guild_award_type_create',args,'Награда создана');
+});
+awardEl('awardGrantForm').addEventListener('submit',async e=>{
+ e.preventDefault();const f=e.currentTarget;await awardRpc('guild_award_grant',{p_award_type_id:f.elements.namedItem('award_type_id').value,p_recipient_id:f.elements.namedItem('recipient_id').value,p_reason:f.elements.namedItem('reason').value.trim(),p_awarded_on:f.elements.namedItem('awarded_on').value},'Награда вручена');
+});

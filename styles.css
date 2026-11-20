@@ -494,3 +494,41 @@ button { font: inherit; }
 #page-ratusha .council-description-form textarea{width:100%;box-sizing:border-box;padding:10px;font:14px Arial,sans-serif}
 #page-ratusha .council-description-form button{justify-self:start}
 @media(max-width:700px){#page-ratusha .council-banner h2{font-size:22px}#page-ratusha .council-profile-header{flex-direction:column;text-align:center}}
+
+/* v2.1 — hall of fame */
+#page-ratusha #hallAwardsSection [hidden]{display:none!important}
+#page-ratusha .award-banner{text-align:center;background:linear-gradient(125deg,#f1e0b8,#c8a06b);border:2px solid #a27c47;color:#51351d;padding:25px 15px;border-radius:7px}
+#page-ratusha .award-banner span{font-size:12px;letter-spacing:3px}
+#page-ratusha .award-banner h2{font:normal 31px Georgia,serif;margin:10px 0}
+#page-ratusha .award-banner p{margin:0;font:italic 14px Georgia,serif}
+#page-ratusha .award-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+#page-ratusha .award-tabs .active{box-shadow:inset 0 0 0 2px #d9b16b}
+#page-ratusha .award-content{display:grid;gap:14px}
+#page-ratusha .award-catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+#page-ratusha .award-type-card,#page-ratusha .award-honoree,#page-ratusha .award-record{background:#f2e2c3;color:#50351e;border:1px solid #ac8755;border-radius:7px;padding:15px;box-shadow:0 2px 7px #0002}
+#page-ratusha .award-type-card{text-align:center;display:flex;align-items:center;flex-direction:column;gap:8px}
+#page-ratusha .award-type-card h3{font:normal 22px Georgia,serif;margin:0}
+#page-ratusha .award-type-card p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+#page-ratusha .award-medallion{width:68px;height:68px;flex-shrink:0;border:4px double #8b672d;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#f8e4a5,#a47a36);color:#4d3218;font-size:32px;overflow:hidden}
+#page-ratusha .award-medallion img{width:100%;height:100%;object-fit:cover}
+#page-ratusha .award-record{display:flex;align-items:flex-start;gap:14px}
+#page-ratusha .award-record-body{display:grid;gap:5px;flex:1;min-width:0}
+#page-ratusha .award-record-body strong{font:normal bold 18px Georgia,serif}
+#page-ratusha .award-record-body p{margin:3px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+#page-ratusha .award-revoked{opacity:.65}
+#page-ratusha .award-revoked strong{text-decoration:line-through}
+#page-ratusha .award-honoree-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+#page-ratusha .award-honoree-head h3{font:normal 24px Georgia,serif;margin:0}
+#page-ratusha .award-honoree-medals{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+#page-ratusha .award-form{display:grid;gap:14px;padding:20px}
+#page-ratusha .award-form label{display:grid;gap:7px}
+#page-ratusha .award-form input:not([type=checkbox]),#page-ratusha .award-form select,#page-ratusha .award-form textarea{width:100%;box-sizing:border-box;padding:10px}
+#page-ratusha .award-form .award-check{display:flex;align-items:center}
+.award-profile{margin-top:22px;padding-top:14px;border-top:1px solid #ac8755}
+.award-profile-list{display:grid;gap:9px}
+.award-profile .award-record{display:flex;gap:12px;padding:10px;border:1px solid #ac8755;border-radius:7px;background:#f2e2c3;color:#50351e}
+.award-profile .award-medallion{width:46px;height:46px;flex-shrink:0;border:3px double #8b672d;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#d4b57a;overflow:hidden}
+.award-profile .award-medallion img{width:100%;height:100%;object-fit:cover}
+.award-profile .award-record-body{display:grid;gap:5px}
+.award-profile .award-record-body strong{font-family:Georgia,serif}
+@media(max-width:650px){#page-ratusha .award-record{flex-wrap:wrap}#page-ratusha .award-banner h2{font-size:24px}}

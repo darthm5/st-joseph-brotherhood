@@ -2428,16 +2428,32 @@ gm('guildMapRouteDone').onclick=()=>{if(guildMapState.draft.length<2){showToast(
 gm('guildMapUndo').onclick=()=>{guildMapState.draft.pop();gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();};
 gm('guildMapSave').onclick=gmSave;gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
 for(const id of ['guildMapShowMarkers','guildMapShowRoutes','guildMapShowMineOnly'])gm(id).onchange=gmRender;
-function gmZoom(n,clientX,clientY){
+// Zoom is measured against the viewport's actual width, not percentage CSS widths.
+// Keep a stable coordinate system so saved pins and routes never move.
+function gmSizeStage(preserveCenter=false){
  const viewport=gm('guildMapViewport'),stage=gm('guildMapStage');
- const before=guildMapState.scale,after=Math.max(1,Math.min(8,before*n));
- if(after===before)return;
+ const oldWidth=stage.offsetWidth||viewport.clientWidth;
+ const oldLeft=viewport.scrollLeft,oldTop=viewport.scrollTop;
+ const oldCenterX=(oldLeft+viewport.clientWidth/2)/oldWidth;
+ const oldCenterY=(oldTop+viewport.clientHeight/2)/(oldWidth*1706/2048);
+ const width=Math.max(1,viewport.clientWidth)*guildMapState.scale;
+ stage.style.setProperty('width',`${width}px`,'important');
+ stage.style.setProperty('height',`${width*1706/2048}px`,'important');
+ if(preserveCenter){viewport.scrollLeft=oldCenterX*width-viewport.clientWidth/2;viewport.scrollTop=oldCenterY*(width*1706/2048)-viewport.clientHeight/2;}
+}
+function gmZoom(factor,clientX,clientY){
+ const viewport=gm('guildMapViewport'),stage=gm('guildMapStage');
+ const before=guildMapState.scale,after=Math.max(1,Math.min(10,before*factor));
+ if(Math.abs(after-before)<0.00001)return;
  const rect=viewport.getBoundingClientRect();
- const x=clientX===undefined?rect.width/2:clientX-rect.left;
- const y=clientY===undefined?rect.height/2:clientY-rect.top;
- const mapX=(viewport.scrollLeft+x)/before,mapY=(viewport.scrollTop+y)/before;
- guildMapState.scale=after;stage.style.width=`${after*100}%`;
- viewport.scrollLeft=mapX*after-x;viewport.scrollTop=mapY*after-y;
+ const x=clientX===undefined?viewport.clientWidth/2:clientX-rect.left-viewport.clientLeft;
+ const y=clientY===undefined?viewport.clientHeight/2:clientY-rect.top-viewport.clientTop;
+ const oldW=stage.offsetWidth,oldH=stage.offsetHeight;
+ const imageX=(viewport.scrollLeft+x)/oldW,imageY=(viewport.scrollTop+y)/oldH;
+ guildMapState.scale=after;
+ gmSizeStage();
+ viewport.scrollLeft=imageX*stage.offsetWidth-x;
+ viewport.scrollTop=imageY*stage.offsetHeight-y;
 }
 gm('guildMapZoomIn').onclick=()=>gmZoom(1.35);
 gm('guildMapZoomOut').onclick=()=>gmZoom(1/1.35);
@@ -2447,3 +2463,7 @@ gm('guildMapViewport').addEventListener('wheel',e=>{
  e.preventDefault();gmZoom(e.deltaY<0?1.18:1/1.18,e.clientX,e.clientY);
 },{passive:false});
 gmBase();
+// The map column changes width with browser zoom, window resizing and side panel stacking.
+const gmResizeObserver=new ResizeObserver(()=>gmSizeStage(true));
+gmResizeObserver.observe(gm('guildMapViewport'));
+requestAnimationFrame(()=>gmSizeStage());

@@ -2411,7 +2411,7 @@ async function gmSave(){const kind=gm('guildMapSave').dataset.kind;const title=g
  const {error}=await query;if(error){showToast('Ошибка сохранения: '+error.message);return;}gmClose();showToast('Запись сохранена');await guildMapLoad();
 }
 async function gmDelete(r){if(!confirm(`Удалить «${r.title}»?`))return;const {error}=await supabaseClient.from('guild_map_'+(r.kind==='marker'?'markers':'routes')).delete().eq('id',r.id);if(error){showToast(error.message);return;}showToast('Запись удалена');await guildMapLoad();}
-function gmBase(){const st=guildMapState;const paper=gm('guildMapStage');const img='/'+'';const file=st.region==='kuttenberg'?'map-kuttenberg.jpg':'map-trosky.jpg';
+function gmBase(){const st=guildMapState;const paper=gm('guildMapStage');const file=st.region==='kuttenberg'?'map-kuttenberg.jpg':'map-trosky.jpg';
  paper.style.backgroundImage=`url("${file}")`;gm('guildMapViewport').classList.toggle('map-with-image',false);
  const test=new Image();test.onload=()=>{if(st.region===(file.includes('kuttenberg')?'kuttenberg':'trosky'))gm('guildMapViewport').classList.add('map-with-image');};test.src=file;
 }
@@ -2422,6 +2422,6 @@ gm('guildMapRouteDone').onclick=()=>{if(guildMapState.draft.length<2){showToast(
 gm('guildMapUndo').onclick=()=>{guildMapState.draft.pop();gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();};
 gm('guildMapSave').onclick=gmSave;gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
 for(const id of ['guildMapShowMarkers','guildMapShowRoutes','guildMapShowMineOnly'])gm(id).onchange=gmRender;
-function gmZoom(n){guildMapState.scale=Math.max(1,Math.min(3,guildMapState.scale*n));gm('guildMapStage').style.width=`${guildMapState.scale*100}%`;gm('guildMapStage').style.height=`${guildMapState.scale*100}%`;}
+function gmZoom(n){guildMapState.scale=Math.max(1,Math.min(3,guildMapState.scale*n));gm('guildMapStage').style.width=`${guildMapState.scale*100}%`;gm('guildMapStage').style.height='auto';}
 gm('guildMapZoomIn').onclick=()=>gmZoom(1.25);gm('guildMapZoomOut').onclick=()=>gmZoom(.8);gm('guildMapZoomReset').onclick=()=>{guildMapState.scale=1;gmZoom(1);};
 gmBase();

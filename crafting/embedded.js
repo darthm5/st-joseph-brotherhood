@@ -346,9 +346,11 @@ document.getElementById("pricesm").innerHTML = priceField("markup");
     });
     save();
     recalc();
-    renderAll();
+    // Do not rebuild price fields on every keystroke: keep focus and caret.
+    // Other totals are refreshed after editing is committed.
   }),
 );
+["pgrid", "pricesm"].forEach(id => document.getElementById(id).addEventListener("change", () => renderAll()));
 document.getElementById("reset").addEventListener("click", () => {
   P = { ...DEF };
   document.querySelectorAll("[data-p]").forEach(i => (i.value = P[i.dataset.p]));

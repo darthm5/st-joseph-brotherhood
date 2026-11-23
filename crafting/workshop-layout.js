@@ -44,6 +44,7 @@
  const total=get('#bsum'),priceByItem=get('.craft-item-prices'),actions=get('#odone')?.parentElement;
  // Cost summary and real completion controls remain single instances; move them into result view only while calculating.
  const cost=make('div','craft252-cost');resultOrder.append(cost);
+ const markup=get('#pricesm');const workRow=make('div','craft253-work');workRow.innerHTML='<strong>Стоимость работы</strong><span class="craft253-workhint">Процент от себестоимости</span>';if(markup)workRow.append(markup);cost.append(workRow);
  const completion=make('div','craft252-completion');resultOrder.append(completion);
  const legacyNav=get('.views');const legacyBtn=v=>legacyNav?.querySelector(`[data-view="${v}"]`);
  let current='home';function open(which){current=which;root.dataset.screen=which;home.hidden=which!=='home';nav.hidden=which!=='home';body.hidden=which==='home';for(const p of body.querySelectorAll('.craft252-page'))p.hidden=p.dataset.page!==which;

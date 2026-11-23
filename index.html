@@ -1,51 +1,183 @@
 <!doctype html>
-<html lang="ru" translate="no" class="notranslate">
+<html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="google" content="notranslate">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Счётная книга братства</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="style.css?v=20261112e">
-<link rel="stylesheet" href="brotherhood-theme.css?v=234">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#211d1a">
+  <title>Братство Святого Иосифа Обручника</title>
+  <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
+  <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="crafting/embedded.css?v=245">
 </head>
 <body>
-<header class="top">
-  <div class="toprow">
-    <a class="guild-back" href="../index.html#crafts">← К братству</a><h1>Счётная книга братства</h1>
-    <div class="seg" id="secs" role="group" aria-label="Ремесло"></div>
-    <div class="dd help"><button class="btn ddb" type="button" aria-expanded="false" aria-label="Как пользоваться">?</button>
-      <div class="ddp helpp" hidden>
-        <p>Выбери ремесло и добавляй вещи в заказ кнопкой «+». Заказ справа, подробный расчёт сырья (что сделать заранее, что докупить, план крафта) во вкладке «Расчёт заказа».</p>
-        <p>В одном заказе можно смешивать вещи разных ремёсел. Заказы и введённые цены сохраняются в этом браузере.</p>
-        <p>Цены сырья задаются вручную, общие для всех ремёсел и сохраняются в этом браузере. Автоматическое обновление цен отключено.</p>
-        <p>Наведи на вещь, чтобы увидеть характеристики, действие или сытость.</p>
+  <div class="site-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="crest" aria-label="Временный герб братства">
+          <svg viewBox="0 0 100 116" role="img" aria-hidden="true">
+            <path d="M8 7H92V64Q88 91 50 109Q12 91 8 64Z" fill="#6b292d" stroke="#c8a96e" stroke-width="4"/>
+            <path d="M16 15H84V62Q80 85 50 101Q20 85 16 62Z" fill="none" stroke="#e4d3ad" stroke-width="1.5"/>
+            <path d="M50 27V76M34 48L50 27L66 48M39 76H61" stroke="#d8bd82" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M50 30C43 21 34 25 38 34C41 40 50 42 50 42C50 42 59 40 62 34C66 25 57 21 50 30Z" fill="#eee4cc"/>
+            <path d="M50 42V77M43 77H57" stroke="#eee4cc" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M50 14L52 19L58 20L53 24L54 30L50 26L46 30L47 24L42 20L48 19Z" fill="#d8bd82"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <div class="brand-kicker">Внутренняя резиденция</div>
+          <div class="brand-name">Братство<br>Святого Иосифа</div>
+          <div class="brand-subtitle">Обручника</div>
+        </div>
       </div>
-    </div>
-    <nav class="views" role="tablist" aria-label="Раздел книги">
-      <button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button>
-      <button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button>
-      <button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button>
-      <button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button>
-      
-      
-      
-    </nav>
-  </div>
-  <div class="toolrow" id="toolrow">
-    <input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета">
-    <div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div>
-    <div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> <span aria-hidden="true">▾</span></button>
-      <div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div>
-    <div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> <span aria-hidden="true">▾</span></button>
-      <div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка по характеристикам"></div></div></div>
-    <button class="btn" id="fold" type="button" aria-expanded="true" title="Свернуть или развернуть все чертежи">Свернуть чертежи</button>
-  </div>
-</header>
 
-<div class="guild-ledger-intro" aria-label="О счётной книге"><div><span class="guild-ledger-eyebrow">Братство Святого Иосифа Обручника · ремесленная книга</span><p class="guild-ledger-intro-title">От чертежа до готового изделия</p><p class="guild-ledger-intro-copy">Выбирай ремесло, собирай заказ и рассчитывай необходимое сырьё. Все цены — твои личные.</p></div><span class="guild-ledger-seal" aria-hidden="true">⚒</span></div>
-<main class="app">
+      <div class="nav-caption">Резиденция</div>
+      <nav class="main-nav" aria-label="Главное меню">
+        <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span>Главная</button>
+        <button class="nav-item" data-page="profile"><span class="nav-icon">♧</span>Мой кабинет</button>
+        <button class="nav-item" data-page="members"><span class="nav-icon">♙</span>Участники</button>
+        <button class="nav-item" data-page="info"><span class="nav-icon">✦</span>Важная информация</button>
+        <button class="nav-item" data-page="calendar"><span class="nav-icon">▦</span>Календарь</button>
+        <button class="nav-item" data-page="treasury"><span class="nav-icon">◈</span>Казна</button>
+        <button class="nav-item" data-page="market"><span class="nav-icon">⚖</span>Рынок</button>
+        <button class="nav-item" data-page="work"><span class="nav-icon">⚒</span>Работа</button>
+        <button class="nav-item" data-page="crafts"><span class="nav-icon">♜</span>Ремёсла</button>
+        <button class="nav-item" data-page="map"><span class="nav-icon">⌖</span>Карта</button>
+        <button class="nav-item" data-page="chronicle"><span class="nav-icon">▤</span>Летопись</button>
+        <button class="nav-item" data-page="ratusha"><span class="nav-icon">⚜</span>Ратуша</button>
+        <button class="nav-item" data-page="storehouse"><span class="nav-icon">▣</span>Кладовая</button>
+      </nav>
+
+      <div class="nav-caption management-caption">Совет братства</div>
+      <nav class="main-nav">
+        <button class="nav-item" data-page="management"><span class="nav-icon">⚙</span>Управление</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="motto">LABOR ET FIDES</div>
+        <div class="motto-translation">Труд и вера</div>
+        <div class="sidebar-version">Резиденция · версия 0.6</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Открыть меню">☰</button>
+        <div class="breadcrumbs"><span>Братство</span><b>/</b><strong id="breadcrumbCurrent">Главная</strong></div>
+        <div class="topbar-actions">
+          <span class="status-dot"></span><span class="status-text">Резиденция открыта</span>
+          <button class="discord-button" id="discordLogin"><span class="discord-mark">◉</span> Войти через Discord</button>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="page active-page" id="page-home">
+          <div class="hero">
+            <div class="hero-text">
+              <div class="eyebrow">Во имя труда, чести и братства</div>
+              <h1>Добро пожаловать<br>в резиденцию братства</h1>
+              <p>Здесь хранятся дела, достижения и история тех, кто связал свою судьбу с Братством Святого Иосифа Обручника.</p>
+              <button class="primary-button" data-goto="info">Ознакомиться с братством <span>→</span></button>
+            </div>
+            <div class="hero-emblem">
+              <div class="hero-emblem-ring">
+                <svg viewBox="0 0 100 116" aria-hidden="true">
+                  <path d="M8 7H92V64Q88 91 50 109Q12 91 8 64Z" fill="#6b292d" stroke="#c8a96e" stroke-width="4"/>
+                  <path d="M16 15H84V62Q80 85 50 101Q20 85 16 62Z" fill="none" stroke="#e4d3ad" stroke-width="1.5"/>
+                  <path d="M50 27V76M34 48L50 27L66 48M39 76H61" stroke="#d8bd82" stroke-width="4" fill="none" stroke-linecap="round"/>
+                  <path d="M50 30C43 21 34 25 38 34C41 40 50 42 50 42C50 42 59 40 62 34C66 25 57 21 50 30Z" fill="#eee4cc"/>
+                  <path d="M50 42V77M43 77H57" stroke="#eee4cc" stroke-width="2.5" stroke-linecap="round"/>
+                  <path d="M50 14L52 19L58 20L53 24L54 30L50 26L46 30L47 24L42 20L48 19Z" fill="#d8bd82"/>
+                </svg>
+              </div>
+              <div class="hero-emblem-label">LABOR · FIDES · HONOR</div>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <div><div class="eyebrow">Сведения резиденции</div><h2>Дела братства</h2></div>
+            <span class="section-note">Первые страницы нашей истории</span>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-symbol">♙</div><div class="stat-label">Участники</div><div class="stat-value">—</div><div class="stat-foot">Реестр братства</div></article>
+            <article class="stat-card"><div class="stat-symbol">⚒</div><div class="stat-label">Ремесла</div><div class="stat-value">—</div><div class="stat-foot">Мастера и умельцы</div></article>
+            <article class="stat-card"><div class="stat-symbol">◈</div><div class="stat-label">Казна</div><div class="stat-value">—</div><div class="stat-foot">Общий баланс</div></article>
+            <article class="stat-card"><div class="stat-symbol">▤</div><div class="stat-label">Записи летописи</div><div class="stat-value">—</div><div class="stat-foot">Память братства</div></article>
+          </div>
+
+          <div class="home-columns">
+            <article class="panel announcement-panel">
+              <div class="panel-heading"><div><div class="eyebrow">Глас совета</div><h3>Объявления братства</h3></div><span class="ornament">✦</span></div>
+              <div class="notice">
+                <div class="notice-date">ОБЪЯВЛЕНИЕ · ОБРАЗЕЦ</div>
+                <h4>Да будет крепким наше братство</h4>
+                <p>Здесь будут публиковаться важные новости, решения совета и объявления для всех участников.</p>
+              </div>
+              <div class="notice notice-muted">
+                <div class="notice-date">СКОРО</div>
+                <h4>Начало ведения реестра</h4>
+                <p>После подключения регистрации каждый участник сможет создать собственную страницу.</p>
+              </div>
+            </article>
+            <article class="panel quick-panel">
+              <div class="panel-heading"><div><div class="eyebrow">Путеводитель</div><h3>Разделы резиденции</h3></div></div>
+              <button class="quick-link" data-goto="members"><span>♙</span><span><b>Реестр участников</b><small>Лица и звания братства</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="crafts"><span>⚒</span><span><b>Цеха и ремёсла</b><small>Умения и специализации</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="chronicle"><span>▤</span><span><b>Летопись</b><small>События и история</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="ratusha"><span>⚜</span><span><b>Ратуша</b><small>Голосования и решения</small></span><i>→</i></button>
+              <button class="quick-link" data-goto="management"><span>⚙</span><span><b>Совет братства</b><small>Внутреннее управление</small></span><i>→</i></button>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-waiting">
+          <div class="page-title-block"><div class="eyebrow">Врата резиденции</div><h1 id="waitingTitle">Заявка на вступление</h1><p id="waitingSubtitle">Для вступления в братство необходимо представиться.</p></div>
+          <article class="panel waiting-panel">
+            <div class="waiting-seal">✦</div>
+            <h2 id="waitingHeading">Добро пожаловать, путник</h2>
+            <p id="waitingMessage">Пожалуйста, укажите имя и фамилию персонажа в личной анкете.</p>
+            <div class="waiting-actions"><button type="button" class="primary-button" id="waitingProfile">Открыть мою анкету →</button><button type="button" class="secondary-button" id="waitingRefresh">Проверить статус заявки</button></div>
+          </article>
+        </section>
+        <section class="page" id="page-profile">
+          <div class="page-title-block"><div class="eyebrow">Личные записи</div><h1>Мой кабинет</h1><p>Анкета персонажа и сведения о членстве в братстве.</p></div>
+          <article class="panel" id="profileLoginNotice" hidden>Войдите через Discord, чтобы заполнить анкету персонажа.</article>
+          <form class="panel profile-form" id="profileForm" hidden>
+            <div class="profile-status"><div><b id="profileDiscordName">Discord</b><small>Привязанный аккаунт</small></div><div><b id="profileRank">Кандидат</b><small id="profileMembership">Статус: ожидает рассмотрения</small></div></div>
+            <p class="form-hint">Игровое звание и статус членства назначает администрация. Изменить их в анкете нельзя.</p>
+            <div class="profile-fields">
+              <label>Имя персонажа <input name="character_first_name" maxlength="60" required autocomplete="off" placeholder="Милош"></label>
+              <label>Фамилия персонажа <input name="character_last_name" maxlength="60" required autocomplete="off" placeholder="Железный"></label>
+              <label>Возраст персонажа <input name="character_age" type="number" min="16" max="100" placeholder="Например, 30"></label>
+              <div class="full skills-section"><h3>Работы <small>(не более двух, уровни 1–10)</small></h3><div id="jobsList" class="skill-list"></div><button type="button" class="secondary-button" id="addJob">+ Добавить работу</button></div>
+              <div class="full skills-section"><h3>Мастерства <small>(любое количество из списка, уровни 1–10)</small></h3><div id="masteriesList" class="skill-list"></div><button type="button" class="secondary-button" id="addMastery">+ Добавить мастерство</button></div>
+              <label class="full">О персонаже <textarea name="about" rows="5" maxlength="3000" placeholder="Краткая история, занятия и интересы персонажа"></textarea></label>
+              <label class="full">Ссылка на изображение персонажа (HTTPS) <input name="character_photo_url" type="url" maxlength="1000" placeholder="https://..."></label>
+            </div>
+            <p class="form-hint">Пока изображение добавляется по прямой HTTPS-ссылке. Загрузку файла с компьютера подключим отдельно.</p>
+            <img id="characterPhotoPreview" class="profile-preview" alt="Изображение персонажа" hidden>
+            <div class="profile-actions"><button type="submit" class="primary-button" id="saveProfile">Сохранить анкету</button><span id="profileMessage" role="status" aria-live="polite"></span></div>
+          </form>
+        </section>
+        <section class="page" id="page-members">
+          <div class="page-title-block"><div class="eyebrow">Реестр братства</div><h1>Участники</h1><p>Лица, ремёсла и истории тех, кто состоит при братстве.</p></div>
+          <div class="members-tools panel">
+            <label for="memberSearch">Поиск по имени или ремеслу</label>
+            <input id="memberSearch" type="search" placeholder="Например, Милош или кузнец" autocomplete="off">
+            <span id="membersCount" aria-live="polite"></span>
+          </div>
+          <p id="membersMessage" class="members-message" role="status" aria-live="polite"></p>
+          <div id="membersGrid" class="members-grid"></div>
+          <article id="memberDetails" class="panel member-details" hidden>
+            <button type="button" class="secondary-button" id="closeMemberDetails">← Вернуться к реестру</button>
+            <div class="member-details-body" id="memberDetailsBody"></div>
+          </article>
+        </section>
+        <section class="page" id="page-crafts">
+          <div class="page-title-block"><div class="eyebrow">Ремесленная книга братства</div><h1>Справочник специалистов</h1><p>Работы и мастерства принятых членов братства. Выберите специализацию, чтобы увидеть мастеров и их уровни.</p></div>
+          <div class="craft-switch" role="group" aria-label="Раздел ремёсел"><button class="secondary-button craft-switch-active" id="craftShowDirectory" type="button">Специалисты</button><button class="secondary-button" id="craftShowCalculator" type="button">⚒ Калькулятор ремёсел</button></div>
+          <section id="craftCalculator" hidden>
+<div id="craftEmbedded" class="craft-embedded"><div id="craftLegacyData" hidden aria-hidden="true"><button id="dsave" type="button"></button><input id="dload" type="file"><span id="datanote"></span></div><header class="craft-compact"><div class="craft-compact-top"><span class="craft-compact-label">⚒ Счётная книга</span><div class="seg" id="secs" role="group" aria-label="Ремесло"></div><nav class="views" role="tablist" aria-label="Раздел книги"><button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button><button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button><button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button><button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button></nav></div><div class="toolrow" id="toolrow"><a class="craft-order-jump" href="#zakaz" aria-label="Перейти к заказу">Заказ ↓</a><input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета"><button type="button" id="craftFavoritesOnly" class="btn craft-fav-filter" aria-pressed="false">☆ Избранное</button><div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div><div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> ▾</button><div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div><div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> ▾</button><div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка"></div></div></div><button class="btn" id="fold" type="button" aria-expanded="true">Свернуть чертежи</button></div></header><div class="app">
   <div class="left" id="left">
     <section class="view" data-v="book" id="catbook">
       <div class="dtip" id="dtip" hidden></div>
@@ -78,8 +210,9 @@
     </section>
     <section class="view" data-v="calc" hidden>
     <section class="panel" id="raschet" aria-labelledby="rh">
-    <h2 id="rh">Расчёт сырья на заказ</h2>
+    <div class="craft-calc-heading"><h2 id="rh">Расчёт ресурсов</h2><span class="hint">Сначала — итог. Детали открываются по необходимости.</span></div><div class="craft-quick-summary" id="craftQuickSummary" aria-live="polite"><div class="craft-quick-top"><strong>Необходимые ресурсы</strong><button type="button" class="btn" id="craftQuickCopy">Копировать список</button></div><div id="craftQuickRows" class="craft-quick-rows"><span class="hint">Добавь изделия в заказ, чтобы увидеть материалы.</span></div><div class="hint">Итог по всем изделиям заказа с учётом сырья заказчика и личного склада.</div></div>
     <p class="sub" id="rempty">Отбери вещи в заказ, и здесь появится разбивка.</p>
+    <details class="craft-detail-group" id="craftDetailedBreakdown"><summary><span>Подробный расчёт сырья и заготовок</span><small>Пошаговая разбивка, стоимость и потребность в материалах</small></summary>
     <div class="bd" id="bd" hidden>
       <div style="min-width:0">
         <h3>1. Сырьё и заготовки по порядку</h3>
@@ -92,15 +225,18 @@
         <p class="hint">Всё сырьё из таблицы выше, сложенное по каждому ресурсу: и на заготовки, и прямо на вещи.</p>
       </div>
     </div>
-    <div class="obar" style="margin-top:14px"><button class="btn" id="odone" type="button" hidden>Заказ выполнен: списать с моего склада</button><button class="btn" id="oundo" type="button" hidden>Отменить выполнение</button><span class="hint" id="odonenote"></span></div>
+    </details>
+    <div class="craft-stock-source" role="group" aria-label="Источник ресурсов"><strong>Списывать ресурсы:</strong><label><input type="radio" name="craftStockSource" value="personal" checked> Личный склад</label><label><input type="radio" name="craftStockSource" value="guild"> Склад братства</label><button class="btn" type="button" id="craftGuildRefresh">↻ Остатки</button></div><p id="craftGuildStatus" class="hint" role="status"></p><div class="obar craft-calc-actions" style="margin-top:14px"><button class="btn" id="odone" type="button" hidden>Заказ выполнен: списать с моего склада</button><button class="btn" id="oundo" type="button" hidden>Отменить выполнение</button><span class="hint" id="odonenote"></span></div>
+    <details class="craft-detail-group" id="craftClientDetails"><summary><span>Сырьё от заказчика</span><small>Учесть материалы, предоставленные заказчиком</small></summary>
     <div class="cbox">
       <div class="row"><h3 style="margin:0">Сырьё от заказчика: <span id="cname"></span></h3><button class="btn" id="callc" type="button">Всё сырьё от заказчика</button><button class="btn" id="cclear" type="button">Очистить сырьё заказчика</button></div>
       <p class="hint" style="margin:4px 0 10px">Впиши, сколько он принёс. Засчитывается по твоим ценам сырья, всё, что он принёс, даже излишек. В дело его сырьё идёт первым, потом склад, остальное докупаешь. Показаны ресурсы, которые нужны на этот заказ.</p>
       <div class="client" id="client"></div>
       <p id="csum" style="margin:10px 0 0;font-size:14px"></p>
     </div>
-    <details style="margin-top:14px" open>
-      <summary>Мой склад (личный, для всех моих заказов)</summary>
+    </details>
+    <details class="craft-detail-group" id="craftGuildStock"><summary><span>Склад братства</span><small>Остатки из кладовой, только просмотр</small></summary><p class="hint">Выдача оформляется заявками. Администратор подтверждает каждую позицию в «Кладовой». Изменять остатки здесь нельзя.</p><div id="craftGuildStockRows" class="craft-guild-stock-list"></div></details><details class="craft-detail-group" id="craftPersonalStock">
+      <summary><span>Мой личный склад</span><small>Учесть имеющиеся ресурсы и заготовки</small></summary>
       <p class="hint">Показаны ресурсы и заготовки выбранного ремесла и всё, что нужно на текущий заказ. Впиши, что у тебя уже лежит. Готовые заготовки (сталь, железо, гарды…) уменьшают число крафтов, а сырьё — сколько докупать.</p>
       <div class="stock" id="stock"></div>
       <div class="obar" style="margin-top:10px"><label class="hint"><input type="checkbox" id="sall"> Показать все ресурсы</label><button class="btn" id="sclear" type="button">Очистить склад</button></div>
@@ -118,7 +254,6 @@
     
     
     
-    </section>
   </div>
   <aside class="right">
     <aside class="basket panel" id="zakaz" aria-labelledby="bh">
@@ -126,7 +261,7 @@
       <div class="prices pmk" id="pricesm"></div>
       <div class="obar"><label class="sr" for="osel">Выбрать заказ</label><select id="osel"></select><button class="btn" id="onew" type="button">+ Новый</button></div>
       <div id="tiles"></div><datalist id="varlist"></datalist>
-      <div class="sum" id="bsum"></div>
+      <details class="craft-item-prices" open><summary>Стоимость по изделиям <small>Без работы / с работой</small></summary><div class="craft-price-head"><span>Изделие</span><span>Мат. + верстак</span><span>С работой</span></div><div id="craftItemPriceRows"></div></details><div class="sum" id="bsum"></div>
       <details class="omore" id="omore"><summary>Детали: название, срок, оплата, подпись</summary>
       <div class="obar"><label class="sr" for="oname">Название заказа</label><input id="oname" type="text" maxlength="40" placeholder="Название, например: Ян, латы"></div>
       <div class="ostat">
@@ -144,18 +279,435 @@
       <button class="linkbtn" type="button" data-goview="calc">Подробный расчёт сырья →</button>
     </aside>
   </aside>
-</main>
+</div><div class="mbar"><div><span class="note">Заказ</span> <b class="num" id="mTot">0 гр.</b></div><a href="#zakaz">К заказу ↓</a></div></div>
+          </section>
+          <div id="craftDirectoryArea">          <div class="panel directory-controls">
+            <div class="directory-tabs"><button type="button" id="directoryJobs" class="secondary-button">Работы</button><button type="button" id="directoryMasteries" class="secondary-button">Мастерства</button></div>
+            <label for="directorySearch">Поиск специализации или участника</label><input id="directorySearch" type="search" placeholder="Название или имя персонажа">
+            <label for="directoryLevel">Минимальный уровень: <strong id="directoryLevelValue">1</strong>/10</label><input id="directoryLevel" type="range" min="1" max="10" value="1">
+            <label for="directorySort">Сортировка специалистов</label><select id="directorySort"><option value="desc">Высший уровень сначала</option><option value="asc">Низший уровень сначала</option></select>
+            <button type="button" class="secondary-button" id="directoryBack" hidden>← Все специализации</button>
+          </div>
+          <p id="directoryMessage" class="members-message" role="status"></p><div id="directoryGrid" class="directory-grid"></div>
+          <article id="directoryDetails" class="panel member-details" hidden><button type="button" class="secondary-button" id="directoryCloseMember">← Вернуться к специалистам</button><div id="directoryDetailsBody" class="member-details-body"></div></article>
+          </div>
+        </section>
+        <section class="page" id="page-treasury">
+          <div class="page-title-block"><div class="eyebrow">Счётная книга братства</div><h1>Казна</h1><p>Общий баланс, взносы, расходы и журнал подтверждённых операций.</p></div>
+          <div class="treasury-stats"><article class="panel"><small>Баланс казны</small><h2 id="treasuryBalance">—</h2><small>грошей</small></article><article class="panel"><small>Всего поступило</small><h2 id="treasuryIncome">—</h2></article><article class="panel"><small>Всего потрачено</small><h2 id="treasuryExpenses">—</h2></article></div>
+          <p id="treasuryNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div class="treasury-forms">
+            <form id="treasuryRequestForm" class="panel treasury-form"><h2>Подать заявку на взнос</h2><p>Заявка не изменит баланс, пока администратор не подтвердит передачу грошей в игре.</p><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Кому и когда переданы гроши"></textarea></label><button type="submit" class="secondary-button">Отправить заявку</button></form>
+            <form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
+          </div>
+          <article class="panel treasury-section" id="treasuryOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2><button type="button" class="secondary-button" id="treasuryRefresh">Обновить казну</button></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
+          <article class="panel treasury-section"><h2>Журнал операций</h2><div id="treasuryHistory" class="treasury-list"></div></article>
+        </section>
+        <section class="page" id="page-storehouse">
+          <div class="page-title-block"><div class="eyebrow">Амбарная книга братства</div><h1>Кладовая</h1><p>Ресурсы, запасы, передача имущества и записи кладовщика.</p></div>
+          <div class="store-stats">
+            <article class="panel"><small>Наименований в каталоге</small><h2 id="storeItemCount">—</h2></article>
+            <article class="panel"><small>Видов ресурсов в наличии</small><h2 id="storeInStock">—</h2></article>
+            <article class="panel"><small>Заявок на рассмотрении</small><h2 id="storePendingCount">—</h2></article>
+          </div>
+          <p id="storeNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div class="store-tabs" role="tablist" aria-label="Раздел кладовой"><button type="button" id="storeTabMaterials" class="store-tab active" role="tab" aria-selected="true">Материалы</button><button type="button" id="storeTabProducts" class="store-tab" role="tab" aria-selected="false">Готовая продукция</button></div>
+          <div class="store-actions" role="group" aria-label="Действия кладовой">
+            <button type="button" class="secondary-button" data-store-panel="storeRequestForm" aria-expanded="false">Подать заявку</button>
+            <button type="button" class="secondary-button" data-store-panel="storeManualForm" data-store-admin hidden aria-expanded="false">Операция кладовщика</button>
+            <button type="button" class="secondary-button" data-store-panel="storeAddForm" data-store-admin hidden aria-expanded="false">Добавить предмет</button>
+            <button type="button" class="secondary-button" data-store-panel="storeOwnRequestsPanel" aria-expanded="false">Мои заявки</button>
+            <button type="button" class="secondary-button" data-store-panel="storeAdminRequests" data-store-admin hidden aria-expanded="false">На рассмотрении</button>
+            <button type="button" class="secondary-button" data-store-panel="storeHistoryPanel" aria-expanded="false">История движения</button>
+          </div>
+          <div class="panel store-toolbar">
+            <label>Поиск предмета<input type="search" id="storeSearch" placeholder="Например: железная руда"></label>
+            <label>Категория<select id="storeCategory"><option value="">Все категории</option></select></label>
+            <label class="store-check"><input type="checkbox" id="storeOnlyAvailable"> Только в наличии</label>
+            <button type="button" class="secondary-button" id="storeRefresh">Обновить</button>
+          </div>
+          <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div></article>
+          <div class="treasury-forms">
+            <form id="storeRequestForm" class="panel treasury-form" hidden><h2>Заявка на ресурсы</h2><p>Передача или выдача учитывается после подтверждения администрации.</p>
+              <div class="store-cascade">
+                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
+                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
+                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
+              </div>
+              <label>Действие<select name="type"><option value="deposit">Передать в кладовую</option><option value="withdraw">Получить из кладовой</option></select></label>
+              <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
+              <label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Для чего нужны ресурсы или откуда они"></textarea></label>
+              <button type="submit" class="secondary-button">Отправить заявку</button>
+            </form>
+            <form id="storeManualForm" class="panel treasury-form" hidden><h2>Операция кладовщика</h2>
+              <div class="store-cascade">
+                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
+                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
+                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
+              </div>
+              <label>Действие<select name="type"><option value="deposit">Приход</option><option value="withdraw">Расход</option></select></label>
+              <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
+              <label>Участник (необязательно)<select name="member"><option value="">Общая операция</option></select></label>
+              <label>Основание<input name="description" minlength="3" maxlength="500" required placeholder="Например: выдача кузнецу"></label>
+              <button type="submit" class="secondary-button">Записать операцию</button>
+            </form>
+          </div>
+          <form id="storeAddForm" class="panel treasury-form store-add" hidden><h2>Добавить предмет в каталог</h2>
+            <div class="store-add-fields"><label>Название<input name="name" minlength="2" maxlength="150" required></label>
+              <label>Раздел<select name="section" id="storeNewSection"><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label><label>Категория<input name="category" maxlength="100" list="storeCategoryOptions" required></label>
+              <label>Единица измерения<input name="unit" value="шт." maxlength="30" required></label></div>
+            <datalist id="storeCategoryOptions"></datalist>
+            <label>Описание (необязательно)<textarea name="description" maxlength="1000" rows="2"></textarea></label>
+            <button type="submit" class="secondary-button">Добавить предмет</button>
+          </form>
+          <article class="panel treasury-section" id="storeOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="storeOwnRequests" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="storeAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="storePendingList" class="treasury-list"></div></article>
+          <article class="panel treasury-section" id="storeHistoryPanel" hidden><h2>Журнал движения ресурсов</h2><div id="storeHistory" class="treasury-list"></div><p id="storeHistoryHint" class="store-muted"></p></article>
+        </section>
+        <section class="page" id="page-info">
+          <div class="page-title-block"><div class="eyebrow">Книги и указы</div><h1>Библиотека братства</h1><p>Устав, правила, объявления и руководства.</p></div>
+          <div id="libraryCategories" class="library-category-grid" aria-label="Разделы библиотеки">
+            <button type="button" class="library-category-tile" data-library-category="charter"><span class="library-tile-icon">📜</span><strong>Устав братства</strong><small>Основы и традиции нашего братства</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="rules"><span class="library-tile-icon">⚖️</span><strong>Законы и правила</strong><small>Порядок, права и обязанности</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="announcements"><span class="library-tile-icon">📯</span><strong>Объявления</strong><small>Вести и указы братства</small><span class="library-tile-action">Открыть свитки ›</span></button>
+            <button type="button" class="library-category-tile" data-library-category="guides"><span class="library-tile-icon">📖</span><strong>Руководства</strong><small>Ремёсла, знания и наставления</small><span class="library-tile-action">Открыть свитки ›</span></button>
+          </div>
+          <div id="librarySection" hidden>
+            <div class="library-section-top"><button type="button" class="secondary-button" id="libraryBackButton">← К разделам</button><h2 id="librarySectionTitle"></h2><button type="button" class="secondary-button" id="libraryCreateButton" hidden>+ Создать документ</button><button type="button" class="secondary-button" id="libraryRefreshButton">Обновить</button></div>
+            <p id="libraryNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="libraryBoard">
+              <div class="panel library-toolbar"><label>Поиск в разделе<input id="librarySearch" type="search" placeholder="Название или текст документа"></label></div>
+              <div id="libraryList" class="library-news-feed"></div>
+            </div>
+          </div>
+          <article class="panel treasury-section" id="libraryReader" hidden>
+            <div class="treasury-heading"><h2 id="libraryReaderTitle"></h2><span id="libraryReaderCategory" class="treasury-status"></span></div>
+            <p id="libraryReaderMeta" class="store-muted"></p>
+            <div id="libraryReaderBody" class="library-body"></div>
+            <div id="libraryReaderActions" class="treasury-actions"></div>
+          </article>
+          <form id="libraryEditor" class="panel treasury-form" hidden>
+            <h2 id="libraryEditorHeading">Новый документ</h2>
+            <label>Название<input name="title" required minlength="3" maxlength="160"></label>
+            <label hidden>Категория<select name="category" required><option value="charter">Устав братства</option><option value="rules">Законы и правила</option><option value="announcements">Объявления</option><option value="guides">Руководства</option></select></label>
+            <label>Краткое содержание (для ленты)<textarea name="summary" maxlength="600" rows="3" placeholder="Короткая аннотация статьи"></textarea></label>
+            <label>Ссылка на обложку статьи<input type="url" name="cover_image_url" maxlength="2000" placeholder="https://example.com/cover.jpg"></label>
+            <label>Содержание<textarea name="body" required maxlength="30000" rows="13" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
+            <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
+            <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются по прямым HTTPS-ссылкам.</p>
+            <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
+          </form>
+        </section>
+        <section class="page" id="page-ratusha">
+          <div class="page-title-block"><div class="eyebrow">Vox Fraternitatis · Глас братства</div><h1>Ратуша братства</h1><p>Совет, выборы и решения. Один участник — один голос.</p></div>
+          <div id="hallHub" class="hall-hub">
+            <button type="button" id="hallToPolls" class="hall-tile"><span class="hall-tile-icon">⚖</span><strong>Голосования</strong><small>Глас братства и решения совета</small></button>
+            <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы и распоряжения</strong><small>Официальные грамоты и решения</small></button>
+            <button type="button" id="hallToPetitions" class="hall-tile"><span class="hall-tile-icon">✉</span><strong>Прошения</strong><small>Личные обращения к руководству</small></button>
+            <button type="button" id="hallToCouncil" class="hall-tile"><span class="hall-tile-icon">♛</span><strong>Совет братства</strong><small>Древо гильдии и анкеты персонажей</small></button>
+            <button type="button" id="hallToAwards" class="hall-tile"><span class="hall-tile-icon">🏅</span><strong>Зал славы</strong><small>Награды, грамоты и заслуги братства</small></button>
+          </div>
+          <div id="hallPollSection" hidden>
+            <button type="button" class="secondary-button hall-home-button" data-hall-home>← К ратуше</button>
+          <div class="ratusha-actions">
+            <button type="button" class="secondary-button" id="pollCreateButton" hidden>⚜ Созвать голосование</button>
+            <button type="button" class="secondary-button" id="pollBackButton" hidden>← К голосованиям</button>
+            <button type="button" class="secondary-button" id="pollRefreshButton">Обновить</button>
+          </div>
+          <p class="members-message" id="pollNotice" role="status" aria-live="polite"></p>
+          <div id="pollBoard">
+            <div class="ratusha-intro">✥ &nbsp; Решения, принятые общим гласом &nbsp; ✥</div>
+            <div class="ratusha-filters" role="group" aria-label="Фильтр голосований">
+              <button type="button" class="secondary-button" data-poll-filter="active">Действующие</button>
+              <button type="button" class="secondary-button" data-poll-filter="closed">Завершённые</button>
+              <button type="button" class="secondary-button" data-poll-filter="all">Все</button>
+            </div>
+            <div id="pollList" class="ratusha-list"></div>
+          </div>
+          <article id="pollReader" class="panel ratusha-reader" hidden>
+            <div id="pollReaderType" class="ratusha-kicker"></div><h2 id="pollReaderTitle"></h2>
+            <p id="pollReaderDescription" class="ratusha-description"></p><p id="pollReaderMeta" class="store-muted"></p>
+            <form id="pollVoteForm"><div id="pollOptions" class="ratusha-options"></div><button type="submit" class="secondary-button" id="pollVoteButton">Отдать голос</button></form>
+            <div id="pollResults" class="ratusha-results"></div><div id="pollReaderActions" class="treasury-actions"></div>
+          </article>
+          <form id="pollEditor" class="panel treasury-form" hidden>
+            <h2>Созвать голосование</h2>
+            <label>Название<input name="title" required minlength="5" maxlength="180" placeholder="Кого избрать старостой братства?"></label>
+            <label>Описание и условия<textarea name="description" rows="4" maxlength="5000" placeholder="Объясните, какое решение предстоит принять"></textarea></label>
+            <div class="ratusha-form-grid"><label>Тип голосования<select name="visibility" required><option value="public">Открытое — видно, кто за кого голосовал</option><option value="secret">Тайное — видны только итоги</option></select></label><label>Завершение голосования<input name="closes_at" type="datetime-local" required></label></div>
+            <div class="treasury-heading"><h3>Варианты ответа</h3><button type="button" class="secondary-button" id="pollAddOption">+ Добавить вариант</button></div>
+            <div id="pollEditorOptions" class="ratusha-editor-options"></div>
+            <p class="store-muted">От 2 до 12 вариантов. После публикации изменить варианты нельзя. Отменить голосование сможет администрация.</p>
+            <div class="treasury-actions"><button type="submit" class="secondary-button" id="pollSaveButton">Опубликовать голосование</button><button type="button" class="secondary-button" id="pollCancelEditor">Отмена</button></div>
+          </form>
+          </div>
+          <div id="hallDecreeSection" hidden>
+            <div class="ratusha-actions">
+              <button type="button" class="secondary-button" data-hall-home>← К ратуше</button>
+              <button type="button" class="secondary-button" id="decreeCreate" hidden>✒ Издать указ</button>
+              <button type="button" class="secondary-button" id="decreeOfficers" hidden>⚜ Назначить руководителей</button>
+              <button type="button" class="secondary-button" id="decreeBack" hidden>← К реестру</button>
+              <button type="button" class="secondary-button" id="decreeRefresh">Обновить</button>
+            </div>
+            <p id="decreeNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="decreeBoard">
+              <div class="ratusha-intro">✥ &nbsp; Реестр указов и распоряжений &nbsp; ✥</div>
+              <div class="ratusha-filters" role="group" aria-label="Статус указов">
+                <button type="button" class="secondary-button" data-decree-filter="active">Действующие</button>
+                <button type="button" class="secondary-button" data-decree-filter="repealed">Отменённые</button>
+                <button type="button" class="secondary-button" data-decree-filter="all">Все</button>
+              </div>
+              <div id="decreeList" class="decree-list"></div>
+            </div>
+            <article id="decreeReader" class="panel decree-reader" hidden>
+              <p id="decreeReaderKicker" class="ratusha-kicker"></p>
+              <h2 id="decreeReaderTitle"></h2>
+              <p id="decreeReaderMeta" class="store-muted"></p>
+              <div id="decreeReaderBody" class="decree-text"></div>
+              <div id="decreeReaderStatus"></div>
+              <div id="decreeReaderActions" class="treasury-actions"></div>
+            </article>
+            <form id="decreeEditor" class="panel treasury-form" hidden>
+              <h2 id="decreeEditorTitle">Издать указ</h2>
+              <div class="ratusha-form-grid">
+                <label>Вид документа<select name="kind" required><option value="decree">Указ</option><option value="order">Распоряжение</option><option value="resolution">Постановление совета</option></select></label>
+                <label>Игровой год<input name="decree_year" type="number" min="1300" max="2200" value="1403" required></label>
+              </div>
+              <label>Дата издания (игровая)<input name="issued_on" type="date" required></label>
+              <label>Заголовок<input name="title" minlength="3" maxlength="180" required placeholder="О порядке деятельности ремесленников"></label>
+              <label>Текст указа<textarea name="body" rows="14" maxlength="30000" required placeholder="Во исполнение решений совета постановляется…"></textarea></label>
+              <p class="store-muted">Номер присваивается автоматически. Подписантом будет ваш персонаж.</p>
+              <div class="treasury-actions"><button type="submit" class="secondary-button" id="decreeSave">Опубликовать</button><button type="button" class="secondary-button" id="decreeCancel">Отмена</button></div>
+            </form>
+            <div id="decreeOfficersPanel" class="panel" hidden>
+              <h2>Полномочия руководителей</h2>
+              <p class="store-muted">Назначенные участники могут издавать указы, изменять и отменять собственные документы. Назначение доступно только администраторам сайта.</p>
+              <div id="decreeOfficersList" class="decree-officer-list"></div>
+            </div>
+          </div>
+          <div id="hallAwardsSection" hidden>
+            <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="awardRefresh">Обновить</button><button type="button" class="secondary-button" id="awardNewType" hidden>⚜ Создать награду</button><button type="button" class="secondary-button" id="awardNewGrant" hidden>🏅 Наградить участника</button></div>
+            <p class="members-message" id="awardNotice" role="status" aria-live="polite"></p>
+            <div id="awardBoard"><div class="award-banner"><span>✥ HONOR ET FIDES ✥</span><h2>Зал славы братства</h2><p>Память о заслугах, доблести и верной службе</p></div><div class="award-tabs"><button type="button" class="secondary-button" id="awardTabPeople">Награждённые</button><button type="button" class="secondary-button" id="awardTabCatalog">Каталог наград</button><button type="button" class="secondary-button" id="awardTabHistory">Летопись награждений</button></div><div id="awardContent" class="award-content"></div></div>
+            <form id="awardTypeForm" class="panel award-form" hidden><h2 id="awardTypeTitle">Создание награды</h2><label>Название<input name="name" required minlength="3" maxlength="120"></label><label>Категория<select name="category"><option value="order">Орден</option><option value="medal">Медаль</option><option value="certificate">Почётная грамота</option><option value="honorary">Почётный знак</option><option value="other">Другая награда</option></select></label><label>Описание<textarea name="description" maxlength="1500" rows="4"></textarea></label><label>Изображение награды (прямая HTTPS-ссылка)<input name="image_url" type="url" maxlength="2000" placeholder="https://..."></label><label class="award-check"><input name="is_active" type="checkbox" checked> Доступна для награждения</label><div class="treasury-actions"><button type="submit" class="secondary-button">Сохранить награду</button><button type="button" class="secondary-button" id="awardTypeCancel">Отмена</button></div></form>
+            <form id="awardGrantForm" class="panel award-form" hidden><h2>Награждение персонажа</h2><label>Награда<select name="award_type_id" required></select></label><label>Участник<select name="recipient_id" required></select></label><label>Дата вручения<input name="awarded_on" type="date" required></label><label>Основание награждения<textarea name="reason" required minlength="3" maxlength="3000" rows="5" placeholder="За преданную службу и усердный труд…"></textarea></label><div class="treasury-actions"><button type="submit" class="secondary-button">Вручить награду</button><button type="button" class="secondary-button" id="awardGrantCancel">Отмена</button></div></form>
+          </div>
+          <div id="hallCouncilSection" hidden>
+            <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="councilRefresh">Обновить древо</button><button type="button" class="secondary-button" id="councilDescriptionsButton" hidden>✒ Описания рангов</button></div>
+            <p class="members-message" id="councilNotice" role="status" aria-live="polite"></p>
+            <div id="councilTreePanel">
+              <div class="council-banner"><span>⚜ ANNO DOMINI MCDIII ⚜</span><h2>Древо Братства Святого Иосифа Обручника</h2><p>Один брат — один ранг. Портрет открывает анкету персонажа.</p></div>
+              <div class="council-scroll"><div id="councilTree" class="council-tree"></div></div>
+            </div>
+            <article id="councilProfile" class="panel council-profile" hidden><button type="button" id="councilProfileBack" class="secondary-button">← К древу</button><div id="councilProfileBody"></div></article>
+            <div id="councilDescriptions" class="panel council-description-editor" hidden><div class="treasury-heading"><h2>Описания рангов</h2><button type="button" id="councilDescriptionsBack" class="secondary-button">← К древу</button></div><p class="store-muted">Описания видны всем членам братства. Изменять их могут только администраторы.</p><div id="councilDescriptionForms"></div></div>
+          </div>
+          <div id="hallPetitionSection" hidden>
+            <div class="ratusha-actions">
+              <button type="button" class="secondary-button" data-hall-home>← К ратуше</button>
+              <button type="button" class="secondary-button" id="petitionCreate">✒ Подать прошение</button>
+              <button type="button" class="secondary-button" id="petitionBack" hidden>← К прошениям</button>
+              <button type="button" class="secondary-button" id="petitionRefresh">Обновить</button>
+            </div>
+            <p id="petitionNotice" class="members-message" role="status" aria-live="polite"></p>
+            <div id="petitionBoard">
+              <div class="ratusha-intro">✥ &nbsp; Личные прошения и обращения &nbsp; ✥</div>
+              <p class="store-muted">Ваши обращения видны только вам и уполномоченному руководству братства.</p>
+              <div class="ratusha-filters" role="group" aria-label="Реестр прошений">
+                <button type="button" class="secondary-button" id="petitionMine">Мои прошения</button>
+                <button type="button" class="secondary-button" id="petitionLeadership" hidden>На рассмотрении руководства</button>
+              </div>
+              <div id="petitionList" class="decree-list"></div>
+            </div>
+            <article id="petitionReader" class="panel decree-reader" hidden>
+              <p id="petitionReaderKicker" class="ratusha-kicker"></p>
+              <h2 id="petitionReaderTitle"></h2>
+              <p id="petitionReaderMeta" class="store-muted"></p>
+              <div id="petitionReaderBody" class="decree-text"></div>
+              <div id="petitionReaderResponse"></div>
+              <div id="petitionReaderActions" class="treasury-actions"></div>
+              <form id="petitionResolution" class="treasury-form" hidden>
+                <h3>Официальное решение</h3>
+                <label>Решение<select name="status" required><option value="approved">Одобрить</option><option value="rejected">Отклонить</option></select></label>
+                <label>Ответ руководства<textarea name="response" required minlength="3" maxlength="10000" rows="6" placeholder="Официальный ответ на прошение"></textarea></label>
+                <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionResolveSave">Вынести решение</button><button type="button" class="secondary-button" id="petitionResolveCancel">Отмена</button></div>
+              </form>
+            </article>
+            <form id="petitionEditor" class="panel treasury-form" hidden>
+              <h2>Подать прошение</h2>
+              <label>Вид обращения<select name="category" required>
+                <option value="request">Просьба</option><option value="complaint">Жалоба</option>
+                <option value="suggestion">Предложение</option><option value="resources">Запрос ресурсов</option>
+                <option value="other">Другое</option>
+              </select></label>
+              <label>Заголовок<input name="title" required minlength="3" maxlength="180" placeholder="Прошение к совету братства"></label>
+              <label>Текст прошения<textarea name="body" required minlength="5" maxlength="10000" rows="11" placeholder="Изложите суть вашего обращения..."></textarea></label>
+              <p class="store-muted">После подачи обращение сохраняется в личном архиве. Изменить текст поданного прошения нельзя.</p>
+              <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionSubmit">Отправить прошение</button><button type="button" class="secondary-button" id="petitionCancel">Отмена</button></div>
+            </form>
+          </div>
+        </section>
+        <section class="page" id="page-chronicle">
+          <div class="page-title-block"><div class="eyebrow">Anno Domini · Память поколений</div><h1>Летопись братства</h1><p>События, деяния и судьбы, навеки вписанные в историю нашего братства.</p></div>
+          <div class="chron-actions"><button type="button" class="secondary-button" id="chronCreate" hidden>✦ Внести событие в летопись</button><button type="button" class="secondary-button" id="chronBack" hidden>← К летописи</button><button type="button" class="secondary-button" id="chronRefresh">Обновить</button></div>
+          <p id="chronNotice" class="members-message" role="status" aria-live="polite"></p>
+          <div id="chronTimelineView"><div class="chron-intro">✥ &nbsp; Хроника славных и памятных деяний &nbsp; ✥</div><div id="chronTimeline" class="chron-timeline"></div></div>
+          <article id="chronReader" class="panel chron-reader" hidden><p id="chronReaderDate" class="chron-date"></p><h2 id="chronReaderTitle"></h2><img id="chronReaderImage" class="chron-hero" alt="Иллюстрация летописи" hidden><p id="chronReaderSummary" class="chron-lead"></p><div id="chronReaderBody" class="library-body"></div><div id="chronReaderActions" class="treasury-actions"></div></article>
+          <form id="chronEditor" class="panel treasury-form" hidden><h2 id="chronEditorTitle">Новое событие</h2><label>Название события<input name="title" required minlength="3" maxlength="160" placeholder="Основание братства"></label><label>Дата в истории братства<input name="event_date" type="date" required></label><label>Краткое описание<textarea name="summary" rows="3" maxlength="600" placeholder="Краткая запись для временной линии"></textarea></label><label>Полная история<textarea name="body" rows="12" required maxlength="30000" placeholder="Расскажите о памятном событии..."></textarea></label><label>Ссылка на иллюстрацию (HTTPS)<input name="image_url" type="url" maxlength="2000" placeholder="https://example.com/illustration.jpg"></label><p class="store-muted">Изображения внутри текста: ![Описание](https://example.com/image.jpg). Заголовки: #, жирный текст: **слово**.</p><div class="treasury-actions"><button type="submit" class="secondary-button" id="chronSave">Сохранить запись</button><button type="button" class="secondary-button" id="chronCancel">Отмена</button></div></form>
+        </section>
+        <section class="page" id="page-calendar">
+          <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
+          <div class="store-actions" role="group" aria-label="Календарь и мероприятия">
+            <button type="button" class="secondary-button" data-calendar-panel="calendarCreatePanel" id="calendarCreateButton" hidden>+ Создать мероприятие</button>
+            <button type="button" class="secondary-button" data-calendar-panel="calendarListPanel">Список событий</button>
+            <button type="button" class="secondary-button" data-calendar-panel="calendarMyPanel">Мои записи</button>
+            <button type="button" class="secondary-button" id="calendarRefresh">Обновить</button>
+          </div>
+          <p class="members-message" id="calendarNotice" role="status" aria-live="polite"></p>
+          <form id="calendarCreatePanel" class="panel treasury-form calendar-panel" hidden>
+            <h2 id="calendarFormHeading">Новое мероприятие</h2>
+            <label>Название<input name="title" required minlength="3" maxlength="150" placeholder="Собрание братства"></label>
+            <label>Категория<select name="category"><option value="meeting">Собрание</option><option value="work">Совместная работа</option><option value="expedition">Поход</option><option value="fair">Ярмарка</option><option value="holiday">Праздник</option><option value="other">Другое</option></select></label>
+            <label>Место<input name="location" maxlength="200" placeholder="Сухдол"></label>
+            <div class="calendar-date-fields"><label>Начало<input name="starts_at" type="datetime-local" required></label><label>Окончание (необязательно)<input name="ends_at" type="datetime-local"></label></div>
+            <label>Описание<textarea name="description" rows="3" maxlength="5000"></textarea></label>
+            <div class="treasury-actions"><button type="submit" class="secondary-button" id="calendarSave">Создать</button><button type="button" class="secondary-button" id="calendarCancelEdit">Отмена</button></div>
+          </form>
+          <article id="calendarListPanel" class="panel calendar-panel" hidden><h2>Ближайшие мероприятия</h2><div id="calendarList" class="work-list"></div></article>
+          <article id="calendarMyPanel" class="panel calendar-panel" hidden><h2>Мои записи</h2><div id="calendarMyList" class="work-list"></div></article>
+          <article id="calendarBoardPanel" class="panel treasury-section">
+            <div class="calendar-month-nav"><button type="button" class="secondary-button" id="calendarPrev" aria-label="Предыдущий месяц">←</button><h2 id="calendarMonthTitle"></h2><button type="button" class="secondary-button" id="calendarNext" aria-label="Следующий месяц">→</button></div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <h3 id="calendarDayHeading">События выбранного дня</h3><div id="calendarDayEvents" class="work-list"></div>
+          </article>
+        </section>
+        <section class="page" id="page-market">
+          <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
+          <div class="store-actions" role="group" aria-label="Разделы рынка">
+            <button type="button" class="secondary-button" data-market-panel="marketCreatePanel" aria-expanded="false">Подать объявление</button>
+            <button type="button" class="secondary-button" data-market-panel="marketMinePanel" aria-expanded="false">Мои объявления</button>
+            <button type="button" class="secondary-button" data-market-panel="marketArchivePanel" aria-expanded="false">История сделок</button>
+            <button type="button" class="secondary-button" id="marketRefresh">Обновить</button>
+          </div>
+          <p id="marketNotice" class="members-message" role="status" aria-live="polite">Загружаем объявления…</p>
+          <form id="marketCreatePanel" class="panel treasury-form market-panel" hidden>
+            <h2 id="marketFormTitle">Новое объявление</h2>
+            <div class="work-form-grid">
+              <label>Тип объявления<select name="ad_type" required><option value="sell">Продам</option><option value="buy">Куплю</option></select></label>
+              <label>Заголовок<input name="title" minlength="3" maxlength="140" required placeholder="Например: Куплю руду и древесину"></label>
+            </div>
+            <label>Описание<textarea name="description" maxlength="3000" rows="3" placeholder="Условия торговли и подробности"></textarea></label>
+            <div class="treasury-heading"><h3>Товары в объявлении</h3><button type="button" class="secondary-button" id="marketAddItem">+ Добавить позицию</button></div>
+            <p class="store-muted">Выбери раздел, категорию и товар из каталога кладовой. Цена указывается за единицу каждого товара.</p>
+            <div id="marketItemRows" class="market-item-rows"></div>
+            <label>Как связаться (необязательно)<input name="contact" maxlength="200" placeholder="Discord или имя персонажа"></label>
+            <div class="treasury-actions"><button type="submit" class="secondary-button" id="marketSubmit">Опубликовать объявление</button><button type="button" class="secondary-button" id="marketCancelEdit">Отмена</button></div>
+          </form>
+          <article class="panel treasury-section market-panel" id="marketMinePanel" hidden><h2>Мои объявления</h2><div id="marketMineList" class="work-list"></div></article>
+          <article class="panel treasury-section market-panel" id="marketArchivePanel" hidden><h2>История завершённых сделок</h2><div id="marketArchiveList" class="work-list"></div></article>
+          <article class="panel treasury-section" id="marketBoardPanel">
+            <div class="treasury-heading"><h2>Все объявления</h2><span id="marketCount" class="store-muted"></span></div>
+            <div class="market-filters">
+              <label>Тип<select id="marketFilterType"><option value="all">Все</option><option value="sell">Продам</option><option value="buy">Куплю</option></select></label>
+              <label>Категория<select id="marketFilterCategory"><option value="all">Все категории</option></select></label>
+              <label>Поиск<input id="marketSearch" type="search" placeholder="Название или описание"></label>
+            </div>
+            <div id="marketAdList" class="work-list"></div>
+          </article>
+        </section>
+        <section class="page" id="page-work">
+          <div class="page-title-block"><div class="eyebrow">Дела братства</div><h1>Работа и поручения</h1><p>Общая доска, личные задания и отчёты о выполнении.</p></div>
+          <div class="store-tabs" role="tablist" aria-label="Виды поручений">
+            <button type="button" class="store-tab active" id="workTabPublic" aria-selected="true">Общие поручения</button>
+            <button type="button" class="store-tab" id="workTabPersonal" aria-selected="false">Личные поручения</button>
+          </div>
+          <div class="store-actions" role="group" aria-label="Действия с поручениями">
+            <button type="button" class="secondary-button" data-work-panel="workCreatePanel" data-work-admin hidden aria-expanded="false">Создать поручение</button>
+            <button type="button" class="secondary-button" data-work-panel="workMinePanel" aria-expanded="false">Мои задания</button>
+            <button type="button" class="secondary-button" data-work-panel="workReportsPanel" data-work-admin hidden aria-expanded="false">Проверка отчётов</button>
+            <button type="button" class="secondary-button" data-work-panel="workArchivePanel" aria-expanded="false">Архив работ</button>
+            <button type="button" class="secondary-button" id="workRefresh">Обновить</button>
+          </div>
+          <p id="workNotice" class="members-message" role="status" aria-live="polite">Загружаем поручения…</p>
+          <form id="workCreatePanel" class="panel treasury-form work-panel" hidden>
+            <h2>Новое поручение</h2>
+            <label>Название<input name="title" minlength="3" maxlength="150" required placeholder="Например: добыть 200 железной руды"></label>
+            <label>Описание<textarea name="description" maxlength="5000" rows="4" placeholder="Что нужно сделать"></textarea></label>
+            <div class="work-form-grid">
+              <label>Категория<select name="category"><option>Добыча ресурсов</option><option>Лесозаготовка</option><option>Охота</option><option>Доставка</option><option>Ремесло</option><option>Торговля</option><option>Охрана</option><option>Прочее</option></select></label>
+              <label>Тип поручения<select name="task_type" id="workCreateType"><option value="public">Общее</option><option value="personal">Личное</option></select></label>
+              <label id="workAssigneeLabel" hidden>Исполнитель<select name="assigned_to" id="workAssignee"><option value="">Выберите участника</option></select></label>
+              <label>Награда, грошей<input name="reward_amount" type="number" min="0" step="1" value="0" required></label>
+              <label>Срок (необязательно)<input name="deadline" type="datetime-local"></label>
+            </div>
+            <p class="store-muted">Награда информационная: гроши из казны автоматически не списываются.</p>
+            <button type="submit" class="secondary-button">Опубликовать поручение</button>
+          </form>
+          <article class="panel treasury-section work-panel" id="workMinePanel" hidden><h2>Мои задания</h2><div id="workMineList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workReportsPanel" hidden><h2>Отчёты на проверке</h2><div id="workReportsList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workArchivePanel" hidden><h2>Архив поручений</h2><div id="workArchiveList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workReportPanel" hidden><h2 id="workReportTitle">Отчёт о выполнении</h2>
+            <form id="workReportForm" class="treasury-form"><input type="hidden" name="task_id"><label>Результат работы<textarea name="report_text" minlength="3" maxlength="3000" rows="5" required placeholder="Что выполнено, где переданы ресурсы, подробности"></textarea></label><button type="submit" class="secondary-button">Отправить отчёт</button></form>
+          </article>
+          <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div id="workTaskList" class="work-list"></div></article>
+        </section>
+        <section class="page" id="page-management">
+          <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
+          <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>
+          <div id="adminPanel" hidden>
+            <div class="members-tools panel"><label for="adminFilter">Показать</label>
+              <select id="adminFilter"><option value="all">Всех зарегистрированных</option><option value="pending">Ожидающих решения</option><option value="approved">Принятых</option><option value="rejected">Отклонённых</option></select>
+              <button id="adminRefresh" type="button" class="secondary-button">Обновить список</button>
+              <span id="adminCount" aria-live="polite"></span>
+            </div>
+            <div id="adminList" class="admin-list"></div>
+          </div>
+        </section>
+        <section class="page" id="page-map">
+          <div class="page-title-block"><div class="eyebrow">Tabula Bohemiae · Картографическая палата</div><h1>Карта братства</h1><p>Метки, торговые пути и маршруты. Все утверждённые участники могут создавать записи.</p></div>
+          <div class="panel map-panel">
+            <div class="map-toolbar">
+              <label>Земли <select id="guildMapRegion"><option value="kuttenberg">Куттенберг</option><option value="trosky">Троски</option></select></label>
+              <label>Режим <select id="guildMapMode"><option value="view">Просмотр</option><option value="marker">Поставить метку</option><option value="route">Нарисовать маршрут</option></select></label>
+              <button type="button" class="secondary-button" id="guildMapRefresh">Обновить</button>
+              <button type="button" class="secondary-button" id="guildMapZoomIn">＋</button><button type="button" class="secondary-button" id="guildMapZoomOut">−</button>
+              <button type="button" class="secondary-button" id="guildMapZoomReset">Сброс масштаба</button>
+            </div>
+            <p class="members-message" id="guildMapStatus">Загрузка карты…</p>
+            <div class="map-layout"><div class="map-viewport" id="guildMapViewport"><div class="map-stage" id="guildMapStage"><div class="map-paper"><div class="map-paper-title">TABULA BOHEMIAE</div><div class="map-paper-sub">Для точной привязки меток добавьте разрешённое изображение карты в файл <code>map-kuttenberg.jpg</code> или <code>map-trosky.jpg</code>.</div></div><svg id="guildMapSvg" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-label="Метки и маршруты"></svg></div></div>
+            <aside class="map-side"><div class="map-filter"><h3>Слои карты</h3><label><input type="checkbox" id="guildMapShowMarkers" checked> Метки</label><label><input type="checkbox" id="guildMapShowRoutes" checked> Маршруты</label><label><input type="checkbox" id="guildMapShowMineOnly"> Только мои</label></div>
+            <div id="guildMapEditor" hidden><h3 id="guildMapEditorTitle">Новая запись</h3><label>Название<input id="guildMapTitle" maxlength="120" placeholder="Например, залежи железа"></label><label>Описание<textarea id="guildMapDescription" maxlength="3000" rows="3"></textarea></label><label>Категория<select id="guildMapCategory"></select></label><label>Видимость<select id="guildMapVisibility"><option value="guild">Всем участникам</option><option value="personal">Только мне</option><option value="leadership">Мне и администрации</option></select></label><label id="guildMapColorWrap" hidden>Цвет маршрута<input type="color" id="guildMapColor" value="#b88a4a"></label><div class="map-editor-buttons"><button type="button" class="primary-button" id="guildMapSave">Сохранить</button><button type="button" class="secondary-button" id="guildMapCancel">Отмена</button></div><p class="map-hint" id="guildMapEditorHint"></p></div>
+            <div id="guildMapDraftActions" hidden><p id="guildMapDraftCount"></p><button type="button" class="secondary-button" id="guildMapUndo">Убрать точку</button><button type="button" class="primary-button" id="guildMapRouteDone">Завершить маршрут</button></div>
+            <h3>Записи братства</h3><div id="guildMapList" class="map-records"></div></aside></div>
+          </div>
+        </section>
+        <section class="page" id="page-placeholder">
+          <div class="page-title-block"><div class="eyebrow">Резиденция братства</div><h1 id="placeholderTitle">Раздел</h1><p id="placeholderDescription">Содержание раздела будет добавлено позднее.</p></div>
+          <article class="panel placeholder-panel">
+            <div class="placeholder-seal">✦</div>
+            <h2>Страницы этой книги ещё чисты</h2>
+            <p>Этот раздел уже предусмотрен в структуре резиденции. На следующих этапах добавим необходимые функции, данные и инструменты.</p>
+            <div class="placeholder-status"><span class="status-dot"></span> Раздел подготовлен к разработке</div>
+            <button class="secondary-button" data-goto="home">Вернуться на главную</button>
+          </article>
+        </section>
 
-<div class="mbar"><div><span class="note">Заказ</span> <b class="num" id="mTot">0 гр.</b></div><a href="#zakaz">К заказу ↓</a></div>
-<script src="data.js?v=20261112e"></script>
-<script src="stock-ops.js?v=20261115a"></script>
-<script src="app.js?v=20261119c"></script>
-<script src="layout.js?v=20261112e"></script>
-
-<script src="ricon.js?v=20261112e"></script>
-<script src="guild-resources.js?v=233"></script>
-
-
-
+        <footer class="site-footer">
+          <span>© Братство Святого Иосифа Обручника</span>
+          <span>LABOR ET FIDES <b>✦</b></span>
+        </footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+  <script src="crafting/embedded.js?v=2451"></script>
+  <script>
+  (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
+  d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
+  c.addEventListener('click',()=>{area.hidden=true;calc.hidden=false;document.querySelector('#page-crafts .page-title-block').hidden=true;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
+  </script>
 </body>
 </html>

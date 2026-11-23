@@ -1734,6 +1734,7 @@ btn.addEventListener('click',async()=>{const lines=[];for(const tr of body.query
 })();
 
 
+window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJournal,breakdown,addToJournal,O,save};
 })();
 
 
@@ -1787,6 +1788,7 @@ btn.addEventListener('click',async()=>{const lines=[];for(const tr of body.query
 // Никаких прямых INSERT в storage_transactions: только RPC storage_submit_request.
 (()=>{
  const root=document.getElementById('craftEmbedded');if(!root)return;
+ const {ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJournal,breakdown,addToJournal,O,save}=window.CRAFT_BRIDGE;
  const status=document.getElementById('craftGuildStatus'),list=document.getElementById('craftGuildStockRows');
  const refresh=document.getElementById('craftGuildRefresh');
  const norm=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[^\p{L}\p{N}]+/gu,' ').trim();

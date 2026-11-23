@@ -589,3 +589,53 @@
 #craftEmbedded .view[hidden],#craftEmbedded #craftLegacyData[hidden]{display:none!important}
 #craftEmbedded .ic{object-fit:contain}
 @media(max-width:600px){#craftEmbedded .craft-quick-rows{grid-template-columns:1fr}#craftEmbedded .craft-quick-top{flex-wrap:wrap}}
+
+
+/* v2.4.0 — compact catalog and basket. All rules are scoped to #craftEmbedded. */
+#craftEmbedded .craft-compact{margin-bottom:6px}
+#craftEmbedded .craft-compact .toolrow{align-items:center}
+#craftEmbedded .craft-order-jump{display:none;align-items:center;justify-content:center;padding:5px 10px;min-height:28px;white-space:nowrap;text-decoration:none;border:1px solid #927048;border-radius:5px;color:#f0d3a1;background:#473322;font-size:12px;font-weight:700}
+#craftEmbedded .craft-order-jump:hover{background:#61442b}
+#craftEmbedded .view[data-v="book"] .tablebox{border-color:#57452f}
+#craftEmbedded .book{table-layout:auto}
+#craftEmbedded .book thead th{position:sticky;top:0;z-index:2;box-shadow:0 1px 0 #675037}
+#craftEmbedded .book tbody tr:not(.lvl):not(.cat){transition:background-color .12s ease}
+#craftEmbedded .book tbody tr:not(.lvl):not(.cat):nth-child(even) td{background:rgba(207,167,106,.035)}
+#craftEmbedded .book tbody tr:not(.lvl):not(.cat):hover td{background:rgba(214,168,96,.13)}
+#craftEmbedded .book td.name{font-size:12px;line-height:1.22}
+#craftEmbedded .book td.name .en{font-size:12px}
+#craftEmbedded .book td.name .ru{font-size:11px;line-height:1.2}
+#craftEmbedded .book tr.lvl td{font-size:14px;padding:7px 9px}
+#craftEmbedded .book tr.cat td{font-size:11px;padding:6px 8px}
+#craftEmbedded .book .qcell{white-space:nowrap}
+#craftEmbedded .book .add{background:#4a3524;border-color:#b58b53;color:#f4d3a1;font-size:17px}
+#craftEmbedded .book .add:hover{background:#9e7442;color:#18120d}
+#craftEmbedded .right{min-width:0}
+#craftEmbedded .basket{gap:6px;padding:9px;scrollbar-width:thin}
+#craftEmbedded .basket .ptog{margin:0;min-height:28px}
+#craftEmbedded .basket #bh{font-size:15px;line-height:1.2}
+#craftEmbedded .basket .obar select{flex:1 1 110px}
+#craftEmbedded .basket #onew{flex:0 0 auto}
+#craftEmbedded .basket .tiles{grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:5px}
+#craftEmbedded .basket .tile .ic{width:39px;height:39px;min-width:39px}
+#craftEmbedded .basket .tile .tn{font-size:10px}
+#craftEmbedded .basket .tile .ctl button{min-width:22px;min-height:23px}
+#craftEmbedded .basket .sum{padding:7px 0;border-top:1px solid #5a4734;border-bottom:1px solid #5a4734}
+#craftEmbedded .basket .linkbtn[data-goview="calc"]{display:block;width:100%;text-align:center;background:#493622;border:1px solid #a37b4c;border-radius:5px;padding:7px;color:#f1d7ab;text-decoration:none;font-weight:700}
+#craftEmbedded .basket .linkbtn[data-goview="calc"]:hover{background:#63492d}
+#craftEmbedded .basket .omore{border-top:1px solid #544330;padding-top:6px}
+#craftEmbedded .basket .omore summary{font-size:12px}
+#craftEmbedded .craft-quick-summary{padding:9px}
+@media(max-width:980px){
+ #craftEmbedded .craft-order-jump{display:inline-flex;margin-left:auto}
+ #craftEmbedded .right{width:100%}
+ #craftEmbedded .basket{max-height:none;overflow:visible}
+ #craftEmbedded .basket .tiles{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+}
+@media(max-width:650px){
+ #craftEmbedded .craft-order-jump{flex:1 1 auto}
+ #craftEmbedded .book{min-width:720px}
+ #craftEmbedded .basket .obar{align-items:stretch}
+ #craftEmbedded .basket .obar .btn{min-height:32px}
+ #craftEmbedded .basket .linkbtn[data-goview="calc"]{padding:10px}
+}

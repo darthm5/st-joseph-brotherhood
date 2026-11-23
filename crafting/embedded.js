@@ -1791,38 +1791,70 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
  const {ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJournal,breakdown,addToJournal,O,save}=window.CRAFT_BRIDGE;
  const status=document.getElementById('craftGuildStatus'),list=document.getElementById('craftGuildStockRows');
  const refresh=document.getElementById('craftGuildRefresh');
- const norm=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+ // Нормализация имён для сравнения: порядок слов, формы слов, уточнения и скобки.
+ const norm=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
+ const omit=new Set(['заготовка','заготовки','заготовку','заготовкой','заготовок','заготовочный','заготовочная','заготовочное','материал','материалы','ресурс','ресурсы','штука','штук']);
+ // Словарь только очевидных грамматических форм; различные виды стали и металлов не объединяются.
+ const forms={
+  'железный':'железо','железная':'железо','железное':'железо','железные':'железо','железных':'железо','железного':'железо','железной':'железо',
+  'стальной':'сталь','стальная':'сталь','стальные':'сталь','стальных':'сталь','стального':'сталь','стальной':'сталь',
+  'медный':'медь','медная':'медь','медные':'медь','медных':'медь',
+  'кожаный':'кожа','кожаная':'кожа','кожаные':'кожа','кожаных':'кожа',
+  'деревянный':'дерево','деревянная':'дерево','деревянные':'дерево',
+  'бруски':'брусок','брусков':'брусок','бруска':'брусок','брусья':'брусок',
+  'листы':'лист','листов':'лист','листовая':'лист','листовой':'лист',
+  'гарды':'гарда','гарду':'гарда','гарды':'гарда',
+  'крепежи':'крепеж','крепеж':'крепеж','крепежа':'крепеж',
+  'рукояти':'рукоять','рукоятки':'рукоять',
+  'слитки':'слиток','слитков':'слиток',
+  'кожи':'кожа','кожу':'кожа',
+  'угля':'уголь','угли':'уголь',
+  'лома':'лом',
+  'франкфуртской':'франкфуртская','франкфуртскую':'франкфуртская',
+  'толедской':'толедская','толедскую':'толедская'
+ };
+ const canonical=s=>norm(s).split(' ').filter(t=>t&&!omit.has(t)).map(t=>forms[t]||t).sort().join(' ');
+ const catalogMaterials=()=>catalog.filter(x=>(x.section||'materials')==='materials');
  let catalog=[],balance=new Map(),busy=false,loaded=false;
  const mappings=(()=>{try{return JSON.parse(localStorage.getItem('craft-guild-map-v1')||'{}')}catch(e){return {}}})();
- const label=(s)=>{status.textContent=s};
- // Explicit user mapping takes priority. Automatic aliases only resolve unambiguous materials.
- const alias=s=>norm(s).replace(/\bзаготовк(?:а|и|у|ой|е|и)?\b/gu,' ').replace(/\s+/g,' ').trim();
- const getItem=k=>{
-   const manual=catalog.find(x=>String(x.id)===String(mappings[k])&&(x.section||'materials')==='materials');
+ const label=s=>{status.textContent=s};
+ const findMatch=k=>{
+   const materials=catalogMaterials();
+   const manual=materials.find(x=>String(x.id)===String(mappings[k]));
    if(manual)return manual;
-   const materials=catalog.filter(x=>(x.section||'materials')==='materials');
-   const exact=materials.filter(x=>norm(x.name)===norm(NAME[k]));
+   const name=NAME[k]||k;
+   // Exact match wins, even if a weaker alias also exists.
+   const exact=materials.filter(x=>norm(x.name)===norm(name));
    if(exact.length===1)return exact[0];
    if(exact.length>1)return null;
-   const target=alias(NAME[k]);
-   if(!target)return null;
-   const matches=materials.filter(x=>alias(x.name)===target);
+   const key=canonical(name);
+   if(!key)return null;
+   const matches=materials.filter(x=>canonical(x.name)===key);
    return matches.length===1?matches[0]:null;
  };
+ const getItem=k=>findMatch(k);
  const getQty=k=>{const i=getItem(k);return i?Math.max(0,balance.get(i.id)||0):0};
  function renderGuild(){
    if(!loaded){list.textContent='Нажми «↻ Остатки», чтобы загрузить кладовую.';return}
    list.replaceChildren();
+   const materials=catalogMaterials();
    const keys=ALLK.filter(k=>treeKeys().has(k)||getQty(k)>0);
    for(const k of keys){
+     const item=getItem(k);
      const row=document.createElement('div');row.className='craft-guild-row';
      const title=document.createElement('span');title.textContent=NAME[k];
-     const value=document.createElement('b');value.textContent=getItem(k)?getQty(k)+' шт.':'Нет соответствия';
+     const value=document.createElement('b');value.textContent=item?getQty(k)+' шт.':'Нет в кладовой';
+     if(!item)value.classList.add('craft-guild-missing');
      const select=document.createElement('select');select.setAttribute('aria-label','Соответствие кладовой для '+NAME[k]);
-     select.append(new Option(getItem(k)?'Автоматически: '+getItem(k).name:'Автоматически / не найдено',''));
-     for(const item of catalog.filter(i=>(i.section||'materials')==='materials'))select.add(new Option(item.name,item.id));
+     // Название автоматически сопоставленного ресурса не дублируем в строке: показываем только количество.
+     select.append(new Option(item&&!mappings[k]?'Изменить соответствие':'Выбрать ресурс',''));
+     for(const entry of materials)select.add(new Option(entry.name+' ('+Math.max(0,balance.get(entry.id)||0)+' шт.)',entry.id));
      select.value=mappings[k]||'';
-     select.addEventListener('change',()=>{if(select.value)mappings[k]=select.value;else delete mappings[k];localStorage.setItem('craft-guild-map-v1',JSON.stringify(mappings));setGuildStock();renderGuild();renderOrder()});
+     select.addEventListener('change',()=>{
+       if(select.value)mappings[k]=select.value;else delete mappings[k];
+       localStorage.setItem('craft-guild-map-v1',JSON.stringify(mappings));
+       setGuildStock();renderGuild();renderOrder();
+     });
      row.append(title,value,select);list.append(row);
    }
  }

@@ -826,3 +826,53 @@
 #craftEmbedded.craft-workshop-mode .mbar{display:none}
 @media(max-width:1199px){#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(215px,35fr) minmax(310px,65fr)!important}#craftEmbedded.craft-workshop-mode .right{position:static!important}#craftEmbedded.craft-workshop-mode #zakaz{max-height:none!important}#craftEmbedded.craft-workshop-mode #tiles{max-height:none}}
 @media(max-width:740px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{width:100%!important;box-sizing:border-box}#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:340px}#craftEmbedded.craft-workshop-mode .craft-price-head,#craftEmbedded.craft-workshop-mode .craft-price-item{grid-template-columns:minmax(0,1fr) 76px 76px}}
+
+/* v2.5.0 — simplified workshop: catalogue / resources / compact order */
+#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(220px,24fr) minmax(350px,48fr) minmax(265px,28fr)!important;gap:10px!important;align-items:start}
+#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{padding:10px!important}
+#craftEmbedded.craft-workshop-mode .craft-compact{padding:8px!important}
+#craftEmbedded.craft-workshop-mode .craft-compact-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#craftEmbedded.craft-workshop-mode .craft-compact-label{font-size:13px!important}
+#craftEmbedded.craft-workshop-mode #toolrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#craftEmbedded.craft-workshop-mode #q{flex:1 1 210px;max-width:380px}
+#craftEmbedded .craft-extra-filters{position:relative;flex:0 0 auto;border:1px solid #b58a4a66;border-radius:5px;padding:5px 8px;color:#e3c48b;font-size:12px}
+#craftEmbedded .craft-extra-filters>summary{cursor:pointer;list-style:none}
+#craftEmbedded .craft-extra-filters>summary::after{content:' ▾'}
+#craftEmbedded .craft-extra-filters-inner{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding-top:9px;max-width:min(800px,75vw)}
+#craftEmbedded .craft-extra-filters:not([open]) .craft-extra-filters-inner{display:none}
+#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:min(65vh,680px)!important}
+#craftEmbedded.craft-workshop-mode #catbook .book td,#craftEmbedded.craft-workshop-mode #catbook .book th{padding:5px 3px!important;font-size:11px!important}
+#craftEmbedded.craft-workshop-mode #catbook .book td img{max-width:25px!important;max-height:25px!important}
+#craftEmbedded.craft-workshop-mode #footnote{display:none}
+#craftEmbedded.craft-workshop-mode .craft-quick-summary{padding:8px!important}
+#craftEmbedded.craft-workshop-mode .craft-quick-summary>.hint{display:none}
+#craftEmbedded.craft-workshop-mode .craft-quick-rows{display:block!important;max-height:370px!important;overflow-y:auto}
+#craftEmbedded.craft-workshop-mode .craft-quick-item{display:grid!important;grid-template-columns:minmax(0,1fr) 64px 92px!important;gap:7px!important;align-items:center;padding:6px 3px!important}
+#craftEmbedded.craft-workshop-mode .craft-quick-item small{font-size:10px;text-align:right}
+#craftEmbedded.craft-workshop-mode .craft-quick-item b{text-align:right}
+#craftEmbedded.craft-workshop-mode .craft-stock-source{margin:9px 0 4px!important}
+#craftEmbedded.craft-workshop-mode .craft-detail-group{margin:5px 0!important}
+#craftEmbedded.craft-workshop-mode #craftDetailedBreakdown{order:5}
+#craftEmbedded.craft-workshop-mode #zakaz{max-height:calc(100vh - 35px)!important;overflow-y:auto!important}
+#craftEmbedded.craft-workshop-mode #zakaz .ptog{display:none!important}
+#craftEmbedded.craft-workshop-mode #pricesm{margin:0 0 6px!important}
+#craftEmbedded.craft-workshop-mode #tiles{max-height:205px!important;overflow-y:auto!important}
+#craftEmbedded.craft-workshop-mode #zakaz .craft-item-prices{margin:7px 0!important}
+#craftEmbedded.craft-workshop-mode #zakaz .craft-price-item{padding:4px 0!important}
+#craftEmbedded.craft-workshop-mode #zakaz #bsum{margin:6px 0!important}
+#craftEmbedded.craft-workshop-mode #zakaz>.obar:has(#copyc){margin-top:6px}
+#craftEmbedded.craft-workshop-mode #zakaz #omore{margin:5px 0}
+#craftEmbedded.craft-workshop-mode .craft-calc-actions #odone{display:none!important}
+#craftEmbedded.craft-workshop-mode .craft-order-overview{border-top:1px solid #b58a4a66;padding-top:10px;margin-top:9px;display:grid;gap:7px}
+#craftEmbedded.craft-workshop-mode .craft-order-overview-info{font-size:12px;color:#e5c18a}
+#craftEmbedded.craft-workshop-mode .craft-primary-action{border:1px solid #d6a457;border-radius:5px;background:linear-gradient(#bd8a42,#80551f);color:#fff4d8;padding:11px;font-weight:700;cursor:pointer;width:100%}
+#craftEmbedded.craft-workshop-mode .craft-primary-action:disabled{opacity:.5;cursor:default}
+#craftEmbedded.craft-workshop-mode .craft-order-overview .hint{margin:0;font-size:10px}
+#craftEmbedded.craft-workshop-mode .craft-workshop-title{font-size:14px!important}
+#craftEmbedded.craft-workshop-secondary .app{display:block!important}
+#craftEmbedded.craft-workshop-secondary .app>.left{width:100%;max-width:100%}
+#craftEmbedded.craft-workshop-secondary .app>.left>.craft-workshop-title{display:none}
+#craftEmbedded.craft-workshop-secondary .right{display:none!important}
+#craftEmbedded.craft-workshop-secondary .craft-workshop-center{display:none!important}
+@media(max-width:1180px){#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(230px,38fr) minmax(350px,62fr)!important}#craftEmbedded.craft-workshop-mode .right{grid-column:1/-1;position:static!important}#craftEmbedded.craft-workshop-mode #zakaz{max-height:none!important}}
+@media(max-width:740px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{width:100%!important}#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:300px!important}#craftEmbedded .craft-extra-filters-inner{max-width:100%}}

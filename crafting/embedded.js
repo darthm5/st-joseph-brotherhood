@@ -1855,7 +1855,9 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
        localStorage.setItem('craft-guild-map-v1',JSON.stringify(mappings));
        setGuildStock();renderGuild();renderOrder();
      });
-     row.append(title,value,select);list.append(row);
+     // Show manual selection only when no unambiguous warehouse match exists.
+     if(item)row.append(title,value);else row.append(title,value,select);
+     list.append(row);
    }
  }
  function setGuildStock(){window.FAC_STOCK=Object.fromEntries(ALLK.map(k=>[k,getQty(k)]))}

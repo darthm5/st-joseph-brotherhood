@@ -1795,7 +1795,20 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
  let catalog=[],balance=new Map(),busy=false,loaded=false;
  const mappings=(()=>{try{return JSON.parse(localStorage.getItem('craft-guild-map-v1')||'{}')}catch(e){return {}}})();
  const label=(s)=>{status.textContent=s};
- const getItem=k=>catalog.find(x=>x.id===mappings[k])||catalog.find(x=>norm(x.name)===norm(NAME[k])&&(x.section||'materials')==='materials');
+ // Explicit user mapping takes priority. Automatic aliases only resolve unambiguous materials.
+ const alias=s=>norm(s).replace(/\bзаготовк(?:а|и|у|ой|е|и)?\b/gu,' ').replace(/\s+/g,' ').trim();
+ const getItem=k=>{
+   const manual=catalog.find(x=>String(x.id)===String(mappings[k])&&(x.section||'materials')==='materials');
+   if(manual)return manual;
+   const materials=catalog.filter(x=>(x.section||'materials')==='materials');
+   const exact=materials.filter(x=>norm(x.name)===norm(NAME[k]));
+   if(exact.length===1)return exact[0];
+   if(exact.length>1)return null;
+   const target=alias(NAME[k]);
+   if(!target)return null;
+   const matches=materials.filter(x=>alias(x.name)===target);
+   return matches.length===1?matches[0]:null;
+ };
  const getQty=k=>{const i=getItem(k);return i?Math.max(0,balance.get(i.id)||0):0};
  function renderGuild(){
    if(!loaded){list.textContent='Нажми «↻ Остатки», чтобы загрузить кладовую.';return}
@@ -1806,7 +1819,7 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
      const title=document.createElement('span');title.textContent=NAME[k];
      const value=document.createElement('b');value.textContent=getItem(k)?getQty(k)+' шт.':'Нет соответствия';
      const select=document.createElement('select');select.setAttribute('aria-label','Соответствие кладовой для '+NAME[k]);
-     select.append(new Option('Автоматически / не найдено',''));
+     select.append(new Option(getItem(k)?'Автоматически: '+getItem(k).name:'Автоматически / не найдено',''));
      for(const item of catalog.filter(i=>(i.section||'materials')==='materials'))select.add(new Option(item.name,item.id));
      select.value=mappings[k]||'';
      select.addEventListener('change',()=>{if(select.value)mappings[k]=select.value;else delete mappings[k];localStorage.setItem('craft-guild-map-v1',JSON.stringify(mappings));setGuildStock();renderGuild();renderOrder()});

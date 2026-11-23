@@ -1,0 +1,10 @@
+/* The guild’s burgundy and parchment palette. Isolated from the main site. */
+:root, :root:not([data-theme="light"]){--bg:#211b19;--paper:#30251f;--ink:#ead9b7;--muted:#b9a78c;--line:#6d5339;--copper:#d4ae67;--copper-soft:#463329;--steel:#b5b0a6;--good:#80bb83;--good-soft:#283c2e;--warn:#e19a7b;--field:#251d19}
+html,body{min-height:100%;background:var(--bg);color:var(--ink)}
+.top{background:#2b211d;border-bottom:1px solid #74583b}
+.top h1{color:#e6c88f}
+.app{max-width:100%;min-width:0}
+.app .left,.app .right{min-width:0}
+.panel,.basket,.tablebox{border-color:var(--line)}
+button,input,select,textarea{max-width:100%}
+@media(max-width:950px){.app{display:flex;flex-direction:column}.app .left,.app .right{width:100%;max-width:100%;min-width:0}.toprow,.toolrow{flex-wrap:wrap}}

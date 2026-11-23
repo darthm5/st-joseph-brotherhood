@@ -176,13 +176,8 @@
           <div class="page-title-block"><div class="eyebrow">Ремесленная книга братства</div><h1>Справочник специалистов</h1><p>Работы и мастерства принятых членов братства. Выберите специализацию, чтобы увидеть мастеров и их уровни.</p></div>
           <div class="craft-switch" role="group" aria-label="Раздел ремёсел"><button class="secondary-button craft-switch-active" id="craftShowDirectory" type="button">Специалисты</button><button class="secondary-button" id="craftShowCalculator" type="button">⚒ Калькулятор ремёсел</button></div>
           <section id="craftCalculator" hidden>
-            <div class="panel craft-tools"><div class="craft-row"><label>Ремесло<select id="ccCraft"></select></label><label>Поиск рецепта<input id="ccSearch" type="search" placeholder="Название изделия"></label><button class="secondary-button" id="ccAddRecipe" type="button">+ Добавить рецепт</button></div>
-            <div class="craft-tabs" role="tablist"><button class="secondary-button craft-tab-active" data-cc-tab="recipes">Рецепты</button><button class="secondary-button" data-cc-tab="prices">Цены сырья</button><button class="secondary-button" data-cc-tab="calc">Расчёт заказа</button><button class="secondary-button" data-cc-tab="journal">Журнал</button></div></div>
-            <div id="ccRecipes" class="craft-workspace"><article class="panel"><h2>Рецепты ремесла</h2><p class="craft-muted">Добавляй свои рецепты. Данные сохраняются в этом браузере.</p><div id="ccRecipeList"></div></article><article class="panel"><h2>Текущий заказ</h2><div id="ccBasket"></div><div id="ccTotal"></div><button type="button" class="primary-button" id="ccComplete">Записать продажу</button></article></div>
-            <div id="ccPrices" class="panel" hidden><h2>Цены сырья</h2><p class="craft-muted">Цена за единицу ресурса, в грошах. Изменения сохраняются в браузере.</p><div id="ccPriceList"></div></div>
-            <div id="ccCalc" class="panel" hidden><h2>Расчёт заказа</h2><div id="ccCalculation"></div></div>
-            <div id="ccJournal" class="panel" hidden><h2>Журнал продаж</h2><div id="ccSales"></div></div>
-            <form id="ccRecipeForm" class="panel craft-recipe-form" hidden><h2>Новый рецепт</h2><label>Название изделия<input name="name" required maxlength="100"></label><label>Уровень ремесла<input name="level" type="number" min="1" max="10" value="1" required></label><label>Количество изделий за крафт<input name="yield" type="number" min="1" value="1" required></label><label>Плата за верстак, грошей<input name="fee" type="number" min="0" step="0.01" value="0" required></label><label>Состав (каждый ресурс с новой строки: название = количество)<textarea name="materials" rows="5" required placeholder="Железная руда = 2&#10;Уголь = 3"></textarea></label><div class="craft-row"><button class="primary-button" type="submit">Сохранить рецепт</button><button class="secondary-button" type="button" id="ccCancelRecipe">Отмена</button></div><p id="ccFormError" role="alert"></p></form>
+            <div class="panel" style="padding:12px;margin-bottom:12px"><strong>⚒ Счётная книга братства</strong> · Рецепты, цены, заказы и журнал продаж. Данные сохраняются в браузере.</div>
+            <iframe id="craftingLedgerFrame" title="Калькулятор ремёсел братства" src="crafting/index.html" loading="lazy" style="display:block;width:100%;height:1100px;min-height:75vh;border:1px solid #7a6044;border-radius:10px;background:#211b19" ></iframe>
           </section>
           <div id="craftDirectoryArea">          <div class="panel directory-controls">
             <div class="directory-tabs"><button type="button" id="directoryJobs" class="secondary-button">Работы</button><button type="button" id="directoryMasteries" class="secondary-button">Мастерства</button></div>
@@ -606,6 +601,10 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
-  <script src="craft-calc.js"></script>
+  <script>
+  (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
+  d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
+  c.addEventListener('click',()=>{area.hidden=true;calc.hidden=false;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
+  </script>
 </body>
 </html>

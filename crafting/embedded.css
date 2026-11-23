@@ -500,3 +500,78 @@
 /* v2.3.7: guard the entire calculator and its order basket */
 #craftCalculator[hidden],#page-crafts[hidden],#craftEmbedded [hidden]{display:none!important}
 #craftEmbedded .right{min-width:0;max-width:100%}
+
+/* v2.3.8: compact workshop UI; scoped strictly to the embedded calculator. */
+#craftEmbedded{font-size:13px;line-height:1.35}
+#craftEmbedded .craft-compact{padding:7px 9px;margin-bottom:8px;border-radius:6px}
+#craftEmbedded .craft-compact-top{gap:6px 10px}
+#craftEmbedded .craft-compact-label{font-size:12px;letter-spacing:.02em}
+#craftEmbedded .craft-compact .seg{flex:1 1 280px;min-width:0}
+#craftEmbedded .craft-compact .seg button{font-size:12px;padding:4px 8px}
+#craftEmbedded .craft-compact .views{flex:0 1 auto;gap:3px;margin-left:auto}
+#craftEmbedded .craft-compact .views button{font-size:12px;min-height:29px;padding:4px 8px;border-radius:5px}
+#craftEmbedded .craft-compact .toolrow{gap:6px;margin-top:6px;border-top:1px solid #48392a;padding-top:6px}
+#craftEmbedded .craft-compact .toolrow .search{width:190px;max-width:230px;min-width:120px;padding:5px 8px}
+#craftEmbedded .craft-compact .toolrow .tab{font-size:12px;padding:3px 7px}
+#craftEmbedded .craft-compact .toolrow .btn{min-height:27px;padding:4px 7px}
+#craftEmbedded .app{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,320px);gap:9px;align-items:start}
+#craftEmbedded .left,#craftEmbedded .right{min-width:0}
+#craftEmbedded .right{position:sticky;top:10px;align-self:start}
+#craftEmbedded .panel{padding:10px;border-radius:6px}
+#craftEmbedded .basket{gap:7px;padding:10px;max-height:min(82vh,980px);overflow-y:auto}
+#craftEmbedded .basket #bh{font-size:16px}
+#craftEmbedded .basket .obar{gap:5px}
+#craftEmbedded .basket #tiles:has(.tiles){min-height:0!important;flex:none!important}
+#craftEmbedded .basket .tiles{grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:5px}
+#craftEmbedded .basket .tile{padding:4px}
+#craftEmbedded .basket .tile .ic{width:43px;height:43px;min-width:43px}
+#craftEmbedded .basket .sum{font-size:12px;gap:3px 7px}
+#craftEmbedded .basket .sum .big{font-size:15px}
+#craftEmbedded .book th,#craftEmbedded .book td{padding:4px 5px}
+#craftEmbedded .book th{font-size:10px;letter-spacing:0}
+#craftEmbedded .book td.name{min-width:130px}
+#craftEmbedded .book .ic{width:32px;height:32px;min-width:32px}
+#craftEmbedded .book .ru{font-size:11px}
+#craftEmbedded .book .qty{width:43px;padding:3px}
+#craftEmbedded .book .add{width:26px;height:26px}
+#craftEmbedded .tablebox{border-radius:6px;box-shadow:none}
+#craftEmbedded .tablebox table{width:100%}
+#craftEmbedded .view .pricep{padding:10px}
+#craftEmbedded .view .pricep .pgrid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+#craftEmbedded .view .pricep .pgrid>div{padding:8px}
+#craftEmbedded .view .pricep .pf input{font-size:13px}
+#craftEmbedded .bd{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:10px}
+#craftEmbedded .view[data-v="calc"] h2,#craftEmbedded .view[data-v="journal"] h2{font-size:17px}
+#craftEmbedded .view[data-v="calc"] h3{font-size:15px}
+#craftEmbedded .guild-resource-actions{margin:6px 0}
+#craftEmbedded .guild-resource-actions .btn{background:#493723;border-color:#a7824f;color:#f6dfb5;font-weight:600}
+#craftEmbedded .guild-resource-actions .btn:hover{background:#61492c}
+#craftEmbedded .view[data-v="calc"] .mini th,#craftEmbedded .view[data-v="calc"] .mini td{padding:5px}
+@media(max-width:1250px){
+ #craftEmbedded .app{grid-template-columns:minmax(0,1fr) minmax(245px,290px)}
+ #craftEmbedded .right{position:static}
+ #craftEmbedded .basket{max-height:none}
+}
+@media(max-width:980px){
+ #craftEmbedded .app{display:flex;flex-direction:column;gap:8px}
+ #craftEmbedded .left,#craftEmbedded .right{width:100%;max-width:100%}
+ #craftEmbedded .basket{max-height:none}
+ #craftEmbedded .basket #tiles:has(.tiles){min-height:0!important}
+ #craftEmbedded .craft-compact .views{margin-left:0}
+ #craftEmbedded .bd{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:650px){
+ #craftEmbedded .craft-compact{padding:6px}
+ #craftEmbedded .craft-compact-label{display:none}
+ #craftEmbedded .craft-compact .seg{flex:1 1 100%;width:100%}
+ #craftEmbedded .craft-compact .views{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:3px}
+ #craftEmbedded .craft-compact .views button{font-size:11px;padding:6px 2px;min-width:0;white-space:normal}
+ #craftEmbedded .craft-compact .toolrow .search{max-width:none;width:100%;flex:1 1 100%}
+ #craftEmbedded .craft-compact .toolrow .lvls{flex:1 1 100%}
+ #craftEmbedded .panel{padding:8px}
+ #craftEmbedded .book{min-width:740px}
+ #craftEmbedded .tablebox{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+ #craftEmbedded .view .pricep .pgrid{grid-template-columns:minmax(0,1fr)}
+ #craftEmbedded .guild-resource-actions .btn{width:100%}
+ #craftEmbedded .basket .tiles{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+}

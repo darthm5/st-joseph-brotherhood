@@ -703,3 +703,28 @@
 #craftEmbedded .craft-guild-row{grid-template-columns:minmax(110px,1fr) minmax(65px,90px) minmax(135px,210px)}
 #craftEmbedded .craft-guild-row select{font-size:11px}
 @media(max-width:580px){#craftEmbedded .craft-guild-row{grid-template-columns:minmax(80px,1fr) 75px minmax(110px,1fr)}}
+
+/* v2.4.6 — Workshop A: catalogue | resources | order. Only changes presentation. */
+#craftEmbedded.craft-workshop-mode .app{display:grid!important;grid-template-columns:minmax(230px,28fr) minmax(290px,44fr) minmax(250px,28fr)!important;gap:10px!important;align-items:start}
+#craftEmbedded .craft-workshop-center{min-width:0}
+#craftEmbedded .craft-workshop-center[hidden]{display:none!important}
+#craftEmbedded.craft-workshop-mode .left,#craftEmbedded.craft-workshop-mode .right,#craftEmbedded.craft-workshop-mode .craft-workshop-center{width:auto!important;min-width:0!important;max-width:none!important}
+#craftEmbedded.craft-workshop-mode .view[data-v="book"],#craftEmbedded.craft-workshop-mode .view[data-v="calc"]{display:block!important}
+#craftEmbedded.craft-workshop-mode #catbook .book{min-width:0!important;width:100%}
+#craftEmbedded.craft-workshop-mode #catbook .book th:nth-child(3),#craftEmbedded.craft-workshop-mode #catbook .book td:nth-child(3),#craftEmbedded.craft-workshop-mode #catbook .book th:nth-child(4),#craftEmbedded.craft-workshop-mode #catbook .book td:nth-child(4),#craftEmbedded.craft-workshop-mode #catbook .book th:nth-child(5),#craftEmbedded.craft-workshop-mode #catbook .book td:nth-child(5),#craftEmbedded.craft-workshop-mode #catbook .book th:nth-child(6),#craftEmbedded.craft-workshop-mode #catbook .book td:nth-child(6){display:none!important}
+#craftEmbedded.craft-workshop-mode #catbook .book th,#craftEmbedded.craft-workshop-mode #catbook .book td{padding:6px 4px;font-size:12px}
+#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:70vh;overflow:auto!important}
+#craftEmbedded.craft-workshop-mode #raschet{padding:10px}
+#craftEmbedded.craft-workshop-mode #raschet .craft-calc-heading h2{font-size:16px}
+#craftEmbedded.craft-workshop-mode .right{position:sticky!important;top:10px}
+#craftEmbedded.craft-workshop-mode #zakaz{max-height:85vh!important;overflow:auto}
+#craftEmbedded.craft-workshop-mode .craft-quick-summary{padding:7px}
+#craftEmbedded.craft-workshop-mode .craft-stock-source{padding:6px}
+#craftEmbedded.craft-workshop-mode .craft-guild-stock-list{max-height:260px}
+#craftEmbedded.craft-workshop-mode .craft-detail-group>summary{padding:7px 9px}
+#craftEmbedded.craft-workshop-mode .craft-price-head,#craftEmbedded.craft-workshop-mode .craft-price-item{font-size:10px}
+#craftEmbedded.craft-workshop-mode #catbook::before{content:'Ⅰ  Каталог рецептов';display:block;font-size:15px;font-weight:700;margin:0 0 8px;padding:6px 2px;border-bottom:1px solid var(--line)}
+#craftEmbedded.craft-workshop-mode .craft-workshop-center::before{content:'Ⅱ  Ресурсы и склады';display:block;font-size:15px;font-weight:700;margin:0 0 8px;padding:6px 2px;border-bottom:1px solid var(--line)}
+#craftEmbedded.craft-workshop-mode .right::before{content:'Ⅲ  Заказ и стоимость';display:block;font-size:15px;font-weight:700;margin:0 0 8px;padding:6px 2px;border-bottom:1px solid var(--line)}
+@media(max-width:1199px){#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(210px,35fr) minmax(290px,65fr)!important}#craftEmbedded.craft-workshop-mode .right{grid-column:1/-1;position:static!important}#craftEmbedded.craft-workshop-mode #zakaz{max-height:none!important}}
+@media(max-width:740px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{width:100%!important}#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:360px}}

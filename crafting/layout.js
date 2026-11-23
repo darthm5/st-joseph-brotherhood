@@ -1,8 +1,9 @@
 // Раскладка: вкладки разделов, выпадающие фильтры, сворачивание цен.
 // Логика расчётов вся в app.js, здесь только интерфейс.
 (() => {
-  const $ = s => document.querySelector(s),
-    $$ = s => [...document.querySelectorAll(s)];
+  const root = document.getElementById("craftEmbedded") || document,
+    $ = s => root.querySelector(s),
+    $$ = s => [...root.querySelectorAll(s)];
   const store = (k, v) => {
     try {
       if (v === undefined) return localStorage.getItem(k);
@@ -24,9 +25,9 @@
   });
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-goview]");
-    if (b) setView(b.dataset.goview);
+    if (b && root.contains(b)) setView(b.dataset.goview);
   });
-  setView(store("forge-view") || "book");
+  setView(["book", "prices", "calc", "journal"].includes(store("forge-view")) ? store("forge-view") : "book");
 
   // --- выпадающие меню ---
   const closeAll = except =>

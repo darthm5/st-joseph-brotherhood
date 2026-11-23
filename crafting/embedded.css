@@ -491,3 +491,8 @@
 #craftEmbedded .guild-resource-fallback{max-width:100%}
 #craftEmbedded .ddp{z-index:30}
 @media(max-width:850px){#craftEmbedded .craft-compact-top{align-items:stretch}#craftEmbedded .craft-compact .seg{flex-basis:100%}#craftEmbedded .craft-compact .views{width:100%}#craftEmbedded .craft-compact .toolrow .search{max-width:none}#craftEmbedded .app{display:block}#craftEmbedded .right{position:static;max-width:none}#craftEmbedded .craft-compact{padding:7px}}
+
+/* v2.3.6: prevent calculator shell from leaking across sections */
+#craftCalculator[hidden], #page-crafts[hidden], #craftEmbedded [hidden]{display:none!important}
+#craftEmbedded .app{width:100%;min-width:0}
+#craftEmbedded .right{max-width:100%}

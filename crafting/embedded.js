@@ -914,12 +914,28 @@ function renderTable() {
     const c = cost(i),
       id = esc(i.id),
       np = noPrice(i);
-    h += `<tr class="${q[i.id] ? "picked" : ""}" data-tip="${id}"><td>${icon(i)}</td><td class="name"><div class="craft-fav-name"><button class="craft-fav" type="button" data-fav="${id}" aria-label="${favorites.has(i.id) ? "Убрать из избранного" : "Добавить в избранное"}" aria-pressed="${favorites.has(i.id)}">${favorites.has(i.id) ? "★" : "☆"}</button><div class="ru" style="font-size:14.5px;color:var(--ink)">${esc(i.n)}</div></div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<div class="noprice" title="Впиши цену в блоке цен справа, иначе себестоимость занижена">⚠ нет цены: ${esc(np.map(k => NAME[k].toLowerCase()).join(", "))}</div>` : ""}</td>
+    h += `<tr class="${q[i.id] ? "picked" : ""}" data-tip="${id}"><td>${icon(i)}</td><td class="name"><div class="craft-fav-name"><button class="craft-fav" type="button" data-fav="${id}" aria-label="${favorites.has(i.id) ? "Убрать из избранного" : "Добавить в избранное"}" aria-pressed="${favorites.has(i.id)}">${favorites.has(i.id) ? "★" : "☆"}</button><button type="button" class="craft255-recipe-name" data-recipe-detail="${id}" aria-expanded="false" title="Показать состав">${esc(i.n)}</button></div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<span class="craft255-price-warning" title="Не указана цена: ${esc(np.map(k => NAME[k]).join(', '))}" aria-label="Не указана цена: ${esc(np.map(k => NAME[k]).join(', '))}">!</span>` : ""}</td>
       <td class="comp" title="${esc(compText(i).replace(/<[^>]*>/g, " "))}">${compText(i)}</td><td class="num res">${i.m ? "<b>" + MAT[i.m].out + "</b>" : i.o ? "<b>" + i.o + "</b>" : "1"}</td>      <td class="num cost${np.length ? " warn" : ""}">${np.length ? (c > 0 ? "от " + fmt(c, i.m || i.o ? 1 : 0) : "?") : fmt(c, i.m || i.o ? 1 : 0)}</td><td class="num sell">${np.length ? (c > 0 ? "от " + fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0) : "?") : fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0)}</td>
       <td><div class="qcell"><input class="qty" data-k="${id}" type="number" min="0" step="1" value="${q[i.id] || ""}" aria-label="Количество: ${esc(i.n)}"><button class="add" type="button" data-k="${id}" aria-label="Добавить: ${esc(i.n)}">+</button></div></td></tr>`;
   });
   tb.innerHTML = h || `<tr><td colspan="7" class="l note">Ничего не найдено.</td></tr>`;
 }
+tb.addEventListener("click", e => {
+  const button=e.target.closest('button[data-recipe-detail]');
+  if(!button)return;
+  const tr=button.closest('tr');
+  const old=tr.nextElementSibling;
+  if(old?.classList.contains('craft255-recipe-detail')){old.remove();button.setAttribute('aria-expanded','false');return}
+  tb.querySelectorAll('.craft255-recipe-detail').forEach(n=>n.remove());
+  tb.querySelectorAll('[data-recipe-detail]').forEach(n=>n.setAttribute('aria-expanded','false'));
+  const comp=tr.querySelector('td.comp');
+  const detail=document.createElement('tr');detail.className='craft255-recipe-detail';
+  const cell=document.createElement('td');cell.colSpan=7;
+  const title=document.createElement('strong');title.textContent='Состав: ';
+  const body=document.createElement('span');body.textContent=comp?.textContent.trim()||'Состав не указан';
+  cell.append(title,body);detail.append(cell);tr.after(detail);
+  button.setAttribute('aria-expanded','true');
+});
 tb.addEventListener("click", e => {
   const btn = e.target.closest("button[data-fav]");
   if (!btn) return;
@@ -1876,7 +1892,7 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
        setGuildStock();renderGuild();renderOrder();
      });
      // Show manual selection only when no unambiguous warehouse match exists.
-     if(item)row.append(title,value);else {const missing=document.createElement('small');missing.textContent='Нет в кладовой';missing.className='craft-guild-missing';row.append(title,value,missing,select)}
+     if(item)row.append(title,value);else {const missing=document.createElement('small');missing.textContent='Нет в кладовой';missing.className='craft-guild-missing';row.append(title,value,select)}
      list.append(row);
    }
  }

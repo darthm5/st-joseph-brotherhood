@@ -33,15 +33,15 @@
  if(personal)stockPanel.append(personal);if(guild)stockPanel.append(guild);
  const stockInfo=make('p','craft252-stockinfo','Личный склад можно редактировать. Склад братства загружается из кладовой и доступен только для просмотра.');stockPage.insertBefore(stockInfo,stockPanel);
  const refresh=make('button','craft252-refresh','↻ Обновить остатки');refresh.type='button';refresh.addEventListener('click',()=>get('#craftGuildRefresh')?.click());stockTabs.append(refresh);
- let stockMode='personal';const showStock=mode=>{stockMode=mode;personalBtn.setAttribute('aria-pressed',String(mode==='personal'));guildBtn.setAttribute('aria-pressed',String(mode==='guild'));if(personal){personal.hidden=mode!=='personal';personal.open=mode==='personal'}if(guild){guild.hidden=mode!=='guild';guild.open=mode==='guild'}refresh.hidden=mode!=='guild';if(mode==='guild')get('#craftGuildRefresh')?.click()};personalBtn.addEventListener('click',()=>showStock('personal'));guildBtn.addEventListener('click',()=>showStock('guild'));showStock('personal');
+ let stockMode='personal';const showStock=mode=>{stockMode=mode;personalBtn.setAttribute('aria-pressed',String(mode==='personal'));guildBtn.setAttribute('aria-pressed',String(mode==='guild'));if(personal){personal.hidden=mode!=='personal';personal.open=mode==='personal';personal.style.display=mode==='personal'?'block':'none'}if(guild){guild.hidden=mode!=='guild';guild.open=mode==='guild';guild.style.display=mode==='guild'?'block':'none'}refresh.hidden=mode!=='guild';if(mode==='guild')get('#craftGuildRefresh')?.click()};personalBtn.addEventListener('click',()=>showStock('personal'));guildBtn.addEventListener('click',()=>showStock('guild'));showStock('personal');
  // Source selection lives in order details, before calculating. Reuse original radio controls.
  const source=get('.craft-stock-source');
- const detail=get('#omore');
+ const detail=get('#omore');if(detail)detail.hidden=true;
  if(source&&detail){
    source.classList.add('craft254-source');
    const title=make('strong','craft254-source-title','Источник ресурсов для расчёта');
    source.prepend(title);
-   detail.insertBefore(source,detail.firstElementChild);
+   order.insertBefore(source,calcButton);
    const preview=make('div','craft254-source-preview');preview.id='craft254SourcePreview';source.after(preview);
    source.querySelector('strong:not(.craft254-source-title)')?.remove();
    const refresh=source.querySelector('#craftGuildRefresh');
@@ -57,6 +57,15 @@
  const cost=make('div','craft252-cost');resultOrder.append(cost);
  const markup=get('#pricesm');const workRow=make('div','craft253-work');workRow.innerHTML='<strong>Стоимость работы</strong><span class="craft253-workhint">Процент от себестоимости</span>';if(markup)workRow.append(markup);cost.append(workRow);
  const completion=make('div','craft252-completion');resultOrder.append(completion);
+ const resourcePanel=make('div','craft255-resource-panel');resultPage.insertBefore(resourcePanel,resultOrder);
+ const resourceSummary=get('#craftQuickSummary'),resourceBreakdown=get('#craftDetailedBreakdown');
+ const calcStatus=get('#craftGuildStatus');
+ if(resourceSummary)resourcePanel.append(resourceSummary);
+ if(resourceBreakdown)resourcePanel.append(resourceBreakdown);
+ if(calcStatus)resourcePanel.append(calcStatus);
+ // Show breakdown on the final screen, not buried in the stock section.
+ if(resourceBreakdown)resourceBreakdown.open=true;
+
  const legacyNav=get('.views');const legacyBtn=v=>legacyNav?.querySelector(`[data-view="${v}"]`);
  let current='home';function open(which){current=which;root.dataset.screen=which;home.hidden=which!=='home';nav.hidden=which!=='home';body.hidden=which==='home';for(const p of body.querySelectorAll('.craft252-page'))p.hidden=p.dataset.page!==which;
   const v=which==='prices'?'prices':which==='journal'?'journal':which==='result'?'calc':'book';legacyBtn(v)?.click();

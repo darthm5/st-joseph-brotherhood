@@ -771,3 +771,58 @@
  #craftEmbedded.craft-workshop-mode .basket{max-height:none!important;overflow:visible}
  #craftEmbedded.craft-workshop-mode .craft-guild-row{grid-template-columns:minmax(80px,1fr) 75px minmax(105px,1fr)}
 }
+
+/* v2.4.8 — unified medieval workshop A; visual changes only */
+#craftEmbedded.craft-workshop-mode{--work-gold:#d5aa5c;--work-line:rgba(202,158,90,.35);--work-dark:#251e19}
+#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(215px,27fr) minmax(320px,45fr) minmax(255px,28fr)!important;gap:12px!important}
+#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{background:linear-gradient(165deg,#302720,#211c18);border:1px solid var(--work-line);border-radius:9px;padding:9px;box-shadow:0 3px 14px #0002;min-width:0}
+#craftEmbedded.craft-workshop-mode #catbook::before,#craftEmbedded.craft-workshop-mode .craft-workshop-center::before,#craftEmbedded.craft-workshop-mode .right::before{content:none!important}
+#craftEmbedded .craft-workshop-title{display:flex;align-items:center;gap:8px;color:#f0d7a5;border-bottom:1px solid var(--work-line);font-weight:700;font-size:14px;line-height:1.4;padding:4px 3px 9px;margin:0 0 9px}
+#craftEmbedded .craft-workshop-title .craft-workshop-icon{color:var(--work-gold);font-size:19px}
+#craftEmbedded .craft-workshop-title .craft-workshop-count{margin-left:auto;font-size:11px;font-weight:400;color:#d2bd99}
+#craftEmbedded.craft-workshop-mode .craft-compact{border:1px solid var(--work-line);border-radius:9px;padding:8px 10px;background:#29221c;margin-bottom:10px}
+#craftEmbedded.craft-workshop-mode .craft-compact-label{color:#f0d7a5;font-size:15px;font-weight:700}
+#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:min(66vh,800px);border-radius:5px}
+#craftEmbedded.craft-workshop-mode #catbook .book{table-layout:auto}
+#craftEmbedded.craft-workshop-mode #catbook .book th,#craftEmbedded.craft-workshop-mode #catbook .book td{padding:7px 4px;font-size:12px;border-bottom:1px solid #ffffff12}
+#craftEmbedded.craft-workshop-mode #catbook .book td:nth-child(2){min-width:0;overflow-wrap:anywhere}
+#craftEmbedded.craft-workshop-mode #catbook .book tr:hover td{background:rgba(210,160,83,.09)}
+#craftEmbedded.craft-workshop-mode #catbook .book td img{max-width:32px;max-height:32px}
+#craftEmbedded.craft-workshop-mode #catbook .note{font-size:11px;line-height:1.35}
+#craftEmbedded.craft-workshop-mode #raschet{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}
+#craftEmbedded.craft-workshop-mode #raschet .craft-calc-heading{display:none!important}
+#craftEmbedded.craft-workshop-mode .craft-quick-summary{background:#29231e;border:1px solid var(--work-line);border-radius:7px;padding:9px!important}
+#craftEmbedded.craft-workshop-mode .craft-quick-top{gap:8px;align-items:center;margin-bottom:6px}
+#craftEmbedded.craft-workshop-mode .craft-quick-top strong{color:#e7c891;font-size:13px}
+#craftEmbedded.craft-workshop-mode .craft-quick-rows{max-height:330px;overflow-y:auto}
+#craftEmbedded.craft-workshop-mode .craft-quick-item{padding:6px 4px;border-bottom:1px solid #ffffff12;font-size:12px;gap:7px}
+#craftEmbedded.craft-workshop-mode .craft-quick-item b{color:#e8c888;font-variant-numeric:tabular-nums}
+#craftEmbedded.craft-workshop-mode .craft-stock-source{background:#2c241e;border-color:var(--work-line);gap:9px;padding:8px 9px;font-size:12px}
+#craftEmbedded.craft-workshop-mode .craft-stock-source strong{width:100%;color:#e5c58b}
+#craftEmbedded.craft-workshop-mode .craft-stock-source label{padding:5px 7px;border:1px solid #a9824b66;border-radius:6px;cursor:pointer}
+#craftEmbedded.craft-workshop-mode .craft-stock-source label:has(input:checked){background:#5a4227;color:#ffe1a4;border-color:#b58a4a}
+#craftEmbedded.craft-workshop-mode .craft-detail-group{background:#2b241e;border-color:var(--work-line);margin:7px 0}
+#craftEmbedded.craft-workshop-mode .craft-detail-group>summary{color:#e4c58e;font-size:12px;padding:9px}
+#craftEmbedded.craft-workshop-mode .right{position:sticky!important;top:10px}
+#craftEmbedded.craft-workshop-mode #zakaz{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;max-height:calc(100vh - 50px)!important}
+#craftEmbedded.craft-workshop-mode #zakaz .ptog{padding:5px 0}
+#craftEmbedded.craft-workshop-mode #zakaz .ptog h2{font-size:14px}
+#craftEmbedded.craft-workshop-mode #tiles{max-height:230px;overflow-y:auto}
+#craftEmbedded.craft-workshop-mode #tiles .tile{border-bottom:1px solid #ffffff15;padding:6px 2px!important}
+#craftEmbedded.craft-workshop-mode #tiles .tile .ic{width:28px!important;height:28px!important}
+#craftEmbedded.craft-workshop-mode #tiles .tile .tn{font-size:11px}
+#craftEmbedded.craft-workshop-mode .craft-item-prices{background:#2a231e;border-color:var(--work-line);padding:7px;margin:6px 0}
+#craftEmbedded.craft-workshop-mode .craft-item-prices>summary{color:#e7c58c}
+#craftEmbedded.craft-workshop-mode .craft-price-head,#craftEmbedded.craft-workshop-mode .craft-price-item{grid-template-columns:minmax(0,1fr) 73px 73px;gap:4px;font-size:11px}
+#craftEmbedded.craft-workshop-mode .craft-price-head{font-size:9px}
+#craftEmbedded.craft-workshop-mode .craft-price-item{padding:6px 0}
+#craftEmbedded.craft-workshop-mode #bsum{background:#2d251e;border:1px solid var(--work-line);padding:9px;border-radius:7px;margin:7px 0}
+#craftEmbedded.craft-workshop-mode #bsum .big{color:#f1c878;font-size:17px}
+#craftEmbedded .craft-workshop-action{background:#33251b;border:1px solid var(--work-line);border-radius:7px;padding:10px;margin:8px 0;display:grid;gap:7px}
+#craftEmbedded .craft-workshop-action .craft-workshop-state{font-size:11px;line-height:1.4;color:#d7c3a1}
+#craftEmbedded .craft-workshop-action button{width:100%;padding:11px 8px;border-radius:6px;border:1px solid #c99952;background:linear-gradient(#bd8a42,#82551f);color:#fff4d8;font-weight:700;cursor:pointer;font-size:13px}
+#craftEmbedded .craft-workshop-action button:disabled{opacity:.55;cursor:default}
+#craftEmbedded.craft-workshop-mode #zakaz>.linkbtn[data-goview="calc"]{display:none!important}
+#craftEmbedded.craft-workshop-mode .mbar{display:none}
+@media(max-width:1199px){#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(215px,35fr) minmax(310px,65fr)!important}#craftEmbedded.craft-workshop-mode .right{position:static!important}#craftEmbedded.craft-workshop-mode #zakaz{max-height:none!important}#craftEmbedded.craft-workshop-mode #tiles{max-height:none}}
+@media(max-width:740px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{width:100%!important;box-sizing:border-box}#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:340px}#craftEmbedded.craft-workshop-mode .craft-price-head,#craftEmbedded.craft-workshop-mode .craft-price-item{grid-template-columns:minmax(0,1fr) 76px 76px}}

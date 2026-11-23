@@ -46,6 +46,11 @@ DATA.raw.forEach(([k, , v]) => (DEF[k] = v));
 const ITEMS = DATA.items,
   BYID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const KEY = "forge-ledger-v4";
+const FAV_KEY = "forge-ledger-favorites-v1";
+let favorites = new Set();
+try { const saved = JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); if (Array.isArray(saved)) favorites = new Set(saved.filter(v => typeof v === "string")); } catch(e) {}
+let favoriteOnly = false;
+
 const newOrder = name => ({
   name,
   qty: {},
@@ -791,6 +796,13 @@ function noPrice(i) {
   else Object.keys(i.r).forEach(walk);
   return [...out];
 }
+const favoriteToggle = document.getElementById("craftFavoritesOnly");
+if (favoriteToggle) favoriteToggle.addEventListener("click", () => {
+  favoriteOnly = !favoriteOnly;
+  favoriteToggle.setAttribute("aria-pressed", String(favoriteOnly));
+  favoriteToggle.textContent = favoriteOnly ? "★ Избранные" : "☆ Избранное";
+  renderTable();
+});
 const tb = document.getElementById("tb");
 function renderTable() {
   tabs.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === tab)));
@@ -799,7 +811,8 @@ function renderTable() {
     i.s === sec &&
     (tab === "all" || String(i.l) === tab) &&
     (cat === "all" || i.c === cat) &&
-    (!query || i.n.toLowerCase().includes(query) || (i.en && i.en.toLowerCase().includes(query)));
+    (!query || i.n.toLowerCase().includes(query) || (i.en && i.en.toLowerCase().includes(query))) &&
+    (!favoriteOnly || favorites.has(i.id));
   let h = "",
     pl = null,
     pc = null;
@@ -830,6 +843,7 @@ function renderTable() {
       .sort((a, b) => gi[gk(a[0])] - gi[gk(b[0])] || v(b[0]) - v(a[0]) || a[1] - b[1])
       .map(x => x[0]);
   }
+  
   list.forEach(i => {
     if (!flat && i.l !== pl) {
       h += `<tr class="lvl"><td colspan="7">Уровень ${i.l}</td></tr>`;
@@ -843,12 +857,20 @@ function renderTable() {
     const c = cost(i),
       id = esc(i.id),
       np = noPrice(i);
-    h += `<tr class="${q[i.id] ? "picked" : ""}"${i.fx || (FIELDS[i.s] && i.c !== "Материалы" && i.c !== "Детали") ? ` data-tip="${id}"` : ""}><td>${icon(i)}</td><td class="name"><div class="ru" style="font-size:14.5px;color:var(--ink)">${esc(i.n)}</div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<div class="noprice" title="Впиши цену в блоке цен справа, иначе себестоимость занижена">⚠ нет цены: ${esc(np.map(k => NAME[k].toLowerCase()).join(", "))}</div>` : ""}</td>
+    h += `<tr class="${q[i.id] ? "picked" : ""}"${i.fx || (FIELDS[i.s] && i.c !== "Материалы" && i.c !== "Детали") ? ` data-tip="${id}"` : ""}><td>${icon(i)}</td><td class="name"><div class="craft-fav-name"><button class="craft-fav" type="button" data-fav="${id}" aria-label="${favorites.has(i.id) ? "Убрать из избранного" : "Добавить в избранное"}" aria-pressed="${favorites.has(i.id)}">${favorites.has(i.id) ? "★" : "☆"}</button><div class="ru" style="font-size:14.5px;color:var(--ink)">${esc(i.n)}</div></div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<div class="noprice" title="Впиши цену в блоке цен справа, иначе себестоимость занижена">⚠ нет цены: ${esc(np.map(k => NAME[k].toLowerCase()).join(", "))}</div>` : ""}</td>
       <td class="comp">${compText(i)}</td><td class="num res">${i.m ? "<b>" + MAT[i.m].out + "</b>" : i.o ? "<b>" + i.o + "</b>" : "1"}</td>      <td class="num cost${np.length ? " warn" : ""}">${np.length ? (c > 0 ? "от " + fmt(c, i.m || i.o ? 1 : 0) : "?") : fmt(c, i.m || i.o ? 1 : 0)}</td><td class="num sell">${np.length ? (c > 0 ? "от " + fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0) : "?") : fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0)}</td>
       <td><div class="qcell"><input class="qty" data-k="${id}" type="number" min="0" step="1" value="${q[i.id] || ""}" aria-label="Количество: ${esc(i.n)}"><button class="add" type="button" data-k="${id}" aria-label="Добавить: ${esc(i.n)}">+</button></div></td></tr>`;
   });
   tb.innerHTML = h || `<tr><td colspan="7" class="l note">Ничего не найдено.</td></tr>`;
 }
+tb.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-fav]");
+  if (!btn) return;
+  const id = btn.dataset.fav;
+  if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+  try { localStorage.setItem(FAV_KEY, JSON.stringify([...favorites])); } catch(e) {}
+  renderTable();
+});
 tb.addEventListener("input", e => {
   const t = e.target;
   if (!t.classList.contains("qty")) return;
@@ -1002,6 +1024,14 @@ function renderOrder(skip) {
         })
         .join("")}</div>`
     : `<div class="empty">Нажми «+» у предмета в таблице, и он появится здесь.</div>`;
+  const perItem = ids.map(id => {
+    const item = BYID[id], qty = q[id] || 0;
+    const base = cost(item) * qty;
+    const full = base * (1 + P.markup / 100);
+    return `<div class="craft-price-item"><span class="craft-price-name" title="${esc(item.n)}">${esc(item.n)} <small>×${qty}</small></span><span class="craft-price-pair" title="Материалы + верстак">${fmt(base)} гр.</span><strong class="craft-price-pair" title="Материалы + верстак + работа">${fmt(full)} гр.</strong></div>`;
+  }).join("");
+  const priceRows = document.getElementById("craftItemPriceRows");
+  if (priceRows) priceRows.innerHTML = ids.length ? perItem : '<span class="hint">Добавь изделия в заказ.</span>';
   const pr = priceOf(b),
     { mat, labor, price } = pr,
     bench = t.b + b.matBench;
@@ -1282,6 +1312,14 @@ function clientText() {
   const o = O();
   const L = [`Заказ: ${o.name}`];
   sortedIds().forEach(id => L.push(`- ${nameV(id, varOf(id))} × ${Q()[id]}`));
+  const perItem = ids.map(id => {
+    const item = BYID[id], qty = q[id] || 0;
+    const base = cost(item) * qty;
+    const full = base * (1 + P.markup / 100);
+    return `<div class="craft-price-item"><span class="craft-price-name" title="${esc(item.n)}">${esc(item.n)} <small>×${qty}</small></span><span class="craft-price-pair" title="Материалы + верстак">${fmt(base)} гр.</span><strong class="craft-price-pair" title="Материалы + верстак + работа">${fmt(full)} гр.</strong></div>`;
+  }).join("");
+  const priceRows = document.getElementById("craftItemPriceRows");
+  if (priceRows) priceRows.innerHTML = ids.length ? perItem : '<span class="hint">Добавь изделия в заказ.</span>';
   const pr = priceOf(b),
     bench = t.b + b.matBench,
     price = pr.price,

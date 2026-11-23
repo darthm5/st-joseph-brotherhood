@@ -8,3 +8,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--ink)}
 .panel,.basket,.tablebox{border-color:var(--line)}
 button,input,select,textarea{max-width:100%}
 @media(max-width:950px){.app{display:flex;flex-direction:column}.app .left,.app .right{width:100%;max-width:100%;min-width:0}.toprow,.toolrow{flex-wrap:wrap}}
+
+/* v2.3.3 standalone ledger and responsive resource summary */
+.guild-back{display:inline-flex;align-items:center;color:#e5c489;text-decoration:none;border:1px solid #795e3d;border-radius:8px;padding:7px 12px;white-space:nowrap;font-weight:700}
+.guild-back:hover{background:#483528;color:#fff2d6}
+.guild-resource-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.guild-resource-fallback{display:block;width:100%;margin:8px 0;min-height:110px}
+@media(max-width:760px){.top{padding:10px}.toprow{align-items:flex-start}.toprow .views{width:100%;display:flex;flex-wrap:wrap;gap:5px}.toprow .views button{flex:1 1 auto}.app{padding:8px;gap:10px}.tablebox{max-width:100%;overflow-x:auto!important;-webkit-overflow-scrolling:touch}.tablebox table{min-width:560px}.guild-resource-actions .btn{width:100%}.guild-back{font-size:13px}}

@@ -13,7 +13,7 @@
 <body>
 <header class="top">
   <div class="toprow">
-    <h1>Счётная книга братства</h1>
+    <a class="guild-back" href="../index.html#crafts">← К братству</a><h1>Счётная книга братства</h1>
     <div class="seg" id="secs" role="group" aria-label="Ремесло"></div>
     <div class="dd help"><button class="btn ddb" type="button" aria-expanded="false" aria-label="Как пользоваться">?</button>
       <div class="ddp helpp" hidden>
@@ -86,7 +86,7 @@
         <p class="hint">Нажми ▸ у заготовки, чтобы увидеть, из чего её делают. Если заготовку дал заказчик или она есть на складе, её сырьё зачёркивается. Сырьё, которое нужно и само по себе (например, уголь на вещь), стоит отдельной строкой. Заготовки делают партиями (сталь по 2, железо по 3), поэтому иногда выходит больше, чем нужно, излишек после «Заказ выполнен» уходит на склад. Нажми на название сырья, чтобы не считать именно эту строку в «докупить» (например, уголь на сталь у тебя есть, а уголь на саму вещь нужно купить).</p>
       </div>
       <div style="min-width:0">
-        <h3>2. Итого по исходному сырью</h3>
+        <h3>2. Итого по исходному сырью</h3><div class="guild-resource-actions"><button class="btn" type="button" id="guildCopyResources">📋 Копировать список ресурсов</button><span id="guildCopyNote" class="hint" role="status"></span></div>
         <div class="tablebox"><table class="mini"><thead><tr><th class="l">Ресурс</th><th>Всего</th><th>От заказчика</th><th>Со склада</th><th>Докупить</th><th>Гроши</th></tr></thead><tbody id="rawsum"></tbody></table></div>
         <p class="hint">Всё сырьё из таблицы выше, сложенное по каждому ресурсу: и на заготовки, и прямо на вещи.</p>
       </div>
@@ -152,6 +152,7 @@
 <script src="layout.js?v=20261112e"></script>
 
 <script src="ricon.js?v=20261112e"></script>
+<script src="guild-resources.js?v=233"></script>
 
 
 

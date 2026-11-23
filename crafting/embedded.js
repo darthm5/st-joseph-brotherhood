@@ -100,13 +100,6 @@ const ITEMS = DATA.items,
   BYID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const KEY = "forge-ledger-v4";
 const FAV_KEY = "forge-ledger-favorites-v1";
-// v2.4.4: выбор способа получения каждой заготовки, локально для пользователя.
-const MAKE_KEY = "forge-ledger-material-modes-v1";
-let materialModes = {};
-try { const x = JSON.parse(localStorage.getItem(MAKE_KEY) || "{}"); if (x && typeof x === "object" && !Array.isArray(x)) materialModes = x; } catch(e) {}
-const isBought = k => materialModes[k] === "buy" && (+P["mk_" + k] > 0);
-const saveModes = () => { try { localStorage.setItem(MAKE_KEY, JSON.stringify(materialModes)); } catch(e) {} };
-
 let favorites = new Set();
 try { const saved = JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); if (Array.isArray(saved)) favorites = new Set(saved.filter(v => typeof v === "string")); } catch(e) {}
 let favoriteOnly = false;
@@ -176,6 +169,7 @@ const cleanOrders = arr =>
     snap: o.snap,
     stockDelta: o.stockDelta,
     gid: o.gid || null,
+    guildReq: o.guildReq || null,
     facDone: o.facDone || "",
     steps: o.steps || {},
     due: o.due || "",
@@ -228,7 +222,6 @@ let UC = {};
 function uc(k) {
   if (k in UC) return UC[k];
   if (!MAT[k]) return (UC[k] = P[k] || 0);
-  if (isBought(k)) return (UC[k] = +P["mk_" + k]);
   const m = MAT[k];
   UC[k] = 0;
   let s = m.b || 0;
@@ -392,7 +385,7 @@ function renderMkCmp() {
   mkRows.innerHTML = Object.keys(MAT)
     .filter(k => k !== "indr")
     .map(k => {
-      const c = materialModes[k] === "buy" ? (() => { const old = materialModes[k]; materialModes[k] = "make"; recalc(); const val = uc(k); materialModes[k] = old; recalc(); return val; })() : uc(k),
+      const c = uc(k),
         m = +P["mk_" + k] || 0;
       const verdict = !m
         ? '<span class="hint">впиши цену</span>'
@@ -401,25 +394,28 @@ function renderMkCmp() {
           : m > c
             ? `<span class="ok">крафтить: дешевле на ${g(m - c)} гр.</span>`
             : "одинаково";
-      return `<tr><td class="l">${esc(NAME[k])}</td><td class="num">${g(c)}</td><td class="num"><input class="mkin" data-mk="${k}" type="number" min="0" step="0.5" inputmode="decimal" placeholder="—" value="${m || ""}" aria-label="Цена покупки: ${esc(NAME[k])}"></td><td class="l"><select class="craft-mat-mode" data-mat-mode="${k}" aria-label="Способ получения: ${esc(NAME[k])}"><option value="make" ${materialModes[k] !== "buy" ? "selected" : ""}>⚒ Изготовить</option><option value="buy" ${materialModes[k] === "buy" ? "selected" : ""}>🛒 Купить</option></select><span class="craft-mat-verdict">${verdict}</span>${materialModes[k] === "buy" && !m ? '<span class="warn"> Укажи цену покупки — пока считается изготовление</span>' : ""}</td></tr>`;
+      return `<tr><td class="l">${esc(NAME[k])}</td><td class="num">${g(c)}</td><td class="num"><input class="mkin" data-mk="${k}" type="number" min="0" step="0.5" inputmode="decimal" placeholder="—" value="${m || ""}" aria-label="Цена покупки: ${esc(NAME[k])}"></td><td class="l">${verdict}</td></tr>`;
     })
     .join("");
 }
-mkRows.addEventListener("change", e => {
+mkRows.addEventListener("input", e => {
   const k = e.target.dataset.mk;
   if (!k) return;
   const v = parseFloat(e.target.value);
   if (v > 0) P["mk_" + k] = v;
   else delete P["mk_" + k];
-  save(); recalc(); renderAll();
+  save();
+  const c = uc(k),
+    m = v > 0 ? v : 0,
+    cell = e.target.closest("tr").lastElementChild;
+  cell.innerHTML = !m
+    ? '<span class="hint">впиши цену</span>'
+    : m < c
+      ? `<span class="buy">купить: дешевле на ${g(c - m)} гр.</span>`
+      : m > c
+        ? `<span class="ok">крафтить: дешевле на ${g(m - c)} гр.</span>`
+        : "одинаково";
 });
-mkRows.addEventListener("change", e => {
-  const k = e.target.dataset.matMode;
-  if (!k) return;
-  materialModes[k] = e.target.value === "buy" ? "buy" : "make";
-  saveModes(); recalc(); renderAll();
-});
-
 function renderDerived() {
   document.getElementById("derived").innerHTML =
     ["steel", "iron", "scrap", "leather", "pad", "cu", "frank", "tol"]
@@ -488,22 +484,17 @@ function breakdown(bare) {
     used = {},
     surplus = {};
   let matBench = 0;
-  let purchasedMoney = 0;
   for (const k of MATORD) {
     const n = need[k] || 0;
     if (!n) continue;
     const m = MAT[k],
       x = take(n, k);
     used[k] = x.c;
-    const bought = isBought(k) && x.rest > 0;
-    const crafts = bought ? 0 : Math.ceil(x.rest / m.out);
-    surplus[k] = bought ? 0 : crafts * m.out - x.rest;
-    if (bought) purchasedMoney += x.rest * (+P["mk_" + k]);
-    else {
-      matBench += crafts * (m.b || 0);
-      Object.entries(m.inp).forEach(([i, v]) => (need[i] = (need[i] || 0) + v * crafts));
-    }
-    mid.push({ k, need: n, c: x.c, s: x.s, make: bought ? 0 : x.rest, bought: bought ? x.rest : 0, crafts, d: depth(k) });
+    const crafts = Math.ceil(x.rest / m.out);
+    surplus[k] = crafts * m.out - x.rest;
+    matBench += crafts * (m.b || 0);
+    Object.entries(m.inp).forEach(([i, v]) => (need[i] = (need[i] || 0) + v * crafts));
+    mid.push({ k, need: n, c: x.c, s: x.s, make: x.rest, crafts, d: depth(k) });
   }
   const rows = RAWK.filter(k => need[k]).map(k => {
     const all = need[k],
@@ -533,9 +524,8 @@ function breakdown(bare) {
     extra,
     surplus,
     matBench,
-    purchasedMoney,
     unpriced,
-    buyMoney: purchasedMoney + rows.reduce((s, r) => s + r.money, 0),
+    buyMoney: rows.reduce((s, r) => s + r.money, 0),
     offVal: rows.reduce((s, r) => s + r.offVal, 0),
   };
 }
@@ -1094,12 +1084,6 @@ function renderOrder(skip) {
     const full = base * (1 + P.markup / 100);
     return `<div class="craft-price-item"><span class="craft-price-name" title="${esc(item.n)}">${esc(item.n)} <small>×${qty}</small></span><span class="craft-price-pair" title="Материалы + верстак">${fmt(base)} гр.</span><strong class="craft-price-pair" title="Материалы + верстак + работа">${fmt(full)} гр.</strong></div>`;
   }).join("");
-  const purchasedNote = document.getElementById("craftPurchasedNote");
-  if (purchasedNote) {
-    const purchases = b.mid.filter(x => x.bought);
-    purchasedNote.textContent = purchases.length ? "Купить заготовки: " + purchases.map(x => `${NAME[x.k]} ×${fmt(x.bought)}`).join(" · ") + ` · ${fmt(b.purchasedMoney)} гр.` : "";
-    purchasedNote.hidden = !purchases.length;
-  }
   const priceRows = document.getElementById("craftItemPriceRows");
   if (priceRows) priceRows.innerHTML = ids.length ? perItem : '<span class="hint">Добавь изделия в заказ.</span>';
   const pr = priceOf(b),
@@ -1243,7 +1227,7 @@ function renderBreakdown(b) {
           const m = r.m,
             left = m.crafts * MAT[r.k].out - m.make;
           const op = openMid.has(r.k);
-          return `<tr class="midrow"${ra(r)}>${nm(r, `<button type="button" class="mtog" data-tg="${r.k}" aria-expanded="${op}" title="${op ? "Свернуть" : "Показать, из чего делается"}">${op ? "▾" : "▸"}</button> <b>${esc(NAME[r.k])}</b> <span class="rtag">заготовка</span>${m.crafts ? `<br><span class="hint">${fmt(m.crafts)} крафт. по ${MAT[r.k].out} шт.${left ? `, лишних ${left}` : ""}</span>` : ""}`)}<td class="num"><b>${fmt(m.need)}</b></td><td class="num ok">${dot(m.c)}</td><td class="num">${dot(m.s)}</td><td class="num">${m.bought ? `купить <b>${fmt(m.bought)}</b>` : m.make ? `сделать <b>${fmt(m.make)}</b>` : '<span class="ok">хватает</span>'}</td><td class="num hint" title="Сырьё на эту заготовку, уже входит в строки ниже">${r.money ? fmt(r.money) : "·"}</td></tr>`;
+          return `<tr class="midrow"${ra(r)}>${nm(r, `<button type="button" class="mtog" data-tg="${r.k}" aria-expanded="${op}" title="${op ? "Свернуть" : "Показать, из чего делается"}">${op ? "▾" : "▸"}</button> <b>${esc(NAME[r.k])}</b> <span class="rtag">заготовка</span>${m.crafts ? `<br><span class="hint">${fmt(m.crafts)} крафт. по ${MAT[r.k].out} шт.${left ? `, лишних ${left}` : ""}</span>` : ""}`)}<td class="num"><b>${fmt(m.need)}</b></td><td class="num ok">${dot(m.c)}</td><td class="num">${dot(m.s)}</td><td class="num">${m.make ? `сделать <b>${fmt(m.make)}</b>` : '<span class="ok">хватает</span>'}</td><td class="num hint" title="Сырьё на эту заготовку, уже входит в строки ниже">${r.money ? fmt(r.money) : "·"}</td></tr>`;
         }
         if (r.t === "x")
           return `<tr class="strike"${ra(r)}>${nm(r)}<td class="num">${fmt(r.amt)}</td><td colspan="3" class="l hint">не нужно, заготовки хватает</td><td class="num">·</td></tr>`;
@@ -1306,6 +1290,8 @@ function renderDone(b) {
   const o = O();
   doneBtn.hidden = !b.t.n;
   doneBtn.disabled = o.done;
+  if (o.guildReq) { doneBtn.disabled = !!o.done; undoBtn.hidden = true; doneBtn.textContent = o.done ? "Заказ выполнен ✓" : "Проверить одобрение и завершить"; doneNote.textContent = o.done ? "Ресурсы выданы через кладовую." : "Ожидается решение администрации по заявкам кладовой."; return; }
+  if (window.SRC_FAC) { doneBtn.textContent = "Запросить ресурсы у братства"; doneNote.textContent = "Списание происходит только после одобрения заявок в кладовой."; undoBtn.hidden = true; return; }
   undoBtn.hidden = !(o.done && o.stockDelta);
   if (!doneBtn.dataset.armed)
     doneBtn.textContent = o.done ? "Заказ выполнен ✓" : "Заказ выполнен: списать со склада";
@@ -1795,4 +1781,87 @@ btn.addEventListener('click',async()=>{const lines=[];for(const tr of body.query
     setTimeout(()=>btn.textContent='Копировать список',1600);
   });
   update();
+})();
+
+// v2.4.5 — интеграция калькулятора с существующей системой заявок кладовой.
+// Никаких прямых INSERT в storage_transactions: только RPC storage_submit_request.
+(()=>{
+ const root=document.getElementById('craftEmbedded');if(!root)return;
+ const status=document.getElementById('craftGuildStatus'),list=document.getElementById('craftGuildStockRows');
+ const refresh=document.getElementById('craftGuildRefresh');
+ const norm=s=>String(s||'').toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+ let catalog=[],balance=new Map(),busy=false,loaded=false;
+ const mappings=(()=>{try{return JSON.parse(localStorage.getItem('craft-guild-map-v1')||'{}')}catch(e){return {}}})();
+ const label=(s)=>{status.textContent=s};
+ const getItem=k=>catalog.find(x=>x.id===mappings[k])||catalog.find(x=>norm(x.name)===norm(NAME[k])&&(x.section||'materials')==='materials');
+ const getQty=k=>{const i=getItem(k);return i?Math.max(0,balance.get(i.id)||0):0};
+ function renderGuild(){
+   if(!loaded){list.textContent='Нажми «↻ Остатки», чтобы загрузить кладовую.';return}
+   list.replaceChildren();
+   const keys=ALLK.filter(k=>treeKeys().has(k)||getQty(k)>0);
+   for(const k of keys){
+     const row=document.createElement('div');row.className='craft-guild-row';
+     const title=document.createElement('span');title.textContent=NAME[k];
+     const value=document.createElement('b');value.textContent=getItem(k)?getQty(k)+' шт.':'Нет соответствия';
+     const select=document.createElement('select');select.setAttribute('aria-label','Соответствие кладовой для '+NAME[k]);
+     select.append(new Option('Автоматически / не найдено',''));
+     for(const item of catalog.filter(i=>(i.section||'materials')==='materials'))select.add(new Option(item.name,item.id));
+     select.value=mappings[k]||'';
+     select.addEventListener('change',()=>{if(select.value)mappings[k]=select.value;else delete mappings[k];localStorage.setItem('craft-guild-map-v1',JSON.stringify(mappings));setGuildStock();renderGuild();renderOrder()});
+     row.append(title,value,select);list.append(row);
+   }
+ }
+ function setGuildStock(){window.FAC_STOCK=Object.fromEntries(ALLK.map(k=>[k,getQty(k)]))}
+ async function load(){
+   if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode)){label('Войди в аккаунт участника братства.');return}
+   refresh.disabled=true;label('Загружаю остатки кладовой…');
+   try{
+     const [items,tx]=await Promise.all([storeAllRows('storage_items','id,name,section,category,unit','name'),storeAllRows('storage_transactions','id,item_id,quantity,created_at')]);
+     catalog=items;balance=new Map(items.map(i=>[i.id,0]));for(const t of tx)balance.set(t.item_id,(balance.get(t.item_id)||0)+Number(t.quantity));
+     loaded=true;setGuildStock();renderGuild();if(window.SRC_FAC)renderOrder();label('Остатки обновлены из кладовой. Данные доступны только для просмотра.');
+   }catch(e){label('Не удалось загрузить кладовую: '+e.message)}finally{refresh.disabled=false}
+ }
+ refresh.addEventListener('click',load);
+ document.getElementById('craftShowCalculator')?.addEventListener('click',()=>{if(!loaded)load()});
+ document.querySelectorAll('input[name="craftStockSource"]').forEach(r=>r.addEventListener('change',()=>{
+   window.SRC_FAC=r.value==='guild';
+   document.getElementById('craftPersonalStock').hidden=window.SRC_FAC;
+   document.getElementById('craftGuildStock').hidden=!window.SRC_FAC;
+   if(window.SRC_FAC&&!loaded)load();
+   renderOrder();
+ }));
+ document.getElementById('craftGuildStock').hidden=true;
+ const btn=document.getElementById('odone');
+ btn.addEventListener('click',async e=>{
+   const o=O();if(!window.SRC_FAC&&!o.guildReq)return;
+   e.preventDefault();e.stopImmediatePropagation();if(busy||o.done)return;
+   if(!loaded){await load();if(!loaded)return}
+   if(!supabaseClient||!currentSession?.user)return label('Нужна авторизация.');
+   busy=true;btn.disabled=true;
+   try{
+     if(!o.guildReq){
+       const b=breakdown(),needed=new Map();
+       for(const r of [...b.mid,...b.rows])if(r.s>0)needed.set(r.k,(needed.get(r.k)||0)+r.s);
+       if(!needed.size){label('Для этого заказа не используются ресурсы братства. Выбери личный склад либо добавь ресурсы в кладовую.');return}
+       const missing=[...needed].filter(([k])=>!getItem(k));if(missing.length){label('Укажи соответствие в «Склад братства»: '+missing.map(([k])=>NAME[k]).join(', '));document.getElementById('craftGuildStock').open=true;return}
+       if(!confirm('Отправить '+needed.size+' заявок на выдачу ресурсов? Администрация рассмотрит каждую позицию отдельно.'))return;
+       o.guildReq={token:'CRAFT-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),items:[...needed].map(([k,q])=>({k,id:getItem(k).id,q}))};save();
+     }
+     const req=o.guildReq;
+     const {data:existing,error:readErr}=await supabaseClient.from('storage_requests').select('id,item_id,quantity,comment,status,user_id').eq('user_id',currentSession.user.id).like('comment','%'+req.token+'%').limit(1000);
+     if(readErr)throw readErr;
+     for(const item of req.items){
+       if(existing.some(r=>r.comment?.includes(req.token)&&r.comment?.includes('['+item.k+']')&&r.item_id===item.id&&Number(r.quantity)===item.q))continue;
+       const {error}=await supabaseClient.rpc('storage_submit_request',{p_item_id:item.id,p_request_type:'withdraw',p_quantity:item.q,p_comment:'Заказ «'+o.name+'» '+req.token+' ['+item.k+']'});
+       if(error)throw error;
+     }
+     const {data:rows,error:err}=await supabaseClient.from('storage_requests').select('id,item_id,quantity,comment,status,user_id').eq('user_id',currentSession.user.id).like('comment','%'+req.token+'%').limit(1000);
+     if(err)throw err;
+     const statuses=req.items.map(item=>rows.find(r=>r.item_id===item.id&&Number(r.quantity)===item.q&&r.comment?.includes('['+item.k+']'))?.status||'missing');
+     if(statuses.every(s=>s==='approved')){
+       o.done=true;if(!o.jid)addToJournal(o);save();renderOrderList();renderOrder();renderJournal();label('Все заявки одобрены. Заказ отмечен выполненным, запись добавлена в журнал.');
+     }else label('Заявки: одобрено '+statuses.filter(s=>s==='approved').length+' из '+statuses.length+', ожидает '+statuses.filter(s=>s==='pending').length+', отклонено '+statuses.filter(s=>s==='rejected').length+'. После одобрения нажми «Проверить одобрение и завершить».');
+     await load();renderOrder();
+   }catch(err){label('Ошибка заявок: '+err.message+'. Повтори действие: уже отправленные заявки не будут созданы повторно.')}finally{busy=false;btn.disabled=!!O().done}
+ },true);
 })();

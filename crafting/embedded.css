@@ -728,3 +728,46 @@
 #craftEmbedded.craft-workshop-mode .right::before{content:'Ⅲ  Заказ и стоимость';display:block;font-size:15px;font-weight:700;margin:0 0 8px;padding:6px 2px;border-bottom:1px solid var(--line)}
 @media(max-width:1199px){#craftEmbedded.craft-workshop-mode .app{grid-template-columns:minmax(210px,35fr) minmax(290px,65fr)!important}#craftEmbedded.craft-workshop-mode .right{grid-column:1/-1;position:static!important}#craftEmbedded.craft-workshop-mode #zakaz{max-height:none!important}}
 @media(max-width:740px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.craft-workshop-center,#craftEmbedded.craft-workshop-mode .app>.right{width:100%!important}#craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:360px}}
+
+/* v2.4.7 — workshop density and clarity, no calculation changes. */
+#craftEmbedded.craft-workshop-mode .craft-compact{margin-bottom:7px}
+#craftEmbedded.craft-workshop-mode .craft-compact-top{gap:6px}
+#craftEmbedded.craft-workshop-mode .toolrow{gap:5px;padding:6px 0}
+#craftEmbedded.craft-workshop-mode .app{gap:8px!important}
+#craftEmbedded.craft-workshop-mode #catbook::before,#craftEmbedded.craft-workshop-mode .craft-workshop-center::before,#craftEmbedded.craft-workshop-mode .right::before{font-size:13px;padding:4px 2px;margin-bottom:5px}
+#craftEmbedded.craft-workshop-mode #catbook .book td,#craftEmbedded.craft-workshop-mode #catbook .book th{padding:5px 3px;font-size:11px}
+#craftEmbedded.craft-workshop-mode #catbook .book td img{max-width:30px;max-height:30px}
+#craftEmbedded.craft-workshop-mode #catbook .craft-fav{font-size:16px;padding:1px 2px}
+#craftEmbedded.craft-workshop-mode #raschet{padding:8px}
+#craftEmbedded.craft-workshop-mode #raschet .craft-calc-heading{margin-bottom:4px}
+#craftEmbedded.craft-workshop-mode #raschet .craft-calc-heading .hint{font-size:10px}
+#craftEmbedded.craft-workshop-mode .craft-quick-summary{margin:4px 0 6px;padding:6px}
+#craftEmbedded.craft-workshop-mode .craft-detail-group{margin:5px 0}
+#craftEmbedded.craft-workshop-mode .craft-detail-group>summary{padding:6px 8px;font-size:12px}
+#craftEmbedded.craft-workshop-mode .craft-detail-group>summary small{font-size:10px}
+#craftEmbedded.craft-workshop-mode .craft-stock-source{margin:6px 0;padding:6px 8px;gap:6px;font-size:11px}
+#craftEmbedded.craft-workshop-mode .craft-guild-row{padding:3px 5px;font-size:11px;gap:5px}
+#craftEmbedded.craft-workshop-mode #stock{gap:3px 6px}
+#craftEmbedded.craft-workshop-mode #stock .pf{padding:3px 4px}
+#craftEmbedded.craft-workshop-mode .basket{padding:8px;gap:5px}
+#craftEmbedded.craft-workshop-mode .basket .ptog h2{font-size:15px}
+#craftEmbedded.craft-workshop-mode .basket .tile{padding:4px!important;gap:4px}
+#craftEmbedded.craft-workshop-mode .basket .tile .ic{width:22px!important;height:22px!important}
+#craftEmbedded.craft-workshop-mode .basket .tile .tn{font-size:10px}
+#craftEmbedded.craft-workshop-mode .basket .obar{gap:4px;margin:4px 0}
+#craftEmbedded.craft-workshop-mode .basket .obar .btn{padding:5px 7px;font-size:11px}
+#craftEmbedded.craft-workshop-mode .basket .craft-item-prices{margin:4px 0;padding:4px 6px}
+#craftEmbedded.craft-workshop-mode .basket .craft-price-head{padding:4px 0 3px}
+#craftEmbedded.craft-workshop-mode .basket .craft-price-item{padding:3px 0}
+#craftEmbedded.craft-workshop-mode .basket .sum{padding:5px 0}
+#craftEmbedded.craft-workshop-mode .basket .linkbtn[data-goview="calc"]{display:none!important}
+#craftEmbedded.craft-workshop-mode .basket .prices.pmk{margin:2px 0}
+#craftEmbedded.craft-workshop-mode .basket .omore summary{font-size:11px}
+@media(max-width:1199px){#craftEmbedded.craft-workshop-mode .basket .linkbtn[data-goview="calc"]{display:none!important}}
+@media(max-width:740px){
+ #craftEmbedded.craft-workshop-mode .app{gap:12px!important}
+ #craftEmbedded.craft-workshop-mode #catbook .tablebox{max-height:320px}
+ #craftEmbedded.craft-workshop-mode .right{position:static!important}
+ #craftEmbedded.craft-workshop-mode .basket{max-height:none!important;overflow:visible}
+ #craftEmbedded.craft-workshop-mode .craft-guild-row{grid-template-columns:minmax(80px,1fr) 75px minmax(105px,1fr)}
+}

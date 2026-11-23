@@ -575,3 +575,17 @@
  #craftEmbedded .guild-resource-actions .btn{width:100%}
  #craftEmbedded .basket .tiles{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
 }
+
+/* v2.3.9: compact production overview and safe visibility */
+#craftEmbedded .craft-quick-summary{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:10px;margin:9px 0 12px}
+#craftEmbedded .craft-quick-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+#craftEmbedded .craft-quick-top strong{font-size:14px;color:var(--ink)}
+#craftEmbedded .craft-quick-top .btn{font-size:12px;padding:5px 9px;white-space:nowrap}
+#craftEmbedded .craft-quick-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:5px;margin-bottom:7px}
+#craftEmbedded .craft-quick-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:5px;min-width:0}
+#craftEmbedded .craft-quick-item span{font-size:12px;overflow-wrap:anywhere}
+#craftEmbedded .craft-quick-item b{font-size:13px;white-space:nowrap;color:var(--copper)}
+#craftEmbedded .craft-quick-item small{grid-column:1/-1;color:var(--muted);font-size:11px}
+#craftEmbedded .view[hidden],#craftEmbedded #craftLegacyData[hidden]{display:none!important}
+#craftEmbedded .ic{object-fit:contain}
+@media(max-width:600px){#craftEmbedded .craft-quick-rows{grid-template-columns:1fr}#craftEmbedded .craft-quick-top{flex-wrap:wrap}}

@@ -7,7 +7,7 @@
   <title>Братство Святого Иосифа Обручника</title>
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="crafting/embedded.css?v=238">
+<link rel="stylesheet" href="crafting/embedded.css?v=239">
 </head>
 <body>
   <div class="site-shell">
@@ -177,7 +177,7 @@
           <div class="page-title-block"><div class="eyebrow">Ремесленная книга братства</div><h1>Справочник специалистов</h1><p>Работы и мастерства принятых членов братства. Выберите специализацию, чтобы увидеть мастеров и их уровни.</p></div>
           <div class="craft-switch" role="group" aria-label="Раздел ремёсел"><button class="secondary-button craft-switch-active" id="craftShowDirectory" type="button">Специалисты</button><button class="secondary-button" id="craftShowCalculator" type="button">⚒ Калькулятор ремёсел</button></div>
           <section id="craftCalculator" hidden>
-<div id="craftEmbedded" class="craft-embedded"><header class="craft-compact"><div class="craft-compact-top"><span class="craft-compact-label">⚒ Счётная книга</span><div class="seg" id="secs" role="group" aria-label="Ремесло"></div><nav class="views" role="tablist" aria-label="Раздел книги"><button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button><button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button><button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button><button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button></nav></div><div class="toolrow" id="toolrow"><input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета"><div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div><div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> ▾</button><div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div><div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> ▾</button><div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка"></div></div></div><button class="btn" id="fold" type="button" aria-expanded="true">Свернуть чертежи</button></div></header><div class="app">
+<div id="craftEmbedded" class="craft-embedded"><div id="craftLegacyData" hidden aria-hidden="true"><button id="dsave" type="button"></button><input id="dload" type="file"><span id="datanote"></span></div><header class="craft-compact"><div class="craft-compact-top"><span class="craft-compact-label">⚒ Счётная книга</span><div class="seg" id="secs" role="group" aria-label="Ремесло"></div><nav class="views" role="tablist" aria-label="Раздел книги"><button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button><button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button><button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button><button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button></nav></div><div class="toolrow" id="toolrow"><input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета"><div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div><div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> ▾</button><div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div><div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> ▾</button><div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка"></div></div></div><button class="btn" id="fold" type="button" aria-expanded="true">Свернуть чертежи</button></div></header><div class="app">
   <div class="left" id="left">
     <section class="view" data-v="book" id="catbook">
       <div class="dtip" id="dtip" hidden></div>
@@ -210,7 +210,7 @@
     </section>
     <section class="view" data-v="calc" hidden>
     <section class="panel" id="raschet" aria-labelledby="rh">
-    <h2 id="rh">Расчёт сырья на заказ</h2>
+    <h2 id="rh">Расчёт сырья на заказ</h2><div class="craft-quick-summary" id="craftQuickSummary" aria-live="polite"><div class="craft-quick-top"><strong>Необходимые ресурсы</strong><button type="button" class="btn" id="craftQuickCopy">Копировать список</button></div><div id="craftQuickRows" class="craft-quick-rows"><span class="hint">Добавь изделия в заказ, чтобы увидеть материалы.</span></div><div class="hint">Итог по всем изделиям заказа. Подробная таблица и заготовки — ниже.</div></div>
     <p class="sub" id="rempty">Отбери вещи в заказ, и здесь появится разбивка.</p>
     <div class="bd" id="bd" hidden>
       <div style="min-width:0">
@@ -699,7 +699,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
-  <script src="crafting/embedded.js?v=237"></script>
+  <script src="crafting/embedded.js?v=239"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});

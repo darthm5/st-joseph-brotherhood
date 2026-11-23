@@ -694,3 +694,8 @@
 #craftEmbedded .stock .pf input{width:100%;min-width:0;max-width:70px;padding:4px;font-size:12px;text-align:right}
 #craftEmbedded .stock{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:3px 8px}
 @media(max-width:650px){#craftEmbedded .craft-price-head,#craftEmbedded .craft-price-item{grid-template-columns:minmax(75px,1fr) 72px 72px;gap:3px}#craftEmbedded .craft-fav-filter{font-size:11px}}
+
+/* v2.4.4: mode selector and purchased materials */
+#craftEmbedded .craft-mat-mode{max-width:145px;width:100%;padding:4px 5px;font-size:12px;background:var(--paper,#f7f0df);color:var(--ink,#342a20);border:1px solid #a99374;border-radius:5px}
+#craftEmbedded .craft-mat-verdict{display:block;font-size:11px;margin-top:3px;line-height:1.3}
+#craftEmbedded .craft-purchased-note{font-size:12px;line-height:1.4;padding:6px 8px;border:1px solid #a99374;border-radius:5px;margin:5px 0}

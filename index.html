@@ -7,7 +7,7 @@
   <title>Братство Святого Иосифа Обручника</title>
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="crafting/embedded.css?v=243">
+<link rel="stylesheet" href="crafting/embedded.css?v=244">
 </head>
 <body>
   <div class="site-shell">
@@ -202,7 +202,7 @@
     <div class="pgrid" id="pgrid"></div>
     <details class="more" id="mkcmp" style="margin-top:12px"><summary>Заготовки: изготовить или купить</summary>
       <p class="hint" style="margin:6px 0">Впиши вручную цену покупки готовой заготовки и сравни её со стоимостью изготовления. Цена за 1 шт.</p>
-      <div class="tablebox"><table class="mini"><thead><tr><th class="l">Заготовка</th><th>Крафт, за 1 шт.</th><th>Покупка, за 1 шт.</th><th class="l">Выгоднее</th></tr></thead><tbody id="mkrows"></tbody></table></div>
+      <div class="tablebox"><table class="mini"><thead><tr><th class="l">Заготовка</th><th>Крафт, за 1 шт.</th><th>Покупка, за 1 шт.</th><th class="l">Способ / сравнение</th></tr></thead><tbody id="mkrows"></tbody></table></div>
     </details>
         <div class="derived" id="derived"></div>
       </div>
@@ -261,7 +261,8 @@
       <div class="prices pmk" id="pricesm"></div>
       <div class="obar"><label class="sr" for="osel">Выбрать заказ</label><select id="osel"></select><button class="btn" id="onew" type="button">+ Новый</button></div>
       <div id="tiles"></div><datalist id="varlist"></datalist>
-      <details class="craft-item-prices" open><summary>Стоимость по изделиям <small>Без работы / с работой</small></summary><div class="craft-price-head"><span>Изделие</span><span>Мат. + верстак</span><span>С работой</span></div><div id="craftItemPriceRows"></div></details><div class="sum" id="bsum"></div>
+      <details class="craft-item-prices" open><summary>Стоимость по изделиям <small>Без работы / с работой</small></summary><div class="craft-price-head"><span>Изделие</span><span>Мат. + верстак</span><span>С работой</span></div><div id="craftPurchasedNote" class="craft-purchased-note" hidden></div>
+<div id="craftItemPriceRows"></div></details><div class="sum" id="bsum"></div>
       <details class="omore" id="omore"><summary>Детали: название, срок, оплата, подпись</summary>
       <div class="obar"><label class="sr" for="oname">Название заказа</label><input id="oname" type="text" maxlength="40" placeholder="Название, например: Ян, латы"></div>
       <div class="ostat">
@@ -703,7 +704,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
-  <script src="crafting/embedded.js?v=243"></script>
+  <script src="crafting/embedded.js?v=244"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});

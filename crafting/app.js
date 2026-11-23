@@ -47,6 +47,13 @@ const ITEMS = DATA.items,
   BYID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const KEY = "forge-ledger-v4";
 const FAV_KEY = "forge-ledger-favorites-v1";
+// v2.4.4: выбор способа получения каждой заготовки, локально для пользователя.
+const MAKE_KEY = "forge-ledger-material-modes-v1";
+let materialModes = {};
+try { const x = JSON.parse(localStorage.getItem(MAKE_KEY) || "{}"); if (x && typeof x === "object" && !Array.isArray(x)) materialModes = x; } catch(e) {}
+const isBought = k => materialModes[k] === "buy" && (+P["mk_" + k] > 0);
+const saveModes = () => { try { localStorage.setItem(MAKE_KEY, JSON.stringify(materialModes)); } catch(e) {} };
+
 let favorites = new Set();
 try { const saved = JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); if (Array.isArray(saved)) favorites = new Set(saved.filter(v => typeof v === "string")); } catch(e) {}
 let favoriteOnly = false;
@@ -168,6 +175,7 @@ let UC = {};
 function uc(k) {
   if (k in UC) return UC[k];
   if (!MAT[k]) return (UC[k] = P[k] || 0);
+  if (isBought(k)) return (UC[k] = +P["mk_" + k]);
   const m = MAT[k];
   UC[k] = 0;
   let s = m.b || 0;
@@ -331,7 +339,7 @@ function renderMkCmp() {
   mkRows.innerHTML = Object.keys(MAT)
     .filter(k => k !== "indr")
     .map(k => {
-      const c = uc(k),
+      const c = materialModes[k] === "buy" ? (() => { const old = materialModes[k]; materialModes[k] = "make"; recalc(); const val = uc(k); materialModes[k] = old; recalc(); return val; })() : uc(k),
         m = +P["mk_" + k] || 0;
       const verdict = !m
         ? '<span class="hint">впиши цену</span>'
@@ -340,28 +348,25 @@ function renderMkCmp() {
           : m > c
             ? `<span class="ok">крафтить: дешевле на ${g(m - c)} гр.</span>`
             : "одинаково";
-      return `<tr><td class="l">${esc(NAME[k])}</td><td class="num">${g(c)}</td><td class="num"><input class="mkin" data-mk="${k}" type="number" min="0" step="0.5" inputmode="decimal" placeholder="—" value="${m || ""}" aria-label="Цена покупки: ${esc(NAME[k])}"></td><td class="l">${verdict}</td></tr>`;
+      return `<tr><td class="l">${esc(NAME[k])}</td><td class="num">${g(c)}</td><td class="num"><input class="mkin" data-mk="${k}" type="number" min="0" step="0.5" inputmode="decimal" placeholder="—" value="${m || ""}" aria-label="Цена покупки: ${esc(NAME[k])}"></td><td class="l"><select class="craft-mat-mode" data-mat-mode="${k}" aria-label="Способ получения: ${esc(NAME[k])}"><option value="make" ${materialModes[k] !== "buy" ? "selected" : ""}>⚒ Изготовить</option><option value="buy" ${materialModes[k] === "buy" ? "selected" : ""}>🛒 Купить</option></select><span class="craft-mat-verdict">${verdict}</span>${materialModes[k] === "buy" && !m ? '<span class="warn"> Укажи цену покупки — пока считается изготовление</span>' : ""}</td></tr>`;
     })
     .join("");
 }
-mkRows.addEventListener("input", e => {
+mkRows.addEventListener("change", e => {
   const k = e.target.dataset.mk;
   if (!k) return;
   const v = parseFloat(e.target.value);
   if (v > 0) P["mk_" + k] = v;
   else delete P["mk_" + k];
-  save();
-  const c = uc(k),
-    m = v > 0 ? v : 0,
-    cell = e.target.closest("tr").lastElementChild;
-  cell.innerHTML = !m
-    ? '<span class="hint">впиши цену</span>'
-    : m < c
-      ? `<span class="buy">купить: дешевле на ${g(c - m)} гр.</span>`
-      : m > c
-        ? `<span class="ok">крафтить: дешевле на ${g(m - c)} гр.</span>`
-        : "одинаково";
+  save(); recalc(); renderAll();
 });
+mkRows.addEventListener("change", e => {
+  const k = e.target.dataset.matMode;
+  if (!k) return;
+  materialModes[k] = e.target.value === "buy" ? "buy" : "make";
+  saveModes(); recalc(); renderAll();
+});
+
 function renderDerived() {
   document.getElementById("derived").innerHTML =
     ["steel", "iron", "scrap", "leather", "pad", "cu", "frank", "tol"]
@@ -430,17 +435,22 @@ function breakdown(bare) {
     used = {},
     surplus = {};
   let matBench = 0;
+  let purchasedMoney = 0;
   for (const k of MATORD) {
     const n = need[k] || 0;
     if (!n) continue;
     const m = MAT[k],
       x = take(n, k);
     used[k] = x.c;
-    const crafts = Math.ceil(x.rest / m.out);
-    surplus[k] = crafts * m.out - x.rest;
-    matBench += crafts * (m.b || 0);
-    Object.entries(m.inp).forEach(([i, v]) => (need[i] = (need[i] || 0) + v * crafts));
-    mid.push({ k, need: n, c: x.c, s: x.s, make: x.rest, crafts, d: depth(k) });
+    const bought = isBought(k) && x.rest > 0;
+    const crafts = bought ? 0 : Math.ceil(x.rest / m.out);
+    surplus[k] = bought ? 0 : crafts * m.out - x.rest;
+    if (bought) purchasedMoney += x.rest * (+P["mk_" + k]);
+    else {
+      matBench += crafts * (m.b || 0);
+      Object.entries(m.inp).forEach(([i, v]) => (need[i] = (need[i] || 0) + v * crafts));
+    }
+    mid.push({ k, need: n, c: x.c, s: x.s, make: bought ? 0 : x.rest, bought: bought ? x.rest : 0, crafts, d: depth(k) });
   }
   const rows = RAWK.filter(k => need[k]).map(k => {
     const all = need[k],
@@ -470,8 +480,9 @@ function breakdown(bare) {
     extra,
     surplus,
     matBench,
+    purchasedMoney,
     unpriced,
-    buyMoney: rows.reduce((s, r) => s + r.money, 0),
+    buyMoney: purchasedMoney + rows.reduce((s, r) => s + r.money, 0),
     offVal: rows.reduce((s, r) => s + r.offVal, 0),
   };
 }
@@ -1030,6 +1041,12 @@ function renderOrder(skip) {
     const full = base * (1 + P.markup / 100);
     return `<div class="craft-price-item"><span class="craft-price-name" title="${esc(item.n)}">${esc(item.n)} <small>×${qty}</small></span><span class="craft-price-pair" title="Материалы + верстак">${fmt(base)} гр.</span><strong class="craft-price-pair" title="Материалы + верстак + работа">${fmt(full)} гр.</strong></div>`;
   }).join("");
+  const purchasedNote = document.getElementById("craftPurchasedNote");
+  if (purchasedNote) {
+    const purchases = b.mid.filter(x => x.bought);
+    purchasedNote.textContent = purchases.length ? "Купить заготовки: " + purchases.map(x => `${NAME[x.k]} ×${fmt(x.bought)}`).join(" · ") + ` · ${fmt(b.purchasedMoney)} гр.` : "";
+    purchasedNote.hidden = !purchases.length;
+  }
   const priceRows = document.getElementById("craftItemPriceRows");
   if (priceRows) priceRows.innerHTML = ids.length ? perItem : '<span class="hint">Добавь изделия в заказ.</span>';
   const pr = priceOf(b),
@@ -1173,7 +1190,7 @@ function renderBreakdown(b) {
           const m = r.m,
             left = m.crafts * MAT[r.k].out - m.make;
           const op = openMid.has(r.k);
-          return `<tr class="midrow"${ra(r)}>${nm(r, `<button type="button" class="mtog" data-tg="${r.k}" aria-expanded="${op}" title="${op ? "Свернуть" : "Показать, из чего делается"}">${op ? "▾" : "▸"}</button> <b>${esc(NAME[r.k])}</b> <span class="rtag">заготовка</span>${m.crafts ? `<br><span class="hint">${fmt(m.crafts)} крафт. по ${MAT[r.k].out} шт.${left ? `, лишних ${left}` : ""}</span>` : ""}`)}<td class="num"><b>${fmt(m.need)}</b></td><td class="num ok">${dot(m.c)}</td><td class="num">${dot(m.s)}</td><td class="num">${m.make ? `сделать <b>${fmt(m.make)}</b>` : '<span class="ok">хватает</span>'}</td><td class="num hint" title="Сырьё на эту заготовку, уже входит в строки ниже">${r.money ? fmt(r.money) : "·"}</td></tr>`;
+          return `<tr class="midrow"${ra(r)}>${nm(r, `<button type="button" class="mtog" data-tg="${r.k}" aria-expanded="${op}" title="${op ? "Свернуть" : "Показать, из чего делается"}">${op ? "▾" : "▸"}</button> <b>${esc(NAME[r.k])}</b> <span class="rtag">заготовка</span>${m.crafts ? `<br><span class="hint">${fmt(m.crafts)} крафт. по ${MAT[r.k].out} шт.${left ? `, лишних ${left}` : ""}</span>` : ""}`)}<td class="num"><b>${fmt(m.need)}</b></td><td class="num ok">${dot(m.c)}</td><td class="num">${dot(m.s)}</td><td class="num">${m.bought ? `купить <b>${fmt(m.bought)}</b>` : m.make ? `сделать <b>${fmt(m.make)}</b>` : '<span class="ok">хватает</span>'}</td><td class="num hint" title="Сырьё на эту заготовку, уже входит в строки ниже">${r.money ? fmt(r.money) : "·"}</td></tr>`;
         }
         if (r.t === "x")
           return `<tr class="strike"${ra(r)}>${nm(r)}<td class="num">${fmt(r.amt)}</td><td colspan="3" class="l hint">не нужно, заготовки хватает</td><td class="num">·</td></tr>`;

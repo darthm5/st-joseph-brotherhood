@@ -253,7 +253,28 @@ function renderPrices() {
           .join("")}</div></div>`,
     )
     .join("");
+  filterCraftPrices();
 }
+function filterCraftPrices() {
+  const input = document.getElementById("craftPriceSearch");
+  const note = document.getElementById("craftPriceCount");
+  const grid = document.getElementById("pgrid");
+  if (!input || !grid) return;
+  const query = input.value.trim().toLocaleLowerCase("ru");
+  let shown = 0, total = 0;
+  grid.querySelectorAll(".pf").forEach(field => {
+    total++;
+    const visible = field.querySelector("label").textContent.toLocaleLowerCase("ru").includes(query);
+    field.hidden = !visible;
+    if (visible) shown++;
+  });
+  grid.querySelectorAll(":scope > div").forEach(group => {
+    group.hidden = !group.querySelector(".pf:not([hidden])");
+  });
+  if (note) note.textContent = query ? `Найдено: ${shown} из ${total}` : `Материалов: ${total}`;
+}
+const craftPriceSearch = document.getElementById("craftPriceSearch");
+if (craftPriceSearch) craftPriceSearch.addEventListener("input", filterCraftPrices);
 document.getElementById("pricesm").innerHTML = priceField("markup");
 ["pgrid", "pricesm"].forEach(id =>
   document.getElementById(id).addEventListener("input", e => {
@@ -638,8 +659,8 @@ const statusChanged = () => {
   const wasGiven = o.given;
   o.given = ogiven.checked;
   paidbox.hidden = o.pay !== "pre";
-  if (o.given && !wasGiven) addToJournal(o);
-  else if (!o.given && wasGiven && o.jid) {
+  if (o.given && !wasGiven && !o.jid) addToJournal(o);
+  else if (!o.given && wasGiven && o.jid && !o.done) {
     journal = journal.filter(r => r.id !== o.jid);
     delete o.jid;
   }
@@ -1211,9 +1232,14 @@ undoBtn.addEventListener("click", () => {
   delete o.stockDelta;
   delete o.snap;
   o.done = false;
+  if (!o.given && o.jid) {
+    journal = journal.filter(r => r.id !== o.jid);
+    delete o.jid;
+  }
   save();
   renderOrderList();
   renderOrder();
+  renderJournal();
 });
 doneBtn.addEventListener("click", () => {
   if (O().done) return;
@@ -1238,9 +1264,11 @@ doneBtn.addEventListener("click", () => {
     return;
   }
   O().done = true;
+  if (!O().jid) addToJournal(O());
   save();
   renderOrderList();
   renderOrder();
+  renderJournal();
 });
 
 // --- Текст для заказчика
@@ -1431,7 +1459,7 @@ function renderJournal() {
             `<tr><td class="l num">${r.date.split("-").reverse().join(".")}</td><td class="l">${esc(r.name)}</td><td class="l hint">${r.items.map(x => esc(x.n + (x.v ? ` — ${x.v}` : "") + " × " + x.q)).join(", ")}<input class="jnote" data-j="${r.id}" maxlength="120" placeholder="заметка" value="${esc(r.note || "")}" aria-label="Заметка к заказу"></td><td class="num"><b>${fmt(r.price)}</b></td><td class="num">${fmt(r.labor)}</td><td><button class="btn jdel" type="button" data-j="${r.id}" aria-label="Удалить запись">×</button></td></tr>`,
         )
         .join("")
-    : `<tr><td class="l hint" colspan="6">Пока пусто. Запись появляется, когда ставишь у заказа галочку «Отдан заказчику».</td></tr>`;
+    : `<tr><td class="l hint" colspan="6">Пока пусто. Выполни заказ или отметь его как отданный заказчику.</td></tr>`;
 }
 jbox.addEventListener("input", e => {
   const t = e.target;

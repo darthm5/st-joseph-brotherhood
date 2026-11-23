@@ -659,3 +659,15 @@
 #craftEmbedded .craft-detail-group>.obar{margin:8px 10px 10px!important}
 #craftEmbedded .craft-calc-actions{margin:7px 0!important;gap:6px}
 @media(max-width:650px){#craftEmbedded .craft-detail-group>summary{padding:9px}#craftEmbedded .craft-detail-group>.bd{padding:6px}#craftEmbedded .craft-calc-heading h2{font-size:15px}}
+
+/* v2.4.2: компактный ручной ввод цен */
+#craftEmbedded .craft-price-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px}
+#craftEmbedded .craft-price-search-label{font-size:12px;font-weight:600;white-space:nowrap;color:var(--ink)}
+#craftEmbedded #craftPriceSearch{flex:1 1 190px;min-width:130px;max-width:320px;padding:6px 9px;border:1px solid #69533d;border-radius:7px;background:#211b17;color:#f1e4cd;font:inherit;font-size:13px}
+#craftEmbedded .craft-price-hint{font-size:11px;margin:0 0 5px;color:var(--muted)}
+#craftEmbedded .pricep .pgrid>div{padding:7px 9px}
+#craftEmbedded .pricep .prices{gap:6px 9px;margin-top:7px}
+#craftEmbedded .pricep .pf label{font-size:11px;letter-spacing:0;text-transform:none;margin-bottom:2px}
+#craftEmbedded .pricep .pf input{padding:5px 7px}
+#craftEmbedded .pricep .pf[hidden],#craftEmbedded .pricep .pgrid>div[hidden]{display:none!important}
+@media(max-width:600px){#craftEmbedded .craft-price-tools{gap:6px}#craftEmbedded #craftPriceSearch{max-width:none}}

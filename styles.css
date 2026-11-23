@@ -579,3 +579,17 @@ html,body,.site-shell,.main-area,.content-wrap,.page,.panel,.map-panel{min-width
 @media(min-width:901px) and (max-width:1250px){.main-area{width:calc(100% - 235px);margin-left:235px}}
 @media(min-width:1251px){.main-area{width:calc(100% - 268px);margin-left:268px}}
 @media(max-width:600px){.map-viewport{min-height:280px;height:55vh}.map-toolbar{gap:7px}.map-panel{padding:10px}}
+
+/* v2.3 — independent crafting ledger */
+.craft-switch,.craft-tabs,.craft-row{display:flex;gap:9px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.craft-switch-active,.craft-tab-active{outline:2px solid #a47a43;outline-offset:1px}
+#craftCalculator{min-width:0;max-width:100%}#craftCalculator .panel{min-width:0}
+.craft-row label{flex:1 1 210px;min-width:0}.craft-row select,.craft-row input{width:100%;max-width:100%;box-sizing:border-box}
+.craft-workspace{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(250px,1fr);gap:14px;align-items:start}
+.craft-entry{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(125,91,52,.24);min-width:0}
+.craft-entry>div:first-child{min-width:0;overflow-wrap:anywhere}.craft-entry .craft-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.craft-entry button{padding:6px 10px}.craft-muted{opacity:.72;font-size:.9em}.craft-price{width:95px;max-width:100%}
+.craft-recipe-form{margin-top:14px}.craft-recipe-form label{display:block;margin:9px 0}.craft-recipe-form input,.craft-recipe-form textarea{display:block;width:100%;box-sizing:border-box}
+#ccTotal{font-weight:bold;margin:12px 0}#ccCalculation,#ccSales{overflow-wrap:anywhere}
+@media(max-width:900px){.craft-workspace{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.craft-entry{align-items:flex-start;flex-direction:column}.craft-entry .craft-actions{justify-content:flex-start}.craft-row>*{max-width:100%}}

@@ -496,3 +496,7 @@
 #craftCalculator[hidden], #page-crafts[hidden], #craftEmbedded [hidden]{display:none!important}
 #craftEmbedded .app{width:100%;min-width:0}
 #craftEmbedded .right{max-width:100%}
+
+/* v2.3.7: guard the entire calculator and its order basket */
+#craftCalculator[hidden],#page-crafts[hidden],#craftEmbedded [hidden]{display:none!important}
+#craftEmbedded .right{min-width:0;max-width:100%}

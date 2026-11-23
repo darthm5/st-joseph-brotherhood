@@ -7,7 +7,7 @@
   <title>Братство Святого Иосифа Обручника</title>
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="crafting/embedded.css?v=253">
+<link rel="stylesheet" href="crafting/embedded.css?v=254">
 </head>
 <body>
   <div class="site-shell">
@@ -184,7 +184,7 @@
       <div id="catbody">
       <div class="tablebox">
         <table class="book">
-          <thead><tr><th></th><th class="name">Предмет</th><th class="l">Состав</th><th>Выход за крафт</th><th>Себест.</th><th>С работой</th><th>В заказ</th></tr></thead>
+          <thead><tr><th></th><th class="name">Предмет</th><th class="l craft254-hide-comp">Состав</th><th>Выход за крафт</th><th>Себест.</th><th class="craft254-hide-sell">С работой</th><th>В заказ</th></tr></thead>
           <tbody id="tb"></tbody>
         </table>
       </div>
@@ -210,7 +210,7 @@
     </section>
     <section class="view" data-v="calc" hidden>
     <section class="panel" id="raschet" aria-labelledby="rh">
-    <div class="craft-calc-heading"><h2 id="rh">Расчёт ресурсов</h2><span class="hint">Сначала — итог. Детали открываются по необходимости.</span></div><div class="craft-quick-summary" id="craftQuickSummary" aria-live="polite"><div class="craft-quick-top"><strong>Необходимые ресурсы</strong><button type="button" class="btn" id="craftQuickCopy">Копировать список</button></div><div id="craftQuickRows" class="craft-quick-rows"><span class="hint">Добавь изделия в заказ, чтобы увидеть материалы.</span></div><div class="hint">Итог по всем изделиям заказа с учётом сырья заказчика и личного склада.</div></div>
+    <div class="craft-calc-heading"><h2 id="rh">Расчёт ресурсов</h2><span class="hint">Сначала — итог. Детали открываются по необходимости.</span></div><div class="craft-quick-summary" id="craftQuickSummary" aria-live="polite"><div class="craft-quick-top"><strong>Необходимые ресурсы</strong><button type="button" class="btn" id="craftQuickCopy">Копировать список</button></div><div id="craftQuickRows" class="craft-quick-rows"><span class="hint">Добавь изделия в заказ, чтобы увидеть материалы.</span></div><div class="hint">Итог по всем изделиям заказа с учётом выбранного склада.</div></div>
     <p class="sub" id="rempty">Отбери вещи в заказ, и здесь появится разбивка.</p>
     <details class="craft-detail-group" id="craftDetailedBreakdown"><summary><span>Подробный расчёт сырья и заготовок</span><small>Пошаговая разбивка, стоимость и потребность в материалах</small></summary>
     <div class="bd" id="bd" hidden>
@@ -227,7 +227,7 @@
     </div>
     </details>
     <div class="craft-stock-source" role="group" aria-label="Источник ресурсов"><strong>Списывать ресурсы:</strong><label><input type="radio" name="craftStockSource" value="personal" checked> Личный склад</label><label><input type="radio" name="craftStockSource" value="guild"> Склад братства</label><button class="btn" type="button" id="craftGuildRefresh">↻ Остатки</button></div><p id="craftGuildStatus" class="hint" role="status"></p><div class="obar craft-calc-actions" style="margin-top:14px"><button class="btn" id="odone" type="button" hidden>Заказ выполнен: списать с моего склада</button><button class="btn" id="oundo" type="button" hidden>Отменить выполнение</button><span class="hint" id="odonenote"></span></div>
-    <details class="craft-detail-group" id="craftClientDetails"><summary><span>Сырьё от заказчика</span><small>Учесть материалы, предоставленные заказчиком</small></summary>
+    <details class="craft-detail-group" id="craftClientDetails" hidden><summary><span>Сырьё от заказчика</span><small>Учесть материалы, предоставленные заказчиком</small></summary>
     <div class="cbox">
       <div class="row"><h3 style="margin:0">Сырьё от заказчика: <span id="cname"></span></h3><button class="btn" id="callc" type="button">Всё сырьё от заказчика</button><button class="btn" id="cclear" type="button">Очистить сырьё заказчика</button></div>
       <p class="hint" style="margin:4px 0 10px">Впиши, сколько он принёс. Засчитывается по твоим ценам сырья, всё, что он принёс, даже излишек. В дело его сырьё идёт первым, потом склад, остальное докупаешь. Показаны ресурсы, которые нужны на этот заказ.</p>
@@ -269,7 +269,7 @@
         <label>Оплата<select id="opay"><option value="no">Не оплачено</option><option value="pre">Предоплата</option><option value="yes">Оплачено</option></select></label>
         <label id="paidbox" hidden>Внесено, гр.<input id="opaid" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label>
         <input id="omanual" type="hidden"><button id="omreset" type="button" hidden></button>
-        <label class="chk"><input id="oallc" type="checkbox"> Всё сырьё от заказчика</label>
+        <label class="chk" hidden><input id="oallc" type="checkbox"> Всё сырьё от заказчика</label>
         <label class="chk"><input id="ogiven" type="checkbox"> Отдан заказчику</label>
       </div>
       <div class="obar signrow"><label class="hint" for="sign">Подпись</label><input id="sign" type="text" maxlength="60" placeholder="Например: мастер-бронник, Кутна Гора"></div>
@@ -703,8 +703,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
-  <script src="crafting/embedded.js?v=253"></script>
-  <script src="crafting/workshop-layout.js?v=253"></script>
+  <script src="crafting/embedded.js?v=254"></script>
+  <script src="crafting/workshop-layout.js?v=254"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});

@@ -467,13 +467,13 @@ function treeKeys() {
 }
 function breakdown(bare) {
   let cl = null;
-  if (!bare && O().allc) {
+  if (false && !bare && O().allc) {
     cl = {};
     breakdown(true).rows.forEach(r => (cl[r.k] = r.all));
   }
   const t = needOf(),
     need = { ...t.need },
-    C = k => (bare ? 0 : cl ? cl[k] || 0 : O().client[k] || 0),
+    C = k => 0,
     // склад для расчёта: личный или склад фракции (переключатель в расчёте, его ведёт sklad.js)
     SS = window.SRC_FAC && window.FAC_STOCK ? window.FAC_STOCK : stock,
     S = k => (bare || cl ? 0 : SS[k] || 0);
@@ -620,6 +620,7 @@ sb.addEventListener("input", e => {
 document.getElementById("sall").addEventListener("change", e => {
   showAll = e.target.checked;
   renderStockInputs();
+  document.dispatchEvent(new Event('craft-stock-layout-update'));
 });
 const sclr = document.getElementById("sclear");
 sclr.addEventListener("click", () => {
@@ -913,8 +914,8 @@ function renderTable() {
     const c = cost(i),
       id = esc(i.id),
       np = noPrice(i);
-    h += `<tr class="${q[i.id] ? "picked" : ""}"${i.fx || (FIELDS[i.s] && i.c !== "Материалы" && i.c !== "Детали") ? ` data-tip="${id}"` : ""}><td>${icon(i)}</td><td class="name"><div class="craft-fav-name"><button class="craft-fav" type="button" data-fav="${id}" aria-label="${favorites.has(i.id) ? "Убрать из избранного" : "Добавить в избранное"}" aria-pressed="${favorites.has(i.id)}">${favorites.has(i.id) ? "★" : "☆"}</button><div class="ru" style="font-size:14.5px;color:var(--ink)">${esc(i.n)}</div></div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<div class="noprice" title="Впиши цену в блоке цен справа, иначе себестоимость занижена">⚠ нет цены: ${esc(np.map(k => NAME[k].toLowerCase()).join(", "))}</div>` : ""}</td>
-      <td class="comp">${compText(i)}</td><td class="num res">${i.m ? "<b>" + MAT[i.m].out + "</b>" : i.o ? "<b>" + i.o + "</b>" : "1"}</td>      <td class="num cost${np.length ? " warn" : ""}">${np.length ? (c > 0 ? "от " + fmt(c, i.m || i.o ? 1 : 0) : "?") : fmt(c, i.m || i.o ? 1 : 0)}</td><td class="num sell">${np.length ? (c > 0 ? "от " + fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0) : "?") : fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0)}</td>
+    h += `<tr class="${q[i.id] ? "picked" : ""}" data-tip="${id}"><td>${icon(i)}</td><td class="name"><div class="craft-fav-name"><button class="craft-fav" type="button" data-fav="${id}" aria-label="${favorites.has(i.id) ? "Убрать из избранного" : "Добавить в избранное"}" aria-pressed="${favorites.has(i.id)}">${favorites.has(i.id) ? "★" : "☆"}</button><div class="ru" style="font-size:14.5px;color:var(--ink)">${esc(i.n)}</div></div>${flat ? `<div class="flag">${i.l} ур.</div>` : ""}${i.note ? `<div class="flag">${esc(i.note)}</div>` : ""}${np.length ? `<div class="noprice" title="Впиши цену в блоке цен справа, иначе себестоимость занижена">⚠ нет цены: ${esc(np.map(k => NAME[k].toLowerCase()).join(", "))}</div>` : ""}</td>
+      <td class="comp" title="${esc(compText(i).replace(/<[^>]*>/g, " "))}">${compText(i)}</td><td class="num res">${i.m ? "<b>" + MAT[i.m].out + "</b>" : i.o ? "<b>" + i.o + "</b>" : "1"}</td>      <td class="num cost${np.length ? " warn" : ""}">${np.length ? (c > 0 ? "от " + fmt(c, i.m || i.o ? 1 : 0) : "?") : fmt(c, i.m || i.o ? 1 : 0)}</td><td class="num sell">${np.length ? (c > 0 ? "от " + fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0) : "?") : fmt(c * (1 + P.markup / 100), i.m || i.o ? 1 : 0)}</td>
       <td><div class="qcell"><input class="qty" data-k="${id}" type="number" min="0" step="1" value="${q[i.id] || ""}" aria-label="Количество: ${esc(i.n)}"><button class="add" type="button" data-k="${id}" aria-label="Добавить: ${esc(i.n)}">+</button></div></td></tr>`;
   });
   tb.innerHTML = h || `<tr><td colspan="7" class="l note">Ничего не найдено.</td></tr>`;
@@ -1069,6 +1070,23 @@ function renderOrder(skip) {
     t = b.t,
     q = Q(),
     ids = sortedIds();
+  const sourcePreview = document.getElementById('craft254SourcePreview');
+  if(sourcePreview){
+    const missing=b.rows.filter(r=>r.buy>0);
+    sourcePreview.replaceChildren();
+    const info=document.createElement('div');
+    info.className='craft254-source-summary';
+    info.textContent=ids.length ? (missing.length ? `Не хватает ${missing.length} видов сырья:` : 'Все необходимые ресурсы есть на выбранном складе.') : 'Добавь изделия, чтобы проверить наличие сырья.';
+    sourcePreview.append(info);
+    for(const r of missing.slice(0,8)){
+      const line=document.createElement('div');line.className='craft254-source-line';
+      const name=document.createElement('span');name.textContent=NAME[r.k]||r.k;
+      const qty=document.createElement('b');qty.textContent='Докупить: '+r.buy+' шт.';
+      line.append(name,qty);sourcePreview.append(line);
+    }
+    if(missing.length>8){const extra=document.createElement('small');extra.textContent=`И ещё ${missing.length-8} позиций — в финальном расчёте.`;sourcePreview.append(extra)}
+  }
+
   document.getElementById("tiles").innerHTML = ids.length
     ? `<div class="tiles">${ids
         .map(id => {
@@ -1840,12 +1858,12 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
    if(!loaded){list.textContent='Нажми «↻ Остатки», чтобы загрузить кладовую.';return}
    list.replaceChildren();
    const materials=catalogMaterials();
-   const keys=ALLK.filter(k=>treeKeys().has(k)||getQty(k)>0);
+   const keys=showAll ? ALLK : secKeys();
    for(const k of keys){
      const item=getItem(k);
-     const row=document.createElement('div');row.className='craft-guild-row';
-     const title=document.createElement('span');title.textContent=NAME[k];
-     const value=document.createElement('b');value.textContent=item?getQty(k)+' шт.':'Нет в кладовой';
+     const row=document.createElement('div');row.className='pf craft-guild-row';
+     const title=document.createElement('label');title.textContent=NAME[k];
+     const value=document.createElement('input');value.type='number';value.disabled=true;value.readOnly=true;value.min='0';value.value=item?String(getQty(k)):'';value.placeholder=item?'0':'Нет в кладовой';value.setAttribute('aria-label','Остаток в кладовой: '+NAME[k]);
      if(!item)value.classList.add('craft-guild-missing');
      const select=document.createElement('select');select.setAttribute('aria-label','Соответствие кладовой для '+NAME[k]);
      // Название автоматически сопоставленного ресурса не дублируем в строке: показываем только количество.
@@ -1858,7 +1876,7 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
        setGuildStock();renderGuild();renderOrder();
      });
      // Show manual selection only when no unambiguous warehouse match exists.
-     if(item)row.append(title,value);else row.append(title,value,select);
+     if(item)row.append(title,value);else {const missing=document.createElement('small');missing.textContent='Нет в кладовой';missing.className='craft-guild-missing';row.append(title,value,missing,select)}
      list.append(row);
    }
  }
@@ -1873,6 +1891,7 @@ window.CRAFT_BRIDGE={ALLK,NAME,treeKeys,renderOrder,renderOrderList,renderJourna
    }catch(e){label('Не удалось загрузить кладовую: '+e.message)}finally{refresh.disabled=false}
  }
  refresh.addEventListener('click',load);
+ document.addEventListener('craft-stock-layout-update',()=>{if(loaded)renderGuild()});
  document.getElementById('craftShowCalculator')?.addEventListener('click',()=>{if(!loaded)load()});
  document.querySelectorAll('input[name="craftStockSource"]').forEach(r=>r.addEventListener('change',()=>{
    window.SRC_FAC=r.value==='guild';

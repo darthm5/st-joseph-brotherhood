@@ -1045,3 +1045,45 @@
 #craftEmbedded.craft-v252 .craft252-prices #pgrid .pf input{width:100%;max-width:100%;box-sizing:border-box}
 @media(max-width:1100px){#craftEmbedded.craft-v252 .craft252-recipegrid{grid-template-columns:1fr!important}}
 @media(max-width:650px){#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item{grid-template-columns:minmax(0,1fr) 62px 95px!important;gap:5px!important;padding:7px 4px!important}#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item>small{font-size:10px!important}#craftEmbedded.craft-v252 .craft252-stockpanel #stock,#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important}}
+
+/* v2.5.4: streamlined recipes, unified stocks, clear final calculation. */
+#craftEmbedded.craft-v252 #catbook .book th.craft254-hide-comp,
+#craftEmbedded.craft-v252 #catbook .book th.craft254-hide-sell,
+#craftEmbedded.craft-v252 #catbook .book td.comp,
+#craftEmbedded.craft-v252 #catbook .book td.sell{display:none!important}
+#craftEmbedded.craft-v252 #catbook .book th:first-child,#craftEmbedded.craft-v252 #catbook .book td:first-child{width:46px!important}
+#craftEmbedded.craft-v252 #catbook .book th:nth-child(4),#craftEmbedded.craft-v252 #catbook .book td:nth-child(4){width:84px!important}
+#craftEmbedded.craft-v252 #catbook .book th:nth-child(5),#craftEmbedded.craft-v252 #catbook .book td:nth-child(5){width:90px!important}
+#craftEmbedded.craft-v252 #catbook .book th:last-child,#craftEmbedded.craft-v252 #catbook .book td:last-child{width:102px!important}
+#craftEmbedded.craft-v252 #catbook .book td{padding:5px 6px!important;font-size:13px!important}
+#craftEmbedded.craft-v252 #catbook .book .name .ru{font-size:13px!important;line-height:1.2!important}
+#craftEmbedded.craft-v252 #catbook .book .name .flag{font-size:10px!important}
+#craftEmbedded.craft-v252 #catbook .book .qcell{display:flex!important;gap:4px!important;justify-content:flex-end}
+#craftEmbedded.craft-v252 #catbook .book .qty{width:42px!important}
+#craftEmbedded.craft-v252 #craftClientDetails,#craftEmbedded.craft-v252 #oallc{display:none!important}
+#craftEmbedded.craft-v252 .craft254-source{display:flex!important;align-items:center;flex-wrap:wrap;gap:10px;padding:12px!important;margin:0 0 12px!important;border:1px solid #775a3b;border-radius:7px;background:#33271e}
+#craftEmbedded.craft-v252 .craft254-source-title{display:block;color:#f3d59a;font-size:14px;margin-right:5px}
+#craftEmbedded.craft-v252 .craft254-source label{display:inline-flex!important;align-items:center;gap:5px;padding:8px 11px;border:1px solid #755a3b;border-radius:5px;cursor:pointer}
+#craftEmbedded.craft-v252 .craft254-source label:has(input:checked){background:#6b4b27;border-color:#c99b54;color:#ffe0a4}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-stock-source{display:none!important}
+#craftEmbedded.craft-v252 .craft252-stockpanel #stock,#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(185px,1fr))!important;gap:9px!important}
+#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows .craft-guild-row{display:flex!important;flex-direction:column!important;gap:5px!important;align-items:stretch!important;justify-content:space-between!important;margin:0!important;padding:5px!important;background:transparent!important;border:0!important}
+#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows .craft-guild-row label{font-size:12px!important;min-height:30px;line-height:1.25;overflow-wrap:anywhere}
+#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows .craft-guild-row input{width:100%!important;min-width:0!important;box-sizing:border-box!important;padding:8px!important;background:#302821!important;color:#e4c78d!important;opacity:1!important;border:1px solid #64513d!important;border-radius:4px}
+#craftEmbedded.craft-v252 .craft252-stockpanel #craftGuildStockRows .craft-guild-row select{width:100%!important;min-width:0!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-rows{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))!important;gap:5px!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:4px 10px!important;min-width:0!important;padding:7px 9px!important;border:1px solid #5e4934!important;border-radius:5px!important;background:#2c241e!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item>span{grid-column:1;grid-row:1;overflow-wrap:break-word!important;min-width:0!important;font-size:12px!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item>b{grid-column:2;grid-row:1;text-align:right!important;font-size:13px!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item>small{grid-column:1/-1;grid-row:2;text-align:left!important;font-size:11px!important;color:#c7b49a!important}
+#craftEmbedded.craft-v252 .craft252-resultbody #craftQuickSummary{overflow:visible!important;padding:12px!important}
+#craftEmbedded.craft-v252 .craft252-result-order{padding:16px!important;background:#2d251e;border:1px solid #715638;border-radius:8px}
+#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices{margin-bottom:12px}
+#craftEmbedded.craft-v252 .craft252-cost #bsum{padding:13px!important;border:1px solid #755a3b;border-radius:6px;background:#241d17}
+#craftEmbedded.craft-v252 .craft252-completion{padding-top:10px;border-top:1px solid #665038}
+@media(max-width:720px){#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-rows{grid-template-columns:1fr!important}#craftEmbedded.craft-v252 #catbook .book th:nth-child(4),#craftEmbedded.craft-v252 #catbook .book td:nth-child(4){width:55px!important}#craftEmbedded.craft-v252 #catbook .book th:nth-child(5),#craftEmbedded.craft-v252 #catbook .book td:nth-child(5){width:75px!important}#craftEmbedded.craft-v252 #catbook .book th:last-child,#craftEmbedded.craft-v252 #catbook .book td:last-child{width:88px!important}}
+
+#craftEmbedded.craft-v252 .craft254-source-preview{padding:8px 10px;margin-bottom:12px;background:#211b17;border:1px solid #5b4732;border-radius:5px;font-size:12px}
+#craftEmbedded.craft-v252 .craft254-source-summary{color:#e2c68f;font-weight:700;margin-bottom:5px}
+#craftEmbedded.craft-v252 .craft254-source-line{display:flex;gap:10px;justify-content:space-between;padding:3px 0;border-bottom:1px solid #55402d}
+#craftEmbedded.craft-v252 .craft254-source-line b{color:#e0b779;white-space:nowrap}

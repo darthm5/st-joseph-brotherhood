@@ -34,11 +34,22 @@
  const stockInfo=make('p','craft252-stockinfo','Личный склад можно редактировать. Склад братства загружается из кладовой и доступен только для просмотра.');stockPage.insertBefore(stockInfo,stockPanel);
  const refresh=make('button','craft252-refresh','↻ Обновить остатки');refresh.type='button';refresh.addEventListener('click',()=>get('#craftGuildRefresh')?.click());stockTabs.append(refresh);
  let stockMode='personal';const showStock=mode=>{stockMode=mode;personalBtn.setAttribute('aria-pressed',String(mode==='personal'));guildBtn.setAttribute('aria-pressed',String(mode==='guild'));if(personal){personal.hidden=mode!=='personal';personal.open=mode==='personal'}if(guild){guild.hidden=mode!=='guild';guild.open=mode==='guild'}refresh.hidden=mode!=='guild';if(mode==='guild')get('#craftGuildRefresh')?.click()};personalBtn.addEventListener('click',()=>showStock('personal'));guildBtn.addEventListener('click',()=>showStock('guild'));showStock('personal');
- const source=make('div','craft252-source');source.innerHTML='<h3>Источник ресурсов для расчёта</h3><div class="craft252-source-buttons"><button type="button" data-source="personal">Личный склад</button><button type="button" data-source="guild">Склад братства</button></div>';
- resultPage.append(source);
- const resultBody=make('div','craft252-resultbody');resultPage.append(resultBody);resultBody.append(calc);
- const sourceButtons=[...source.querySelectorAll('[data-source]')];const syncSource=()=>{const value=get('input[name="craftStockSource"]:checked')?.value||'personal';sourceButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.source===value)))};
- sourceButtons.forEach(b=>b.addEventListener('click',()=>{const r=get(`input[name="craftStockSource"][value="${b.dataset.source}"]`);if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))}syncSource()}));syncSource();
+ // Source selection lives in order details, before calculating. Reuse original radio controls.
+ const source=get('.craft-stock-source');
+ const detail=get('#omore');
+ if(source&&detail){
+   source.classList.add('craft254-source');
+   const title=make('strong','craft254-source-title','Источник ресурсов для расчёта');
+   source.prepend(title);
+   detail.insertBefore(source,detail.firstElementChild);
+   const preview=make('div','craft254-source-preview');preview.id='craft254SourcePreview';source.after(preview);
+   source.querySelector('strong:not(.craft254-source-title)')?.remove();
+   const refresh=source.querySelector('#craftGuildRefresh');
+   if(refresh)refresh.hidden=true;
+   source.querySelectorAll('input[name="craftStockSource"]').forEach(r=>r.addEventListener('change',()=>{
+     const st=get('#craftGuildStatus');if(st)st.textContent=r.value==='guild'?'Используются остатки склада братства; выдача требует одобрения.':'Используется личный склад.';
+   }));
+ }
  const back=make('button','craft252-back craft252-edit','← Изменить состав заказа');back.type='button';resultPage.append(back);back.addEventListener('click',()=>open('recipes'));
  const resultOrder=make('div','craft252-result-order');resultPage.append(resultOrder);
  const total=get('#bsum'),priceByItem=get('.craft-item-prices'),actions=get('#odone')?.parentElement;
@@ -50,10 +61,11 @@
  let current='home';function open(which){current=which;root.dataset.screen=which;home.hidden=which!=='home';nav.hidden=which!=='home';body.hidden=which==='home';for(const p of body.querySelectorAll('.craft252-page'))p.hidden=p.dataset.page!==which;
   const v=which==='prices'?'prices':which==='journal'?'journal':which==='result'?'calc':'book';legacyBtn(v)?.click();
   // Moving the same DOM elements keeps saved data, original controls, and handlers intact.
-  if(which==='result'){if(total)cost.append(total);if(priceByItem)cost.prepend(priceByItem);if(actions)completion.append(actions);calc.hidden=false;syncSource()}
+  if(which==='result'){if(total)cost.append(total);if(priceByItem)cost.prepend(priceByItem);if(actions)completion.append(actions);calc.hidden=false}
   else {if(total)basket.append(total);if(priceByItem)basket.insertBefore(priceByItem,basket.querySelector('#omore'));if(actions)basket.append(actions)}
   if(which==='recipes')book.hidden=false;
   if(which==='stock')showStock(stockMode);
+  if(which==='stock')document.dispatchEvent(new Event('craft-stock-layout-update'));
   if(which==='prices')prices.hidden=false;
   if(which==='journal')journal.hidden=false;
   window.scrollTo?.({top:0,behavior:'instant'});

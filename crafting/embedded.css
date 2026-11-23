@@ -924,3 +924,85 @@
 #craftEmbedded.craft-workshop-secondary .app>.left{width:100%!important;max-width:none!important}
 #craftEmbedded.craft-workshop-secondary .craft-workshop-title,#craftEmbedded.craft-workshop-secondary .craft-workshop-center,#craftEmbedded.craft-workshop-secondary .right{display:none!important}
 @media(max-width:900px){#craftEmbedded.craft-workshop-mode .app{display:flex!important;flex-direction:column!important}#craftEmbedded.craft-workshop-mode .app>.left,#craftEmbedded.craft-workshop-mode .app>.right,#craftEmbedded.craft-workshop-mode .craft-workshop-center{width:100%!important;max-width:100%!important;position:static!important}#craftEmbedded.craft-workshop-mode .craft-quick-item{grid-template-columns:minmax(0,1fr) 62px 105px!important}}
+
+/* v2.5.2: clean section-first UI, original calculation engine untouched */
+#craftEmbedded.craft-v252{--c252-border:#806440;--c252-ink:#e8d3ac;--c252-panel:#28221d;--c252-gold:#d8b36f;color:var(--c252-ink)}
+#craftEmbedded.craft-v252>.craft-compact,#craftEmbedded.craft-v252>.app,#craftEmbedded.craft-v252>.mbar{display:none!important}
+#craftEmbedded.craft-v252 .craft252-shell{display:block;width:100%;padding:6px 0 20px}
+#craftEmbedded.craft-v252 .craft252-home{text-align:center;margin:22px auto 18px}
+#craftEmbedded.craft-v252 .craft252-home h2{font-size:clamp(23px,2.5vw,34px);margin:0 0 9px;color:#f0d49d}
+#craftEmbedded.craft-v252 .craft252-home p{color:#bba789;font-size:14px;margin:0}
+#craftEmbedded.craft-v252 .craft252-navigation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:26px auto;max-width:1200px}
+#craftEmbedded.craft-v252 .craft252-nav-btn{background:linear-gradient(160deg,#403126,#251e1a);color:#f2d6a0;border:1px solid #a77b3f;border-radius:10px;min-height:178px;padding:24px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;box-shadow:inset 0 1px #e4bc7344,0 6px 16px #0003;cursor:pointer;transition:transform .15s,border-color .15s}
+#craftEmbedded.craft-v252 .craft252-nav-btn:hover{transform:translateY(-3px);border-color:#e6bc6b}
+#craftEmbedded.craft-v252 .craft252-nav-icon{font-size:40px;line-height:1}
+#craftEmbedded.craft-v252 .craft252-nav-btn strong{font-size:22px}
+#craftEmbedded.craft-v252 .craft252-nav-btn small{font-size:12px;color:#c2ac87;text-align:center;line-height:1.45}
+#craftEmbedded.craft-v252 .craft252-page{border:1px solid #725a3e;border-radius:9px;background:#29221d;padding:18px;min-width:0}
+#craftEmbedded.craft-v252 .craft252-pagehead{display:flex;align-items:center;gap:20px;border-bottom:1px solid #79613f;padding-bottom:13px;margin-bottom:17px}
+#craftEmbedded.craft-v252 .craft252-pagehead h2{font-size:22px;margin:0;color:#efd19a}
+#craftEmbedded.craft-v252 .craft252-back{border:1px solid #967445;background:#382b20;color:#ead2a8;border-radius:6px;padding:8px 12px;cursor:pointer}
+#craftEmbedded.craft-v252 .craft252-tools{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+#craftEmbedded.craft-v252 .craft252-tools #q{flex:1 1 300px;max-width:600px;min-height:39px}
+#craftEmbedded.craft-v252 .craft252-crafts #secs{display:flex!important;flex-wrap:wrap!important;gap:7px!important;margin:10px 0 15px!important}
+#craftEmbedded.craft-v252 .craft252-crafts #secs button{font-size:13px!important;padding:9px 12px!important;border-radius:5px!important}
+#craftEmbedded.craft-v252 .craft252-filters{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+#craftEmbedded.craft-v252 .craft252-filters #tabs{display:flex!important;flex-wrap:wrap;gap:5px}
+#craftEmbedded.craft-v252 .craft252-recipegrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:14px;align-items:start}
+#craftEmbedded.craft-v252 .craft252-catalogue,#craftEmbedded.craft-v252 .craft252-order{background:#241e1a;border:1px solid #66513a;border-radius:8px;padding:12px;min-width:0}
+#craftEmbedded.craft-v252 .craft252-catalogue>h3,#craftEmbedded.craft-v252 .craft252-order>h3{font-size:17px;margin:0 0 10px;color:#e8c88c}
+#craftEmbedded.craft-v252 #catbook .tablebox{max-height:560px;overflow:auto}
+#craftEmbedded.craft-v252 #catbook .book td,#craftEmbedded.craft-v252 #catbook .book th{padding:7px 5px;font-size:13px}
+#craftEmbedded.craft-v252 #catbook .book .name{width:auto}
+#craftEmbedded.craft-v252 #catbook .book td img{max-width:32px;max-height:32px}
+#craftEmbedded.craft-v252 #footnote{display:none}
+#craftEmbedded.craft-v252 #zakaz{position:static!important;max-height:none!important;overflow:visible!important;padding:8px!important;background:transparent!important;box-shadow:none!important;border:0!important}
+#craftEmbedded.craft-v252 #zakaz .ptog{display:none!important}
+#craftEmbedded.craft-v252 #tiles{max-height:420px;overflow-y:auto;overflow-x:hidden}
+#craftEmbedded.craft-v252 #tiles .tiles{display:flex!important;flex-direction:column!important;gap:0!important;grid-template-columns:none!important}
+#craftEmbedded.craft-v252 #tiles .tile{display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;gap:3px 9px!important;align-items:center!important;width:100%!important;max-width:none!important;min-height:50px!important;padding:6px!important;border-width:0 0 1px!important;border-radius:0!important;margin:0!important;text-align:left!important;position:relative!important}
+#craftEmbedded.craft-v252 #tiles .tile>.lv{display:none!important}
+#craftEmbedded.craft-v252 #tiles .tile>img,#craftEmbedded.craft-v252 #tiles .tile>.ico,#craftEmbedded.craft-v252 #tiles .tile>.icon{grid-column:1!important;grid-row:1/3!important;width:32px!important;height:32px!important;object-fit:contain!important}
+#craftEmbedded.craft-v252 #tiles .tile>.tn{grid-column:2!important;grid-row:1!important;white-space:normal!important;overflow-wrap:anywhere!important;text-align:left!important;font-size:13px!important;margin:0!important}
+#craftEmbedded.craft-v252 #tiles .tile>.badge{position:static!important;grid-column:3!important;grid-row:1!important;justify-self:end!important}
+#craftEmbedded.craft-v252 #tiles .tile>.ctl{grid-column:3!important;grid-row:2!important;justify-self:end!important;position:static!important;display:flex!important;gap:3px!important;margin:0!important}
+#craftEmbedded.craft-v252 #tiles .tile>.var{grid-column:2!important;grid-row:2!important;min-width:0!important;width:100%!important;max-width:200px!important}
+#craftEmbedded.craft-v252 .craft252-order #zakaz .craft-item-prices,#craftEmbedded.craft-v252 .craft252-order #zakaz #bsum,#craftEmbedded.craft-v252 .craft252-order #zakaz .craft-calc-actions{display:none!important}
+#craftEmbedded.craft-v252 #zakaz [data-goview="calc"]{display:none!important}
+#craftEmbedded.craft-v252 .craft252-calculate{display:block;width:100%;margin-top:15px;padding:13px 18px;border:1px solid #e2b66c;border-radius:6px;background:linear-gradient(#c49a54,#9a6c31);color:#23180e;font-weight:800;font-size:16px;cursor:pointer}
+#craftEmbedded.craft-v252 .craft252-price-tools,#craftEmbedded.craft-v252 .craft252-stocktabs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+#craftEmbedded.craft-v252 .craft252-price-crafts{display:flex;gap:6px;flex-wrap:wrap}
+#craftEmbedded.craft-v252 .craft252-craft-btn,#craftEmbedded.craft-v252 .craft252-stockbtn,#craftEmbedded.craft-v252 .craft252-refresh{background:#392c23;border:1px solid #8e7049;color:#e8d2a8;padding:9px 12px;border-radius:5px;cursor:pointer}
+#craftEmbedded.craft-v252 [aria-pressed="true"].craft252-craft-btn,#craftEmbedded.craft-v252 [aria-pressed="true"].craft252-stockbtn{background:#ae8247;color:#20160d}
+#craftEmbedded.craft-v252 .craft252-prices .view,#craftEmbedded.craft-v252 .craft252-journal .view{display:block!important}
+#craftEmbedded.craft-v252 .craft252-prices #pgrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#craftEmbedded.craft-v252 .craft252-prices #pgrid>div{min-width:0}
+#craftEmbedded.craft-v252 .craft252-prices #pgrid .prices{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#craftEmbedded.craft-v252 .craft252-prices #pgrid .pf{min-width:0;padding:5px}
+#craftEmbedded.craft-v252 .craft252-stockpanel{border:1px solid #675038;border-radius:6px;padding:12px}
+#craftEmbedded.craft-v252 .craft252-stockpanel details{border:0!important;margin:0!important;padding:0!important}
+#craftEmbedded.craft-v252 .craft252-stockpanel details>summary{display:none!important}
+#craftEmbedded.craft-v252 .craft252-stockinfo{color:#bda888;font-size:13px}
+#craftEmbedded.craft-v252 .craft252-result .craft252-source{background:#33271e;border:1px solid #7d603d;border-radius:7px;padding:12px;margin-bottom:13px}
+#craftEmbedded.craft-v252 .craft252-source h3{font-size:15px;margin:0 0 9px;color:#ead09b}
+#craftEmbedded.craft-v252 .craft252-source-buttons{display:flex;gap:8px;flex-wrap:wrap}
+#craftEmbedded.craft-v252 .craft252-source-buttons button{padding:10px 16px;background:#241c16;border:1px solid #876c48;color:#e8d2ac;border-radius:5px;cursor:pointer}
+#craftEmbedded.craft-v252 .craft252-source-buttons [aria-pressed="true"]{background:#ad8447;color:#21180d;font-weight:700}
+#craftEmbedded.craft-v252 .craft252-resultbody #raschet{padding:10px!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-calc-heading{display:none}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-rows{max-height:none!important;overflow:visible!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item{display:grid!important;grid-template-columns:minmax(0,1fr) 90px 145px!important;gap:9px;align-items:center;padding:6px 7px!important;border-bottom:1px solid #b58a4a33}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item b,#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item small{text-align:right}
+#craftEmbedded.craft-v252 .craft252-result-order{margin-top:14px;border-top:1px solid #806440;padding-top:14px}
+#craftEmbedded.craft-v252 .craft252-cost{display:grid;gap:10px}
+#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices{display:block!important}
+#craftEmbedded.craft-v252 .craft252-completion{margin-top:13px}
+#craftEmbedded.craft-v252 .craft252-completion #odone{display:block!important;width:100%;padding:13px;background:#b68b4b;color:#1e160e;font-weight:700}
+#craftEmbedded.craft-v252 .craft252-completion #odone[hidden],#craftEmbedded.craft-v252 .craft252-completion #oundo[hidden]{display:none!important}
+#craftEmbedded.craft-v252 .craft252-edit{margin-top:12px}
+#craftEmbedded.craft-v252 .craft252-page[hidden],#craftEmbedded.craft-v252 .craft252-navigation[hidden],#craftEmbedded.craft-v252 .craft252-home[hidden],#craftEmbedded.craft-v252 .craft252-body[hidden],#craftEmbedded.craft-v252 .craft252-stockpanel details[hidden]{display:none!important}
+@media(max-width:1100px){#craftEmbedded.craft-v252 .craft252-navigation{grid-template-columns:repeat(2,minmax(0,1fr))}#craftEmbedded.craft-v252 .craft252-recipegrid{grid-template-columns:1fr}#craftEmbedded.craft-v252 .craft252-prices #pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#craftEmbedded.craft-v252 .craft252-navigation{grid-template-columns:1fr 1fr;gap:8px}#craftEmbedded.craft-v252 .craft252-nav-btn{min-height:125px;padding:13px 6px}#craftEmbedded.craft-v252 .craft252-nav-btn strong{font-size:17px}#craftEmbedded.craft-v252 .craft252-nav-btn small{font-size:10px}#craftEmbedded.craft-v252 .craft252-nav-icon{font-size:30px}#craftEmbedded.craft-v252 .craft252-page{padding:9px}#craftEmbedded.craft-v252 .craft252-pagehead h2{font-size:17px}#craftEmbedded.craft-v252 .craft252-prices #pgrid{grid-template-columns:1fr}#craftEmbedded.craft-v252 .craft252-prices #pgrid .prices{grid-template-columns:1fr 1fr}#craftEmbedded.craft-v252 .craft252-resultbody .craft-quick-item{grid-template-columns:minmax(0,1fr) 60px 90px!important}}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-stock-source>strong,#craftEmbedded.craft-v252 .craft252-resultbody .craft-stock-source>label{display:none!important}
+#craftEmbedded.craft-v252 .craft252-resultbody .craft-stock-source{margin:5px 0!important}
+#craftEmbedded.craft-v252 .craft252-resultbody #craftDetailedBreakdown{margin-top:12px}

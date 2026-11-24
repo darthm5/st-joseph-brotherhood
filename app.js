@@ -930,7 +930,8 @@ const storeEl = id => document.getElementById(id);
 let storeSection = "materials";
 const storeProductCategories = ["Броня","Оружие","Портняжное","Лучное","Ювелирное","Алхимия","Готовка","Пивоварение","Столярное"];
 function storeProductCrafts(i){return window.STORE_PRODUCT_CRAFTS?.[String(i.name).trim().toLowerCase().replace(/ё/g,"е")]||[];}
-function storeVisibleItems(){ return storeItems.filter(i => (i.section || "materials") === storeSection || (storeSection==="products" && storeProductCrafts(i).length)); }
+function storeIsBlank(name){return /(?<![\p{L}\p{N}])заготовка(?![\p{L}\p{N}])/iu.test(String(name||""));}
+function storeVisibleItems(){ return storeItems.filter(i => storeIsBlank(i.name)?storeSection==="materials":(i.section || "materials") === storeSection || (storeSection==="products" && storeProductCrafts(i).length)); }
 function storeItemCategories(i){return storeSection==="products"?[...new Set([...storeProductCrafts(i),...(i.section==="products"?[i.category]:[])])]:[i.category];}
 function storeSetSection(section){
   storeSection=section;
@@ -953,6 +954,10 @@ function storeRenderFilters(){
 storeEl("storeTabMaterials").addEventListener("click",()=>storeSetSection("materials"));
 storeEl("storeTabProducts").addEventListener("click",()=>storeSetSection("products"));
 storeEl("storeNewSection").addEventListener("change",storeRenderFilters);
+const storeNewName=storeEl("storeAddForm").elements.namedItem("name");
+function storeBlankSectionUI(){if(storeIsBlank(storeNewName.value)){storeEl("storeNewSection").value="materials";storeRenderFilters();}}
+storeNewName.addEventListener("input",storeBlankSectionUI);
+storeEl("storeNewSection").addEventListener("change",storeBlankSectionUI);
 let storeBalances = new Map();
 let storeCategories = [];
 let storeProfiles = new Map();
@@ -1148,7 +1153,7 @@ storeEl("storeManualForm").addEventListener("submit",async event=>{
 storeEl("storeAddForm").addEventListener("submit",async event=>{
   event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
   const form=event.currentTarget;storeBusy=true;
-  try {const section=form.elements.namedItem("section").value;const category=form.elements.category.value.trim();if(section==="products"&&!storeProductCategories.includes(category))throw new Error("Выберите одну из девяти категорий готовой продукции");const {error}=await supabaseClient.rpc(section==="products"?"storage_add_product_item":"storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:category,p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();storeEl("storeNewSection").value=storeSection;showToast("Предмет добавлен в каталог");await loadStorehouse();}
+  try {const section=storeIsBlank(form.elements.namedItem("name").value)?"materials":form.elements.namedItem("section").value;const category=form.elements.category.value.trim();if(section==="products"&&!storeProductCategories.includes(category))throw new Error("Выберите одну из девяти категорий готовой продукции");const {error}=await supabaseClient.rpc(section==="products"?"storage_add_product_item":"storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:category,p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();storeEl("storeNewSection").value=storeSection;showToast("Предмет добавлен в каталог");await loadStorehouse();}
   catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;renderStoreCatalog();}
 });
 

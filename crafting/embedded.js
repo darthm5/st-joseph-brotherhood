@@ -1930,10 +1930,19 @@ window.CRAFT_BRIDGE={ALLK,NAME,MAT,stockKeys:()=>showAll ? ALLK : secKeys(),tree
        for(const r of [...b.mid,...b.rows])if(r.s>0)needed.set(r.k,(needed.get(r.k)||0)+r.s);
        if(!needed.size){label('Для этого заказа не используются ресурсы братства. Выбери личный склад либо добавь ресурсы в кладовую.');return}
        const missing=[...needed].filter(([k])=>!getItem(k));if(missing.length){label('Укажи соответствие в «Склад братства»: '+missing.map(([k])=>NAME[k]).join(', '));document.getElementById('craftGuildStock').open=true;return}
-       if(!confirm('Отправить '+needed.size+' заявок на выдачу ресурсов? Администрация рассмотрит каждую позицию отдельно.'))return;
-       o.guildReq={token:'CRAFT-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),items:[...needed].map(([k,q])=>({k,id:getItem(k).id,q}))};save();
+       if(!confirm('Отправить единую заявку на '+needed.size+' позиций? Администрация рассмотрит весь заказ.'))return;
+       o.guildReq={batch:true,orderName:o.name,token:'CRAFT-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),items:[...needed].map(([k,q])=>({k,id:getItem(k).id,q}))};save();
      }
      const req=o.guildReq;
+     if(req.batch){
+       const {data:status,error}=await supabaseClient.rpc('storage_submit_craft_batch',{p_token:req.token,p_order_name:req.orderName,p_items:req.items.map(({id,q})=>({id,q}))});
+       if(error)throw error;
+       if(status==='approved'){o.done=true;if(!o.jid)addToJournal(o);save();renderOrderList();renderOrder();renderJournal();await load();label('Заявка одобрена. Заказ выполнен и записан в журнал.');}
+       else if(status==='rejected'){delete o.guildReq;save();renderOrder();label('Заявка отклонена. Можно сформировать новую.');}
+       else label('Единая заявка ожидает одобрения администрации.');
+       return;
+     }
+
      const {data:existing,error:readErr}=await supabaseClient.from('storage_requests').select('id,item_id,quantity,comment,status,user_id').eq('user_id',currentSession.user.id).like('comment','%'+req.token+'%').limit(1000);
      if(readErr)throw readErr;
      for(const item of req.items){

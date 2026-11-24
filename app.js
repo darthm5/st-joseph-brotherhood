@@ -1011,11 +1011,12 @@ async function loadStorehouse() {
   storeOpenPanel(storeActivePanel,false);
   storeEl("storeNotice").textContent="Сверяем амбарные книги…";
   try {
-    const [items,transactions,requests,profiles] = await Promise.all([
+    const [items,transactions,requests,profiles,batches] = await Promise.all([
       storeAllRows("storage_items","id,name,category,unit,description,section","name"),
       storeAllRows("storage_transactions","id,item_id,member_id,quantity,description,recorded_by,created_at"),
       storeAllRows("storage_requests","id,item_id,user_id,request_type,quantity,comment,status,created_at,reviewed_at"),
-      storeAllRows("profiles","id,character_first_name,character_last_name","created_at")
+      storeAllRows("profiles","id,character_first_name,character_last_name","created_at"),
+      storeAllRows("storage_craft_batches","token,user_id,order_name,items,status,created_at")
     ]);
     if (token!==storeLoadToken || currentSession?.user?.id!==userId || !storehousePage.classList.contains("active-page")) return;
     storeItems=items.sort((a,b)=>a.name.localeCompare(b.name,"ru"));
@@ -1025,7 +1026,7 @@ async function loadStorehouse() {
     for (const t of transactions) storeBalances.set(t.item_id,(storeBalances.get(t.item_id)||0)+Number(t.quantity));
     storeEl("storeItemCount").textContent=storeNumber.format(items.length);
     storeEl("storeInStock").textContent=storeNumber.format(items.filter(item=>(storeBalances.get(item.id)||0)>0).length);
-    storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length);
+    storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length+batches.filter(r=>r.status==="pending").length);
     storeRenderFilters();
     storeRequestCascade.update();storeManualCascade.update();
     const members=profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(storeProfiles.get(a.id)||"").localeCompare(storeProfiles.get(b.id)||"","ru"));
@@ -1036,7 +1037,7 @@ async function loadStorehouse() {
     renderStoreCatalog();
     const own=storeEl("storeOwnRequests");own.replaceChildren();
     const mine=requests.filter(r=>r.user_id===userId);
-    if(!mine.length)storeText(own,"p","Вы пока не подавали заявок.");
+    if(!mine.length&&!batches.some(r=>r.user_id===userId))storeText(own,"p","Вы пока не подавали заявок.");
     for(const r of mine.slice(0,100)) {
       const sign=r.request_type==="deposit"?1:-1;
       storeRecord(own,`${storeItemName(r.item_id)} — ${r.request_type==="deposit"?"передача":"выдача"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity),storeStatus(r.status));
@@ -1044,7 +1045,7 @@ async function loadStorehouse() {
     const pendingBox=storeEl("storePendingList");pendingBox.replaceChildren();
     if(isAdmin) {
       const pending=requests.filter(r=>r.status==="pending");
-      if(!pending.length)storeText(pendingBox,"p","Заявок на рассмотрении нет.");
+      if(!pending.length&&!batches.some(r=>r.status==="pending"))storeText(pendingBox,"p","Заявок на рассмотрении нет.");
       for(const r of pending) {
         const sign=r.request_type==="deposit"?1:-1;
         const row=storeRecord(pendingBox,`${storeItemName(r.item_id)} · ${storeProfiles.get(r.user_id)||"Участник"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity));
@@ -1057,6 +1058,18 @@ async function loadStorehouse() {
             try {const {error}=await supabaseClient.rpc("storage_review_request",{p_request_id:r.id,p_approve:approve});if(error)throw error;showToast("Заявка обработана");await loadStorehouse();}
             catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;btn.disabled=false;}
           });actions.appendChild(btn);
+        }row.appendChild(actions);
+      }
+    }
+    for(const r of batches){
+      const details=r.items.map(i=>`${storeItemName(i.id)} × ${i.q}`).join(' · ');
+      if(r.user_id===userId)storeRecord(own,`Ремесленный заказ: ${r.order_name}`,details,null,storeStatus(r.status));
+      if(isAdmin&&r.status==='pending'){
+        const row=storeRecord(pendingBox,`Ремесленный заказ: ${r.order_name} · ${storeProfiles.get(r.user_id)||'Участник'}`,details);
+        const actions=document.createElement('div');actions.className='treasury-actions';
+        for(const [label,approve] of [['Одобрить весь заказ',true],['Отклонить весь заказ',false]]){
+          const btn=document.createElement('button');btn.type='button';btn.className='secondary-button';btn.textContent=label;
+          btn.onclick=async()=>{if(storeBusy||!confirm(label+'?'))return;storeBusy=true;btn.disabled=true;try{const {error}=await supabaseClient.rpc('storage_review_craft_batch',{p_token:r.token,p_approve:approve});if(error)throw error;await loadStorehouse();}catch(e){showToast('Ошибка: '+e.message)}finally{storeBusy=false;btn.disabled=false}};actions.appendChild(btn);
         }row.appendChild(actions);
       }
     }

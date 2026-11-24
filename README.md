@@ -40,3 +40,6 @@ Personal cabinet: charter, profile editing, skill levels, personal guild activit
 
 ## v2.7.6.3
 Перед загрузкой сайта выполните storage_unified_v2_7_6_3.sql в Supabase SQL Editor. Единый инвентарь для выдачи, пополнения и учёта кладовщика.
+
+### v2.7.6.4
+Исправлены поиск иконок, резервный значок ресурса и сетка инвентаря. Названия не обрезаются. SQL не требуется.

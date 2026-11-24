@@ -127,3 +127,7 @@ v2.4.5.4: При найденном соответствии в складе б�
 
 ## v2.5.6
 Five physical recipe columns; guild stock uses calculator stock-key bridge; final details collapsed by default.
+
+
+## v2.5.7
+Explicit five-column recipe grid; symmetric stock selection; aligned final sections; SVG craft icons. No calculation changes.

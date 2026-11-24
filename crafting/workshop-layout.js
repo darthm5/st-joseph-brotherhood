@@ -66,6 +66,14 @@
  // Show breakdown on the final screen, not buried in the stock section.
  if(resourceBreakdown)resourceBreakdown.open=false;
 
+ // Decorative line icons, independent of the calculation engine.
+ const paths={hammer:'M3 21l10-10 M9 7l4-4 8 8-4 4z M13 3l2-2 8 8-2 2',coins:'M3 6c0-4 18-4 18 0s-18 4-18 0v5c0 4 18 4 18 0V6 M3 11v5c0 4 18 4 18 0v-5 M3 16v4c0 4 18 4 18 0v-4',chest:'M3 10V6l3-3h12l3 3v4 M3 10h18v11H3z M10 10v5h4v-5',book:'M3 3h8l1 3 1-3h8v17h-8l-1 2-1-2H3z M12 6v16 M6 8h3 M6 12h3 M15 8h3 M15 12h3',shield:'M12 2l9 4v7c0 5-9 9-9 9s-9-4-9-9V6z M12 6v12 M7 11h10',sword:'M3 21l6-6 M5 11l8 8 M8 14L19 3l2-1-1 4L11 17',bow:'M4 3Q24 12 4 21L9 12z M2 12h20 M18 8l4 4-4 4',needle:'M4 20L19 5q4-4 2-2L7 18z M4 20q-4-8 5-8',flask:'M9 2h6 M10 2v7L4 19q-1 3 3 3h10q4 0 3-3L14 9V2 M7 15h10',pot:'M4 10h16l-2 11H6z M2 10h20 M8 7q-2-3 1-5 M14 7q-2-3 1-5',mug:'M4 3h13v18H4z M17 7h4v9h-4 M8 7v10 M12 7v10',gem:'M3 8l4-5h10l4 5-9 14z M3 8h18 M7 3l5 19 5-19',saw:'M2 4h20v5l-3 3-3-3-3 3-3-3-3 3-3-3z M4 4V2h5v2'};
+ const icon=(key)=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.classList.add('craft257-icon');const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d',paths[key]||paths.hammer);svg.append(p);return svg};
+ const decorate=(node,key)=>{if(node)node.prepend(icon(key))};
+ ['hammer','coins','chest','book'].forEach((key,i)=>{const n=nav.querySelectorAll('.craft252-nav-icon')[i];if(n)n.replaceChildren(icon(key))});
+ decorate(catalogue.querySelector('h3'),'book');decorate(order.querySelector('h3'),'chest');decorate(resourceBreakdown?.querySelector('summary'),'hammer');decorate(priceByItem?.querySelector('summary'),'coins');decorate(resourceSummary?.querySelector('strong'),'chest');
+ const craftIcons=['shield','sword','needle','bow','gem','flask','pot','mug','saw'];
+ [...(secs?.querySelectorAll('button')||[])].forEach((b,i)=>decorate(b,craftIcons[i]));
  const legacyNav=get('.views');const legacyBtn=v=>legacyNav?.querySelector(`[data-view="${v}"]`);
  let current='home';function open(which){current=which;root.dataset.screen=which;home.hidden=which!=='home';nav.hidden=which!=='home';body.hidden=which==='home';for(const p of body.querySelectorAll('.craft252-page'))p.hidden=p.dataset.page!==which;
   const v=which==='prices'?'prices':which==='journal'?'journal':which==='result'?'calc':'book';legacyBtn(v)?.click();

@@ -1035,6 +1035,7 @@ function storeOpenPanel(id, scroll=true){
   if(id && !storePanelIds.includes(id))return;
   if(id && ['storeManualForm','storeAddForm','storeAdminRequests'].includes(id) && accessState.mode!=='admin')return;
   storeActivePanel=id;
+  storeEl("storeInventory").hidden=Boolean(id);
   for(const panelId of storePanelIds){
     storeEl(panelId).hidden=panelId!==id;
   }
@@ -1049,35 +1050,16 @@ for(const button of document.querySelectorAll('[data-store-panel]')){
   button.addEventListener('click',()=>storeOpenPanel(storeActivePanel===button.dataset.storePanel?null:button.dataset.storePanel));
 }
 
-function renderStoreCatalog() {
-  const query = storeEl("storeSearch").value.trim().toLocaleLowerCase("ru");
-  const category = storeEl("storeCategory").value;
-  const onlyAvailable = storeEl("storeOnlyAvailable").checked;
-  const visibleItems=storeVisibleItems();
-  const filtered = visibleItems.filter(item =>
-    (!query || item.name.toLocaleLowerCase("ru").includes(query)) &&
-    (!category || item.category === category) &&
-    (!onlyAvailable || (storeBalances.get(item.id) || 0) > 0)
-  );
-  storeEl("storeFilteredCount").textContent = `${filtered.length} из ${visibleItems.length}`;
-  const root = storeEl("storeCatalog"); root.replaceChildren();
-  if (!filtered.length) {storeText(root,"p","Предметов по выбранным условиям нет.","store-muted");return;}
-  for (const item of filtered) {
-    const row = document.createElement("div");row.className="store-item";
-    const details = document.createElement("div");
-    storeText(details,"strong",item.name);
-    storeText(details,"small",item.category);
-    if (item.description) storeText(details,"small",item.description);
-    row.appendChild(details);
-    storeText(row,"b",`${storeNumber.format(storeBalances.get(item.id)||0)} ${item.unit || "шт."}`);
-    const action=document.createElement("button");action.type="button";action.className="secondary-button";action.textContent="Заявка";
-    action.addEventListener("click",()=>{
-      storeRequestCascade.choose(item.id);
-      storeOpenPanel("storeRequestForm");
-    });
-    row.appendChild(action);root.appendChild(row);
-  }
-}
+let storeCart=new Map(), storeCartUser=null, storeCartToken=null, storePage=0, storeFilterKey='';
+function storeCartScope(){const uid=currentSession?.user?.id;if(uid!==storeCartUser){storeCart.clear();storeCartToken=null;storeCartUser=uid;storeEl('storeBasketPurpose').value='';}}
+function storeCartChange(id,q){if(storeBusy)return;storeCartScope();const max=Math.min(1000000000,Math.floor(storeBalances.get(id)||0));if(q<=0)storeCart.delete(id);else if(Number.isSafeInteger(q)&&q<=max){if(!storeCart.has(id)&&storeCart.size>=500)return showToast('Не более 500 позиций');storeCart.set(id,q);}else return showToast('Недостаточно ресурсов');storeCartToken=null;renderStoreCatalog();}
+function storeRenderBasket(){storeCartScope();const root=storeEl('storeBasketRows');root.replaceChildren();for(const [id,q] of storeCart){const item=storeItems.find(x=>x.id===id);const row=storeText(root,'div','','store-basket-row');storeText(row,'strong',item?.name||'Неизвестный предмет');const controls=storeText(row,'div','','store-basket-controls');const btn=(label,fn)=>{const b=storeText(controls,'button',label,'secondary-button');b.type='button';b.disabled=storeBusy;b.onclick=fn;};btn('−',()=>storeCartChange(id,q-1));const input=document.createElement('input');input.type='number';input.min='1';input.max=String(Math.floor(storeBalances.get(id)||0));input.value=q;input.disabled=storeBusy;input.setAttribute('aria-label','Количество '+(item?.name||''));input.onchange=()=>{storeCartChange(id,Number(input.value));input.value=storeCart.get(id)||q;};controls.append(input);btn('+',()=>storeCartChange(id,q+1));btn('×',()=>storeCartChange(id,0));if(q>(storeBalances.get(id)||0))storeText(row,'small','Недостаточно в наличии','treasury-negative');}if(!storeCart.size)storeText(root,'p','Нажмите на предмет, чтобы добавить его в заявку.','store-muted');storeEl('storeBasketCount').textContent='Всего позиций: '+storeCart.size;storeEl('storeBasketSubmit').disabled=storeBusy||!storeCart.size;storeEl('storeBasketPurpose').disabled=storeBusy;}
+storeEl('storeBasketPurpose').addEventListener('input',()=>storeCartToken=null);
+storeEl('storeBasketSubmit').onclick=async()=>{storeCartScope();if(storeBusy||!storeCart.size||!['approved','admin'].includes(accessState.mode))return;const uid=currentSession.user.id;const name=storeEl('storeBasketPurpose').value.trim()||'Выдача из кладовой';const items=[...storeCart].map(([id,q])=>({id,q}));if(items.some(x=>x.q>(storeBalances.get(x.id)||0)))return showToast('Проверьте остатки');storeCartToken=storeCartToken||'CRAFT-'+crypto.randomUUID();storeBusy=true;storeRenderBasket();try{const {error}=await supabaseClient.rpc('storage_submit_craft_batch',{p_token:storeCartToken,p_order_name:name,p_items:items});if(error)throw error;if(currentSession?.user?.id!==uid)return;storeCart.clear();storeCartToken=null;storeEl('storeBasketPurpose').value='';showToast('Общая заявка отправлена');await loadStorehouse();}catch(e){showToast('Ошибка: '+e.message);}finally{storeBusy=false;renderStoreCatalog();}};
+function renderStoreCatalog(){
+ storeCartScope();const query=storeEl('storeSearch').value.trim().toLocaleLowerCase('ru'),category=storeEl('storeCategory').value,only=storeEl('storeOnlyAvailable').checked;const key=JSON.stringify([storeSection,query,category,only]);if(key!==storeFilterKey){storePage=0;storeFilterKey=key;}
+ const visible=storeVisibleItems(),filtered=visible.filter(i=>(!query||i.name.toLocaleLowerCase('ru').includes(query))&&(!category||i.category===category)&&(!only||(storeBalances.get(i.id)||0)>0));const pages=Math.max(1,Math.ceil(filtered.length/48));storePage=Math.min(storePage,pages-1);storeEl('storeFilteredCount').textContent=`${filtered.length} из ${visible.length}`;const root=storeEl('storeCatalog');root.replaceChildren();for(const item of filtered.slice(storePage*48,storePage*48+48)){const balance=storeBalances.get(item.id)||0;const tile=storeText(root,'button','','store-tile');tile.type='button';tile.title=item.name+' · '+item.category+(item.description?' · '+item.description:'');tile.disabled=balance<=0||storeBusy;tile.classList.toggle('selected',storeCart.has(item.id));const src=window.STORE_ICONS?.[item.name.trim().toLowerCase().replace(/ё/g,'е')];if(src){const img=document.createElement('img');img.src=src;img.alt='';img.loading='lazy';tile.append(img);}else storeText(tile,'span','◇','store-tile-placeholder');storeText(tile,'strong',item.name);storeText(tile,'b',storeNumber.format(balance)+' '+(item.unit||'шт.'));if(storeCart.has(item.id))storeText(tile,'span','✓ '+storeCart.get(item.id),'store-tile-selected');tile.onclick=()=>storeCartChange(item.id,(storeCart.get(item.id)||0)+1);}
+ if(!filtered.length)storeText(root,'p','Предметов по выбранным условиям нет.','store-muted');const nav=storeEl('storePagination');nav.replaceChildren();for(const [label,delta] of [['←',-1],['→',1]]){if(delta===1)storeText(nav,'span',`${storePage+1} / ${pages}`);const b=storeText(nav,'button',label,'secondary-button');b.type='button';b.disabled=storePage+delta<0||storePage+delta>=pages;b.onclick=()=>{storePage+=delta;renderStoreCatalog();};}renderStoreBasket();}
 async function loadStorehouse() {
   if (!supabaseClient || !currentSession?.user || !["approved","admin"].includes(accessState.mode)) return;
   const token=++storeLoadToken;
@@ -1140,9 +1122,9 @@ async function loadStorehouse() {
     }
     for(const r of batches){
       const details=r.items.map(i=>`${storeItemName(i.id)} × ${i.q}`).join(' · ');
-      if(r.user_id===userId)storeRecord(own,`Ремесленный заказ: ${r.order_name}`,details,null,storeStatus(r.status));
+      if(r.user_id===userId)storeRecord(own,`Общая заявка: ${r.order_name}`,details,null,storeStatus(r.status));
       if(isAdmin&&r.status==='pending'){
-        const row=storeRecord(pendingBox,`Ремесленный заказ: ${r.order_name} · ${storeProfiles.get(r.user_id)||'Участник'}`,details);
+        const row=storeRecord(pendingBox,`Общая заявка: ${r.order_name} · ${storeProfiles.get(r.user_id)||'Участник'}`,details);
         const actions=document.createElement('div');actions.className='treasury-actions';
         for(const [label,approve] of [['Одобрить весь заказ',true],['Отклонить весь заказ',false]]){
           const btn=document.createElement('button');btn.type='button';btn.className='secondary-button';btn.textContent=label;

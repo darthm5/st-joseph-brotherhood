@@ -205,7 +205,7 @@ try {
 const save = () => {
   if (window.ORD_OVERRIDE && window.onOverrideSave) window.onOverrideSave();
   try {
-    localStorage.setItem(KEY, JSON.stringify({ P, stock, sec, orders, cur, off, sign, journal }));
+    window.dispatchEvent(new Event("craft-account-change"));
   } catch (e) {}
 };
 // window.ORD_OVERRIDE: временно считать другой заказ (черновик заказа фракции, расчёт чужого заказа) - ведёт sklad.js
@@ -941,7 +941,7 @@ tb.addEventListener("click", e => {
   if (!btn) return;
   const id = btn.dataset.fav;
   if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
-  try { localStorage.setItem(FAV_KEY, JSON.stringify([...favorites])); } catch(e) {}
+  try { window.dispatchEvent(new Event("craft-account-change")); } catch(e) {}
   renderTable();
 });
 tb.addEventListener("input", e => {
@@ -1770,6 +1770,13 @@ btn.addEventListener('click',async()=>{const lines=[];for(const tr of body.query
 })();
 
 
+window.CRAFT_ACCOUNT={
+ snapshot:()=>JSON.parse(JSON.stringify({ledger:{P,stock,sec,orders,cur,off,sign,journal},favorites:[...favorites]})),
+ empty:()=>({ledger:{P:{...DEF},stock:{},sec:'a',orders:[newOrder('Заказ 1')],cur:0,off:{},sign:'',journal:[]},favorites:[]}),
+ apply(data){const s=data.ledger;P={...DEF,...s.P};stock=s.stock||{};sec=SECNAME[s.sec]?s.sec:'a';orders=cleanOrders(s.orders);cur=Math.max(0,Math.min(s.cur|0,orders.length-1));off=s.off||{};sign=s.sign||'';journal=Array.isArray(s.journal)?s.journal:[];favorites=new Set(data.favorites||[]);tab='all';cat='all';signEl.value=sign;document.querySelectorAll('[data-p]').forEach(i=>i.value=P[i.dataset.p]);recalc();renderOrderList();renderStatus();renderAll();},
+ legacy:null
+};
+try{if(localStorage.getItem(KEY)||localStorage.getItem('forge-ledger-v3')||localStorage.getItem(FAV_KEY))window.CRAFT_ACCOUNT.legacy=window.CRAFT_ACCOUNT.snapshot()}catch(e){}
 window.CRAFT_BRIDGE={ALLK,NAME,MAT,stockKeys:()=>showAll ? ALLK : secKeys(),treeKeys,renderOrder,renderOrderList,renderJournal,breakdown,addToJournal,O,save};
 })();
 

@@ -138,6 +138,7 @@ function navigate(page) {
   membersPage.classList.toggle("active-page", page === "members");
   craftsPage.classList.toggle("active-page", page === "crafts");
   treasuryPage.classList.toggle("active-page", page === "treasury");
+  if (page !== "storehouse" && storehousePage.classList.contains("active-page")) storeClearHighlights();
   storehousePage.classList.toggle("active-page", page === "storehouse");
   workPage.classList.toggle("active-page", page === "work");
   marketPage.classList.toggle("active-page", page === "market");
@@ -1007,6 +1008,7 @@ let storeActivePanel=null;
 function storeOpenPanel(id, scroll=true){
   if(id && !storePanelIds.includes(id))return;
   if(id && ['storeManualForm','storeAddForm','storeAdminRequests'].includes(id) && accessState.mode!=='admin')return;
+  if(id!==storeActivePanel || (scroll && id==="storeOwnRequestsPanel")) storeClearHighlights();
   storeActivePanel=id;
   storeEl("storeBackStock").classList.toggle("store-action-active",!id);
   storeEl("storeInventory").hidden=Boolean(id);
@@ -1043,10 +1045,11 @@ function renderStoreCatalog(){
  storeCartScope();if(storeKeeperMode&&accessState.mode!=="admin"){storeKeeperMode=false;storeMode="take";storeCart=new Map();storeCartToken=null;}const query=storeEl('storeSearch').value.trim().toLocaleLowerCase('ru'),category=storeEl('storeCategory').value,only=storeMode==="take"&&storeEl('storeOnlyAvailable').checked;const key=JSON.stringify([storeSection,query,category,only]);if(key!==storeFilterKey){storePage=0;storeFilterKey=key;}
  const visible=storeVisibleItems(),filtered=visible.filter(i=>(!query||i.name.toLocaleLowerCase('ru').includes(query))&&(!category||storeItemCategories(i).includes(category))&&(!only||(storeBalances.get(i.id)||0)>0));const pages=Math.max(1,Math.ceil(filtered.length/48));storePage=Math.min(storePage,pages-1);storeEl('storeFilteredCount').textContent=`${filtered.length} из ${visible.length}`;const root=storeEl('storeCatalog');root.replaceChildren();for(const item of filtered.slice(storePage*48,storePage*48+48)){const balance=storeBalances.get(item.id)||0;const tile=storeText(root,'button','','store-tile');tile.type='button';tile.title=item.name+' · '+storeItemCategories(item).join(", ")+(item.description?' · '+item.description:'');tile.disabled=(storeMode==="take"&&balance<=0&&!storeCart.has(item.id))||storeBusy;tile.setAttribute('aria-pressed',String(storeCart.has(item.id)));tile.classList.toggle('selected',storeCart.has(item.id));const visual=storeText(tile,'div','','store-tile-visual');const fallback=()=>{visual.replaceChildren();const icon=document.createElement('img');icon.src='store-icons/resource.svg';icon.alt='';icon.className='store-tile-placeholder';visual.append(icon);};const src=window.storeIconFor?.(item.name);if(src){const img=document.createElement('img');img.alt='';img.loading='lazy';img.onerror=fallback;img.src=src;visual.append(img);}else fallback();storeText(tile,'strong',item.name);storeText(tile,'b',storeNumber.format(balance)+' '+(item.unit||'шт.'));if(storeCart.has(item.id))storeText(tile,'span','✓','store-tile-selected');tile.onclick=()=>storeCartChange(item.id,storeCart.has(item.id)?0:1);}
  if(!filtered.length)storeText(root,'p','Предметов по выбранным условиям нет.','store-muted');const nav=storeEl('storePagination');nav.replaceChildren();for(const [label,delta] of [['←',-1],['→',1]]){if(delta===1)storeText(nav,'span',`${storePage+1} / ${pages}`);const b=storeText(nav,'button',label,'secondary-button');b.type='button';b.disabled=storePage+delta<0||storePage+delta>=pages;b.onclick=()=>{storePage+=delta;renderStoreCatalog();};}storeModeUI();storeRenderBasket();}
-let storeBadgeUser=null,storeSeen=new Set(),storeTerminal=[];
-function storeBadgeScope(uid){if(uid===storeBadgeUser)return;storeBadgeUser=uid;storeTerminal=[];storeSeen=new Set();try{storeSeen=new Set(JSON.parse(localStorage.getItem('store-seen-2774:'+uid)||'[]'));}catch(e){}storeEl('storeOwnBadge').textContent='0';storeEl('storeManageBadge').textContent='0';storeEl('storePendingBadge').textContent='0';}
+let storeBadgeUser=null,storeSeen=new Set(),storeTerminal=[],storeHighlights=new Set();
+function storeClearHighlights(){storeHighlights.clear();for(const row of document.querySelectorAll("#storeOwnRequests .store-request-new")){row.classList.remove("store-request-new");row.querySelector(".store-request-new-label")?.remove();}}
+function storeBadgeScope(uid){if(uid===storeBadgeUser)return;storeBadgeUser=uid;storeClearHighlights();storeTerminal=[];storeSeen=new Set();try{storeSeen=new Set(JSON.parse(localStorage.getItem('store-seen-2774:'+uid)||'[]'));}catch(e){}storeEl('storeOwnBadge').textContent='0';storeEl('storeManageBadge').textContent='0';storeEl('storePendingBadge').textContent='0';}
 function storeMarkSeen(){for(const key of storeTerminal)storeSeen.add(key);try{localStorage.setItem('store-seen-2774:'+storeBadgeUser,JSON.stringify([...storeSeen]));}catch(e){}storeEl('storeOwnBadge').textContent='0';}
-function storeUpdateBadges(requests,batches,uid,admin){storeBadgeScope(uid);storeTerminal=[...requests.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'single:'+r.id+':'+r.status),...batches.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'batch:'+r.token+':'+r.status)];if(storeActivePanel==='storeOwnRequestsPanel')storeMarkSeen();else storeEl('storeOwnBadge').textContent=String(storeTerminal.filter(k=>!storeSeen.has(k)).length);const pending=admin?[...requests,...batches].filter(r=>r.status==='pending').length:0;storeEl('storeManageBadge').textContent=String(pending);storeEl('storePendingBadge').textContent=String(pending);}
+function storeUpdateBadges(requests,batches,uid,admin){storeBadgeScope(uid);storeTerminal=[...requests.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'single:'+r.id+':'+r.status),...batches.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'batch:'+r.token+':'+r.status)];if(storeActivePanel==='storeOwnRequestsPanel'){for(const key of storeTerminal)if(!storeSeen.has(key))storeHighlights.add(key);storeMarkSeen();}else storeEl('storeOwnBadge').textContent=String(storeTerminal.filter(k=>!storeSeen.has(k)).length);const pending=admin?[...requests,...batches].filter(r=>r.status==='pending').length:0;storeEl('storeManageBadge').textContent=String(pending);storeEl('storePendingBadge').textContent=String(pending);}
 let storeBadgePolling=false;
 async function storePollBadges(){if(storeBadgePolling||storeBusy||document.hidden||!storehousePage.classList.contains('active-page')||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;const uid=currentSession.user.id,admin=accessState.mode==='admin';storeBadgePolling=true;try{const [r,b]=await Promise.all([storeAllRows('storage_requests','id,user_id,status,created_at'),storeAllRows('storage_craft_batches','token,user_id,status,created_at')]);if(currentSession?.user?.id!==uid||!storehousePage.classList.contains('active-page')||storeBusy)return;if(['storeOwnRequestsPanel','storeAdminRequests'].includes(storeActivePanel)){await loadStorehouse();}else storeUpdateBadges(r,b,uid,admin);}catch(e){}finally{storeBadgePolling=false;}}
 setInterval(storePollBadges,30000);
@@ -1092,7 +1095,7 @@ async function loadStorehouse() {
     const ownRows=[];
     for(const r of mine) {
       const sign=r.request_type==="deposit"?1:-1;
-      ownRows.push({date:r.created_at,row:storeRecord(own,`${storeItemName(r.item_id)} — ${r.request_type==="deposit"?"передача":"выдача"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity),storeStatus(r.status))});
+      ownRows.push({key:"single:"+r.id+":"+r.status,date:r.created_at,row:storeRecord(own,`${storeItemName(r.item_id)} — ${r.request_type==="deposit"?"передача":"выдача"}`,`${storeDate(r.created_at)} · ${r.comment||"Без комментария"}`,sign*Number(r.quantity),storeStatus(r.status))});
     }
     const pendingBox=storeEl("storePendingList");pendingBox.replaceChildren();
     if(isAdmin) {
@@ -1115,7 +1118,7 @@ async function loadStorehouse() {
     }
     for(const r of batches){
       const details=(Array.isArray(r.items)?r.items:[]).map(i=>`${storeItemName(i.id)} × ${i.q}`).join(' · ');
-      if(r.user_id===userId)ownRows.push({date:r.created_at,row:storeRecord(own,`${r.request_type==='deposit'?'Пополнение':'Выдача'}: ${r.order_name}`,`${storeDate(r.created_at)} · ${details}`,null,storeStatus(r.status))});
+      if(r.user_id===userId)ownRows.push({key:"batch:"+r.token+":"+r.status,date:r.created_at,row:storeRecord(own,`${r.request_type==='deposit'?'Пополнение':'Выдача'}: ${r.order_name}`,`${storeDate(r.created_at)} · ${details}`,null,storeStatus(r.status))});
       if(isAdmin&&r.status==='pending'){
         const row=storeRecord(pendingBox,`${r.request_type==='deposit'?'Пополнение':'Выдача'}: ${r.order_name} · ${storeProfiles.get(r.user_id)||'Участник'}`,details);
         const actions=document.createElement('div');actions.className='treasury-actions';
@@ -1127,6 +1130,7 @@ async function loadStorehouse() {
     }
     ownRows.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(x=>own.appendChild(x.row));
     storeUpdateBadges(requests,batches,userId,isAdmin);
+    if(storeActivePanel==="storeOwnRequestsPanel")for(const x of ownRows){if(storeHighlights.has(x.key)){x.row.classList.add("store-request-new");storeText(x.row.firstElementChild,"span","Статус обновлён","store-request-new-label");}}
     const history=storeEl("storeHistory");history.replaceChildren();
     if(!transactions.length)storeText(history,"p","Операций пока нет.");
     for(const t of transactions.slice(0,100)) {

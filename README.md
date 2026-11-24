@@ -37,3 +37,6 @@ Personal cabinet: charter, profile editing, skill levels, personal guild activit
 
 ## v2.7.6
 Квадратный инвентарь, изображения из ремесленного каталога, общая заявка через существующий RPC v2.5.8. Новых SQL-миграций нет.
+
+## v2.7.6.3
+Перед загрузкой сайта выполните storage_unified_v2_7_6_3.sql в Supabase SQL Editor. Единый инвентарь для выдачи, пополнения и учёта кладовщика.

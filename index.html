@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=2762">
+<link rel="stylesheet" href="residence.css?v=2763">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.6.2</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.6.3</div>
       </div>
     </aside>
 
@@ -294,20 +294,18 @@
           <p id="storeNotice" class="members-message" role="status" aria-live="polite"></p>
           <div id="storeSectionTabs" class="store-tabs" role="tablist" aria-label="Раздел кладовой"><button type="button" id="storeTabMaterials" class="store-tab active" role="tab" aria-selected="true">Материалы</button><button type="button" id="storeTabProducts" class="store-tab" role="tab" aria-selected="false">Готовая продукция</button></div>
           <div class="store-actions" role="group" aria-label="Действия кладовой"><button type="button" class="secondary-button store-action-active" id="storeBackStock">Запасы</button>
-            <button type="button" class="secondary-button" data-store-panel="storeRequestForm" aria-expanded="false">＋ Пополнение</button>
-            <button type="button" class="secondary-button" data-store-panel="storeManualForm" data-store-admin hidden aria-expanded="false">Учёт кладовщика</button>
-            <button type="button" class="secondary-button" data-store-panel="storeAddForm" data-store-admin hidden aria-expanded="false">Добавить предмет</button>
-            <button type="button" class="secondary-button" data-store-panel="storeOwnRequestsPanel" aria-expanded="false">Мои заявки</button>
-            <button type="button" class="secondary-button" data-store-panel="storeAdminRequests" data-store-admin hidden aria-expanded="false">На рассмотрении</button>
-            <button type="button" class="secondary-button" data-store-panel="storeHistoryPanel" aria-expanded="false">Журнал</button>
+            <button type="button" class="secondary-button" data-store-panel="storeOwnRequestsPanel">Мои заявки</button>
+            <button type="button" class="secondary-button" data-store-panel="storeHistoryPanel">Журнал</button>
+            <details id="storeManagement" data-store-admin hidden><summary class="secondary-button">Управление хранилищем ▾</summary><div class="store-management-menu"><button type="button" class="secondary-button" data-store-panel="storeAdminRequests">На рассмотрении</button><button type="button" class="secondary-button" id="storeKeeper">Учёт кладовщика</button><button type="button" class="secondary-button" data-store-panel="storeAddForm">Добавить предмет</button></div></details>
           </div>
+          <div id="storeModes" class="store-actions"><button type="button" class="secondary-button" id="storeTake">↓ Получить ресурсы</button><button type="button" class="secondary-button" id="storeGive">↑ Пополнить запасы</button></div>
           <div id="storeInventory" class="store-inventory"><div class="store-inventory-main"><div class="panel store-toolbar">
             <label>Поиск предмета<input type="search" id="storeSearch" placeholder="Например: железная руда"></label>
             <label>Категория<select id="storeCategory"><option value="">Все категории</option></select></label>
             <label class="store-check"><input type="checkbox" id="storeOnlyAvailable"> Только в наличии</label>
             <button type="button" class="secondary-button" id="storeRefresh">Обновить</button>
           </div>
-          <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div><div id="storePagination" class="store-pagination"></div></article></div><aside class="panel store-basket"><h2>Заявка на выдачу</h2><div id="storeBasketRows" aria-live="polite"></div><p id="storeBasketCount" class="store-muted"></p><label>Назначение заявки<textarea id="storeBasketPurpose" maxlength="500" rows="3" placeholder="Для какого заказа нужны ресурсы"></textarea></label><button type="button" class="primary-button" id="storeBasketSubmit">Отправить заявку</button><p class="store-muted">Выдача после одобрения администрацией.</p></aside></div>
+          <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div><div id="storePagination" class="store-pagination"></div></article></div><aside class="panel store-basket"><h2 id="storeBasketHeading">Заявка на выдачу</h2><div id="storeBasketRows" aria-live="polite"></div><p id="storeBasketCount" class="store-muted"></p><label id="storeKeeperMember" hidden>Участник<select id="storeKeeperSelect"><option value="">Общая операция</option></select></label><label>Комментарий<textarea id="storeBasketPurpose" maxlength="500" rows="3" placeholder="Для какого заказа нужны ресурсы"></textarea></label><button type="button" class="primary-button" id="storeBasketSubmit">Отправить заявку</button><p class="store-muted" id="storeBasketHint">После одобрения администрацией.</p></aside></div>
           <div class="treasury-forms">
             <form id="storeRequestForm" class="panel treasury-form" hidden><h2>Пополнение кладовой</h2><p>Найдите ресурс, укажите количество и отправьте заявку на поступление.</p>
               <label>Поиск ресурса<input type="search" data-store-search placeholder="Введите название или категорию"></label><label>Ресурс<select name="item" required><option value="">Выберите ресурс</option></select></label><p class="store-muted" data-store-balance></p>
@@ -677,8 +675,8 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="store-icons.js?v=2762"></script>
-  <script src="app.js?v=2762"></script>
+  <script src="store-icons.js?v=2763"></script>
+  <script src="app.js?v=2763"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

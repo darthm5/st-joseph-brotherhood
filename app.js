@@ -1035,6 +1035,7 @@ function storeOpenPanel(id, scroll=true){
   if(id && !storePanelIds.includes(id))return;
   if(id && ['storeManualForm','storeAddForm','storeAdminRequests'].includes(id) && accessState.mode!=='admin')return;
   storeActivePanel=id;
+  storeEl("storeBackStock").classList.toggle("store-action-active",!id);
   storeEl("storeInventory").hidden=Boolean(id);
   for(const panelId of storePanelIds){
     storeEl(panelId).hidden=panelId!==id;
@@ -1050,10 +1051,11 @@ for(const button of document.querySelectorAll('[data-store-panel]')){
   button.addEventListener('click',()=>storeOpenPanel(storeActivePanel===button.dataset.storePanel?null:button.dataset.storePanel));
 }
 
+storeEl("storeBackStock").onclick=()=>storeOpenPanel(null);
 let storeCart=new Map(), storeCartUser=null, storeCartToken=null, storePage=0, storeFilterKey='';
 function storeCartScope(){const uid=currentSession?.user?.id;if(uid!==storeCartUser){storeCart.clear();storeCartToken=null;storeCartUser=uid;storeEl('storeBasketPurpose').value='';}}
-function storeCartChange(id,q){if(storeBusy)return;storeCartScope();const max=Math.min(1000000000,Math.floor(storeBalances.get(id)||0));if(q<=0)storeCart.delete(id);else if(Number.isSafeInteger(q)&&q<=max){if(!storeCart.has(id)&&storeCart.size>=500)return showToast('Не более 500 позиций');storeCart.set(id,q);}else return showToast('Недостаточно ресурсов');storeCartToken=null;renderStoreCatalog();}
-function storeRenderBasket(){storeCartScope();const root=storeEl('storeBasketRows');root.replaceChildren();for(const [id,q] of storeCart){const item=storeItems.find(x=>x.id===id);const row=storeText(root,'div','','store-basket-row');storeText(row,'strong',item?.name||'Неизвестный предмет');const controls=storeText(row,'div','','store-basket-controls');const btn=(label,fn)=>{const b=storeText(controls,'button',label,'secondary-button');b.type='button';b.disabled=storeBusy;b.onclick=fn;};btn('−',()=>storeCartChange(id,q-1));const input=document.createElement('input');input.type='number';input.min='1';input.max=String(Math.floor(storeBalances.get(id)||0));input.value=q;input.disabled=storeBusy;input.setAttribute('aria-label','Количество '+(item?.name||''));input.onchange=()=>{storeCartChange(id,Number(input.value));input.value=storeCart.get(id)||q;};controls.append(input);btn('+',()=>storeCartChange(id,q+1));btn('×',()=>storeCartChange(id,0));if(q>(storeBalances.get(id)||0))storeText(row,'small','Недостаточно в наличии','treasury-negative');}if(!storeCart.size)storeText(root,'p','Нажмите на предмет, чтобы добавить его в заявку.','store-muted');storeEl('storeBasketCount').textContent='Всего позиций: '+storeCart.size;storeEl('storeBasketSubmit').disabled=storeBusy||!storeCart.size;storeEl('storeBasketPurpose').disabled=storeBusy;}
+function storeCartChange(id,q){if(storeBusy){showToast("Дождитесь завершения операции");return;}storeCartScope();const max=Math.min(1000000000,Math.floor(storeBalances.get(id)||0));if(q<=0)storeCart.delete(id);else if(Number.isSafeInteger(q)&&q<=max){if(!storeCart.has(id)&&storeCart.size>=500)return showToast('Не более 500 позиций');storeCart.set(id,q);}else return showToast('Недостаточно ресурсов');storeCartToken=null;storeRenderBasket();renderStoreCatalog();}
+function storeRenderBasket(){storeCartScope();const root=storeEl('storeBasketRows');root.replaceChildren();for(const [id,q] of storeCart){const item=storeItems.find(x=>x.id===id);const row=storeText(root,'div','','store-basket-row');storeText(row,'strong',item?.name||'Неизвестный предмет');const controls=storeText(row,'div','','store-basket-controls');const btn=(label,fn)=>{const b=storeText(controls,'button',label,'secondary-button');b.type='button';b.disabled=storeBusy;b.onclick=fn;};btn('−',()=>storeCartChange(id,q-1));const input=document.createElement('input');input.type='number';input.min='1';input.max=String(Math.floor(storeBalances.get(id)||0));input.value=q;input.disabled=storeBusy;input.setAttribute('aria-label','Количество '+(item?.name||''));input.onchange=()=>{const v=Number(input.value);if(!input.value.trim()||!Number.isSafeInteger(v)||v<1){input.value=q;return;}storeCartChange(id,v);input.value=storeCart.get(id)||q;};controls.append(input);btn('+',()=>storeCartChange(id,q+1));btn('×',()=>storeCartChange(id,0));if(q>(storeBalances.get(id)||0))storeText(row,'small','Недостаточно в наличии','treasury-negative');}if(!storeCart.size)storeText(root,'p','Нажмите на предмет, чтобы добавить его в заявку.','store-muted');storeEl('storeBasketCount').textContent='Всего позиций: '+storeCart.size+' · Количество: '+storeNumber.format([...storeCart.values()].reduce((a,b)=>a+b,0));storeEl('storeBasketSubmit').disabled=storeBusy||!storeCart.size;storeEl('storeBasketPurpose').disabled=storeBusy;}
 storeEl('storeBasketPurpose').addEventListener('input',()=>storeCartToken=null);
 storeEl('storeBasketSubmit').onclick=async()=>{storeCartScope();if(storeBusy||!storeCart.size||!['approved','admin'].includes(accessState.mode))return;const uid=currentSession.user.id;const name=storeEl('storeBasketPurpose').value.trim()||'Выдача из кладовой';const items=[...storeCart].map(([id,q])=>({id,q}));if(items.some(x=>x.q>(storeBalances.get(x.id)||0)))return showToast('Проверьте остатки');storeCartToken=storeCartToken||'CRAFT-'+crypto.randomUUID();storeBusy=true;storeRenderBasket();try{const {error}=await supabaseClient.rpc('storage_submit_craft_batch',{p_token:storeCartToken,p_order_name:name,p_items:items});if(error)throw error;if(currentSession?.user?.id!==uid)return;storeCart.clear();storeCartToken=null;storeEl('storeBasketPurpose').value='';showToast('Общая заявка отправлена');await loadStorehouse();}catch(e){showToast('Ошибка: '+e.message);}finally{storeBusy=false;renderStoreCatalog();}};
 function renderStoreCatalog(){
@@ -1115,7 +1117,7 @@ async function loadStorehouse() {
             if(storeBusy || !window.confirm(`${label} заявку: ${storeItemName(r.item_id)} (${r.quantity} шт.)?`))return;
             storeBusy=true;btn.disabled=true;
             try {const {error}=await supabaseClient.rpc("storage_review_request",{p_request_id:r.id,p_approve:approve});if(error)throw error;showToast("Заявка обработана");await loadStorehouse();}
-            catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;btn.disabled=false;}
+            catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;btn.disabled=false;renderStoreCatalog();}
           });actions.appendChild(btn);
         }row.appendChild(actions);
       }
@@ -1128,7 +1130,7 @@ async function loadStorehouse() {
         const actions=document.createElement('div');actions.className='treasury-actions';
         for(const [label,approve] of [['Одобрить весь заказ',true],['Отклонить весь заказ',false]]){
           const btn=document.createElement('button');btn.type='button';btn.className='secondary-button';btn.textContent=label;
-          btn.onclick=async()=>{if(storeBusy||!confirm(label+'?'))return;storeBusy=true;btn.disabled=true;try{const {error}=await supabaseClient.rpc('storage_review_craft_batch',{p_token:r.token,p_approve:approve});if(error)throw error;await loadStorehouse();}catch(e){showToast('Ошибка: '+e.message)}finally{storeBusy=false;btn.disabled=false}};actions.appendChild(btn);
+          btn.onclick=async()=>{if(storeBusy||!confirm(label+'?'))return;storeBusy=true;btn.disabled=true;try{const {error}=await supabaseClient.rpc('storage_review_craft_batch',{p_token:r.token,p_approve:approve});if(error)throw error;await loadStorehouse();}catch(e){showToast('Ошибка: '+e.message)}finally{storeBusy=false;btn.disabled=false;renderStoreCatalog();}};actions.appendChild(btn);
         }row.appendChild(actions);
       }
     }
@@ -1152,7 +1154,7 @@ storeEl("storeRequestForm").addEventListener("submit",async event=>{
   if(!form.elements.namedItem("item").value)return showToast("Выберите предмет.");
   storeBusy=true;
   try {const {error}=await supabaseClient.rpc("storage_submit_request",{p_item_id:form.elements.namedItem("item").value,p_request_type:form.elements.type.value,p_quantity:quantity,p_comment:form.elements.comment.value.trim()});if(error)throw error;form.reset();storeRequestCascade.reset();showToast("Заявка отправлена");await loadStorehouse();}
-  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;renderStoreCatalog();}
 });
 storeEl("storeManualForm").addEventListener("submit",async event=>{
   event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
@@ -1163,13 +1165,13 @@ storeEl("storeManualForm").addEventListener("submit",async event=>{
   if(!window.confirm(`Записать ${signed<0?"выдачу":"поступление"} ${quantity} шт. предмета «${storeItemName(form.elements.namedItem("item").value)}»?`))return;
   storeBusy=true;
   try {const {error}=await supabaseClient.rpc("storage_add_transaction",{p_item_id:form.elements.namedItem("item").value,p_quantity:signed,p_description:form.elements.description.value.trim(),p_member_id:form.elements.member.value||null});if(error)throw error;form.reset();storeManualCascade.reset();showToast("Операция записана");await loadStorehouse();}
-  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;renderStoreCatalog();}
 });
 storeEl("storeAddForm").addEventListener("submit",async event=>{
   event.preventDefault();if(storeBusy||accessState.mode!=="admin")return;
   const form=event.currentTarget;storeBusy=true;
   try {const section=form.elements.namedItem("section").value;const category=form.elements.category.value.trim();if(section==="products"&&!storeProductCategories.includes(category))throw new Error("Выберите одну из девяти категорий готовой продукции");const {error}=await supabaseClient.rpc(section==="products"?"storage_add_product_item":"storage_add_item",{p_name:form.elements.namedItem("name").value.trim(),p_category:category,p_unit:form.elements.unit.value.trim(),p_description:form.elements.description.value.trim()});if(error)throw error;form.reset();storeEl("storeNewSection").value=storeSection;showToast("Предмет добавлен в каталог");await loadStorehouse();}
-  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;}
+  catch(err){showToast("Ошибка: "+err.message);}finally{storeBusy=false;renderStoreCatalog();}
 });
 
 

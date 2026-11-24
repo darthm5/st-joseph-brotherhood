@@ -854,6 +854,8 @@ async function loadTreasury() {
   const adminRequests = document.getElementById("treasuryAdminRequests");
   const isAdmin = accessState.mode === "admin";
   adminForm.hidden = !isAdmin; adminRequests.hidden = !isAdmin;
+  document.querySelector('[data-tr-tab="admin"]').hidden = !isAdmin;
+  if (!isAdmin && document.querySelector('[data-tr-tab="admin"]').getAttribute('aria-pressed') === 'true') trSelect('journal');
   try {
     const [txResult, reqResult, profilesResult] = await Promise.all([
       supabaseClient.from("treasury_transactions").select("id,member_id,amount,description,created_at,recorded_by").order("created_at",{ascending:false}).limit(500),
@@ -893,8 +895,9 @@ async function loadTreasury() {
       for(const p of profiles.filter(p=>p.character_first_name||p.character_last_name).sort((a,b)=>(names.get(a.id)||"").localeCompare(names.get(b.id)||""))) memberSelect.add(new Option(names.get(p.id),p.id));
     }
     if(!tx.length) treasuryText(historyBox,"p","Подтверждённых операций пока нет.");
-    for(const t of tx) treasuryRow(historyBox,t.description,`${treasuryDate(t.created_at)} · ${names.get(t.member_id)||"Общая операция"}`,Number(t.amount));
-    treasuryNotice.textContent = tx.length===500 ? "Показаны последние 500 операций. Для полного архива позже добавим постраничную загрузку." : "Данные обновлены.";
+    for(const t of tx) { const row=treasuryRow(historyBox,t.description,`${treasuryDate(t.created_at)} · ${names.get(t.member_id)||"Общая операция"}`,Number(t.amount)); row.dataset.trDirection=Number(t.amount)<0?'expense':'income'; }
+    trFilter();
+    treasuryNotice.textContent = tx.length===500 ? "Показаны последние 500 операций; баланс и итоги рассчитаны только по ним." : "Данные обновлены.";
   } catch(e) {treasuryNotice.textContent="Ошибка загрузки казны: "+e.message;}
 }
 document.getElementById("treasuryRefresh").addEventListener("click",loadTreasury);
@@ -2581,3 +2584,19 @@ async function loadHome272(){
 }
 home272('homeRefresh').onclick=loadHome272;
 home272('homeAnnouncements').onclick=()=>{if(canVisit('info')){navigate('info');libOpenCategory('announcements');}};
+
+function trSelect(tab){
+  if(tab==='admin' && accessState.mode!=='admin') tab='journal';
+  document.querySelectorAll('[data-tr-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.trTab===tab)));
+  document.querySelectorAll('[data-tr-panel]').forEach(p=>p.hidden=p.dataset.trPanel!==tab);
+}
+function trFilter(){
+ const q=document.getElementById('trSearch').value.trim().toLocaleLowerCase('ru');
+ const d=document.getElementById('trDirection').value;
+ const rows=[...document.querySelectorAll('#treasuryHistory [data-tr-direction]')];
+ rows.forEach(r=>r.hidden=!(r.textContent.toLocaleLowerCase('ru').includes(q)&&(d==='all'||r.dataset.trDirection===d)));
+ document.getElementById('trEmpty').hidden=!rows.length||rows.some(r=>!r.hidden);
+}
+document.querySelectorAll('[data-tr-tab]').forEach(b=>b.addEventListener('click',()=>trSelect(b.dataset.trTab)));
+document.getElementById('trSearch').addEventListener('input',trFilter);
+document.getElementById('trDirection').addEventListener('change',trFilter);

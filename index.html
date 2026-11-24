@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=274">
+<link rel="stylesheet" href="residence.css?v=275">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.4</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.5</div>
       </div>
     </aside>
 
@@ -275,13 +275,14 @@
           <div class="page-title-block"><div class="eyebrow">Счётная книга братства</div><h1>Казна</h1><p>Общий баланс, взносы, расходы и журнал подтверждённых операций.</p></div>
           <div class="treasury-stats"><article class="panel"><small>Баланс казны</small><h2 id="treasuryBalance">—</h2><small>грошей</small></article><article class="panel"><small>Всего поступило</small><h2 id="treasuryIncome">—</h2></article><article class="panel"><small>Всего потрачено</small><h2 id="treasuryExpenses">—</h2></article></div>
           <p id="treasuryNotice" class="members-message" role="status" aria-live="polite"></p>
-          <div class="treasury-forms">
+          <div class="tr-tabs" role="group" aria-label="Разделы казны"><button type="button" data-tr-tab="journal" aria-pressed="true">Журнал операций</button><button type="button" data-tr-tab="contribution" aria-pressed="false">Взносы</button><button type="button" data-tr-tab="requests" aria-pressed="false">Заявки</button><button type="button" data-tr-tab="admin" aria-pressed="false" hidden>Операция казначея</button><button type="button" class="secondary-button" id="treasuryRefresh">Обновить</button></div>
+          <div data-tr-panel="contribution" hidden>
             <form id="treasuryRequestForm" class="panel treasury-form"><h2>Подать заявку на взнос</h2><p>Заявка не изменит баланс, пока администратор не подтвердит передачу грошей в игре.</p><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Кому и когда переданы гроши"></textarea></label><button type="submit" class="secondary-button">Отправить заявку</button></form>
-            <form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
+            </div><div data-tr-panel="admin" hidden><form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
           </div>
-          <article class="panel treasury-section" id="treasuryOwnRequestsPanel" hidden><div class="treasury-heading"><h2>Мои заявки</h2><button type="button" class="secondary-button" id="treasuryRefresh">Обновить казну</button></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
+          <div data-tr-panel="requests" hidden><article class="panel treasury-section" id="treasuryOwnRequestsPanel"><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
-          <article class="panel treasury-section"><h2>Журнал операций</h2><div id="treasuryHistory" class="treasury-list"></div></article>
+          </div><article class="panel treasury-section" data-tr-panel="journal"><h2>Журнал операций</h2><div class="tr-filter"><input id="trSearch" type="search" placeholder="Поиск по назначению или участнику" aria-label="Поиск операций"><select id="trDirection" aria-label="Тип операции"><option value="all">Все операции</option><option value="income">Поступления</option><option value="expense">Расходы</option></select></div><p id="trEmpty" hidden>Операции не найдены.</p><div id="treasuryHistory" class="treasury-list"></div></article>
         </section>
         <section class="page" id="page-storehouse">
           <div class="page-title-block"><div class="eyebrow">Амбарная книга братства</div><h1>Кладовая</h1><p>Ресурсы, запасы, передача имущества и записи кладовщика.</p></div>
@@ -684,7 +685,7 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=274"></script>
+  <script src="app.js?v=275"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

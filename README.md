@@ -16,3 +16,6 @@ v2.2.3: smaller map markers; route stroke unchanged; adaptive layout for browser
 
 
 v2.2.4: исправлен зум колесом и кнопками (до 10×), CSS больше не ограничивает ширину увеличенной карты; карта автоматически пересчитывает размеры при изменении ширины окна; панель слоёв переносится вниз при недостатке места. Маршруты и данные Supabase не изменены. SQL не требуется.
+
+## v2.7.1
+Personal cabinet: charter, profile editing, skill levels, personal guild activity. Existing database schema retained.

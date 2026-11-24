@@ -346,11 +346,12 @@ async function loadProfile() {
   const sequence = ++profileLoadSequence;
   const user = currentSession?.user;
   profileForm.hidden = true;
+  document.getElementById("personalCabinet").hidden = true;
   profileNotice.hidden = !!user;
   if (!user || !supabaseClient) return;
   profileMessage.textContent = "Загружаем анкету…";
   const { data, error } = await supabaseClient.from("profiles")
-    .select("discord_username,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank")
+    .select("discord_username,character_first_name,character_last_name,character_age,profession,crafts,jobs,masteries,about,character_photo_url,membership_status,game_rank,created_at")
     .eq("id", user.id).maybeSingle();
   if (sequence !== profileLoadSequence || currentSession?.user?.id !== user.id) return;
   profileForm.hidden = false;
@@ -368,6 +369,7 @@ async function loadProfile() {
   document.getElementById("profileMembership").textContent = "Статус: " + (statuses[data.membership_status] || data.membership_status);
   renderPreview(data.character_photo_url);
   profileMessage.textContent = "";
+  pcRender(data, user.id, sequence);
 }
 
 profileForm.addEventListener("submit", async event => {
@@ -401,11 +403,29 @@ profileForm.addEventListener("submit", async event => {
     showToast("Анкета персонажа успешно сохранена.");
     renderPreview(photo);
     await refreshAccess();
+    if(currentSession?.user?.id===user.id) navigate("profile");
   } catch (error) {
     profileMessage.textContent = "Ошибка сохранения: " + error.message;
   } finally { button.disabled = false; }
 });
 
+
+
+// v2.7.1: read-only personal charter, backed by existing profile and guild tables.
+const pc = id => document.getElementById(id);
+function pcTab(tab){document.querySelectorAll('[data-pc-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pcTab===tab)));document.querySelectorAll('[data-pc-panel]').forEach(p=>p.hidden=p.dataset.pcPanel!==tab);}
+document.querySelectorAll('[data-pc-tab]').forEach(b=>b.addEventListener('click',()=>pcTab(b.dataset.pcTab)));
+pc('pcEdit').onclick=()=>{pc('personalCabinet').hidden=true;profileForm.hidden=false;pc('pcCancel').hidden=false;profileForm.scrollIntoView({block:'start'});};
+pc('pcCancel').onclick=()=>loadProfile();
+pc('pcCalculator').onclick=()=>{if(canVisit('crafts')){navigate('crafts');pc('craftShowCalculator').click();}};
+pc('pcPortrait').onerror=()=>{pc('pcPortrait').hidden=true;pc('pcPortraitFallback').hidden=false;};
+function pcSkills(root,p){root.replaceChildren();for(const [label,items] of [['Работы',p.jobs],['Мастерства',p.masteries]]){root.append(element('h4','pc-skill-heading',label));if(!Array.isArray(items)||!items.length){root.append(element('p','pc-muted',label==='Работы'?memberJobs(p):memberMasteries(p)));continue;}for(const item of items){const level=Math.max(1,Math.min(10,Number(item.level)||1));const row=element('div','pc-skill');const track=element('progress','pc-progress');track.max=10;track.value=level;track.setAttribute('aria-label',item.name);row.append(element('span','',item.name),track,element('b','',level+'/10'));root.append(row);}}}
+function pcRecords(root,rows,empty){root.replaceChildren();if(!rows.length)root.append(element('p','pc-muted',empty));for(const r of rows){const row=element('div','pc-record');row.append(element('strong','',r.title),element('small','',r.meta));root.append(row);}}
+async function pcRender(p,uid,sequence){const allowed=['approved','admin'].includes(accessState.mode);const complete=!!(p.character_first_name?.trim()&&p.character_last_name?.trim());pc('pcCancel').hidden=true;pc('personalCabinet').hidden=!complete;profileForm.hidden=complete;if(!complete)return;
+ pc('pcName').textContent=characterName(p);pc('pcRank').textContent=p.game_rank||'Кандидат';pc('pcProfession').textContent=[...(p.masteries||[]),...(p.jobs||[])].map(x=>x.name).join(' · ')||p.profession||'Занятие не указано';pc('pcMembership').textContent=pc('profileMembership').textContent;pc('pcAge').textContent=p.character_age?String(p.character_age):'Не указан';pc('pcDiscord').textContent=p.discord_username||'Discord';pc('pcBio').textContent=p.about||'История персонажа ещё не написана.';const photo=safePhoto(p.character_photo_url);pc('pcPortrait').hidden=!photo;pc('pcPortraitFallback').hidden=!!photo;if(photo)pc('pcPortrait').src=photo;else pc('pcPortrait').removeAttribute('src');pcSkills(pc('pcSkills'),p);pcSkills(pc('pcCraftSkills'),p);pcTab('about');pc('pcStats').hidden=!allowed;for(const b of document.querySelectorAll('[data-pc-tab]:not([data-pc-tab="about"])'))b.hidden=!allowed;pc('pcContribution').textContent='—';pc('pcCompleted').textContent='—';pc('pcDays').textContent=p.created_at&&Number.isFinite(Date.parse(p.created_at))?Math.max(0,Math.floor((Date.now()-Date.parse(p.created_at))/86400000)):'—';pcRecords(pc('pcWork'),[],'Загрузка…');pcRecords(pc('pcHistory'),[],'Загрузка…');if(!allowed)return;
+ const date=x=>x?new Date(x).toLocaleDateString('ru-RU'):'';
+ const results=await Promise.allSettled([supabaseClient.from('treasury_transactions').select('amount,description,created_at').eq('member_id',uid).order('created_at',{ascending:false}).limit(1000),supabaseClient.from('work_tasks').select('title,status,created_at').eq('assigned_to',uid).order('created_at',{ascending:false}).limit(1000),supabaseClient.from('storage_requests').select('comment,status,request_type,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100),supabaseClient.from('storage_craft_batches').select('order_name,status,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100)]);
+ if(sequence!==profileLoadSequence||currentSession?.user?.id!==uid)return;const ok=i=>results[i].status==='fulfilled'&&!results[i].value.error;const rows=i=>ok(i)?results[i].value.data||[]:[];const tx=rows(0),tasks=rows(1),requests=rows(2),batches=rows(3);if(ok(0))pc('pcContribution').textContent=new Intl.NumberFormat('ru-RU').format(tx.reduce((a,t)=>a+Math.max(0,Number(t.amount)||0),0))+(tx.length===1000?'+':'');if(ok(1))pc('pcCompleted').textContent=tasks.filter(t=>t.status==='completed').length+(tasks.length===1000?'+':'');const work=tasks.filter(t=>['assigned','submitted'].includes(t.status)).map(t=>({title:t.title,meta:workStatusNames[t.status]}));for(const r of requests.filter(r=>r.status==='pending'))work.push({title:r.comment||'Заявка в кладовую',meta:'Кладовая · Ожидает'});for(const r of batches.filter(r=>r.status==='pending'))work.push({title:r.order_name||'Ремесленный заказ',meta:'Ресурсы · Ожидает'});pcRecords(pc('pcWork'),work,'Активных дел нет.');const history=[...tx.map(t=>({title:t.description||'Операция казны',meta:date(t.created_at)+' · '+t.amount+' грошей',at:t.created_at})),...tasks.filter(t=>t.status==='completed').map(t=>({title:t.title,meta:'Завершённое поручение',at:t.created_at})),...batches.map(t=>({title:t.order_name||'Ремесленная заявка',meta:date(t.created_at)+' · '+storeStatus(t.status),at:t.created_at}))].sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,20);pcRecords(pc('pcHistory'),history,'Записей пока нет.');if(results.some((_,i)=>!ok(i))){for(const id of ['pcWork','pcHistory'])pc(id).prepend(element('p','pc-muted','Часть сведений недоступна. Повторите вход в кабинет позже.'));}}
 
 // Member registry: read-only, loaded from Supabase using the logged-in session.
 const membersGrid = document.getElementById("membersGrid");

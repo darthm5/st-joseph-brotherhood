@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=270">
+<link rel="stylesheet" href="residence.css?v=271">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.0</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.1</div>
       </div>
     </aside>
 
@@ -143,7 +143,16 @@
         <section class="page" id="page-profile">
           <div class="page-title-block"><div class="eyebrow">Личные записи</div><h1>Мой кабинет</h1><p>Анкета персонажа и сведения о членстве в братстве.</p></div>
           <article class="panel" id="profileLoginNotice" hidden>Войдите через Discord, чтобы заполнить анкету персонажа.</article>
-          <form class="panel profile-form" id="profileForm" hidden>
+          <div id="personalCabinet" hidden>
+<article class="panel pc-charter"><div class="pc-portrait"><span id="pcPortraitFallback">♙</span><img id="pcPortrait" alt="Портрет персонажа" hidden></div><div class="pc-identity"><div class="eyebrow">Личная грамота участника</div><h2 id="pcName"></h2><span class="pc-rank" id="pcRank"></span><p id="pcProfession"></p><p id="pcMembership" class="pc-muted"></p><button class="primary-button" type="button" id="pcEdit">Редактировать грамоту</button></div><div class="pc-seal" aria-hidden="true">⚒</div></article>
+<div class="pc-stats" id="pcStats" hidden><article class="panel"><span>Вклад в казну</span><strong id="pcContribution">—</strong><small>грошей</small></article><article class="panel"><span>Выполнено</span><strong id="pcCompleted">—</strong><small>поручений</small></article><article class="panel"><span>Возраст анкеты</span><strong id="pcDays">—</strong><small>дней с регистрации</small></article></div>
+<div class="pc-tabs" role="group" aria-label="Разделы кабинета"><button type="button" data-pc-tab="about" aria-pressed="true">О персонаже</button><button type="button" data-pc-tab="craft" aria-pressed="false">Ремёсла</button><button type="button" data-pc-tab="work" aria-pressed="false">Мои дела</button><button type="button" data-pc-tab="history" aria-pressed="false">История</button></div>
+<div id="pcAbout" data-pc-panel="about"><article class="panel pc-panel"><h3>Сведения о персонаже</h3><div class="pc-details"><div><small>Возраст</small><b id="pcAge"></b></div><div><small>Аккаунт Discord</small><b id="pcDiscord"></b></div></div><div class="pc-biography"><small>О персонаже</small><p id="pcBio"></p></div></article><article class="panel pc-panel"><h3>Ремесленные навыки</h3><div id="pcSkills"></div></article></div>
+<div data-pc-panel="craft" hidden><article class="panel pc-panel"><h3>Книга ремесленника</h3><div id="pcCraftSkills"></div></article><article class="panel pc-panel"><h3>Личная мастерская</h3><p>Личные цены, склад и журнал заказов доступны в калькуляторе.</p><button type="button" class="primary-button" id="pcCalculator">Открыть калькулятор →</button></article></div>
+<div data-pc-panel="work" hidden><article class="panel pc-panel"><h3>Текущие дела</h3><div id="pcWork"></div><div class="pc-links"><button type="button" class="secondary-button" data-goto="work">Поручения →</button><button type="button" class="secondary-button" data-goto="storehouse">Кладовая →</button></div></article></div>
+<div data-pc-panel="history" hidden><article class="panel pc-panel"><h3>Личная летопись</h3><div id="pcHistory"></div><button type="button" class="secondary-button" data-goto="treasury">Открыть казну →</button></article></div>
+</div>
+<form class="panel profile-form" id="profileForm" hidden>
             <div class="profile-status"><div><b id="profileDiscordName">Discord</b><small>Привязанный аккаунт</small></div><div><b id="profileRank">Кандидат</b><small id="profileMembership">Статус: ожидает рассмотрения</small></div></div>
             <p class="form-hint">Игровое звание и статус членства назначает администрация. Изменить их в анкете нельзя.</p>
             <div class="profile-fields">
@@ -157,7 +166,7 @@
             </div>
             <p class="form-hint">Пока изображение добавляется по прямой HTTPS-ссылке. Загрузку файла с компьютера подключим отдельно.</p>
             <img id="characterPhotoPreview" class="profile-preview" alt="Изображение персонажа" hidden>
-            <div class="profile-actions"><button type="submit" class="primary-button" id="saveProfile">Сохранить анкету</button><span id="profileMessage" role="status" aria-live="polite"></span></div>
+            <div class="profile-actions"><button type="submit" class="primary-button" id="saveProfile">Сохранить анкету</button><button type="button" class="secondary-button" id="pcCancel" hidden>Отмена</button><span id="profileMessage" role="status" aria-live="polite"></span></div>
           </form>
         </section>
         <section class="page" id="page-members">
@@ -703,7 +712,7 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=270"></script>
+  <script src="app.js?v=271"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

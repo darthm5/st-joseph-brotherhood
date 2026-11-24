@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=272">
+<link rel="stylesheet" href="residence.css?v=273">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.2</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.3</div>
       </div>
     </aside>
 
@@ -96,17 +96,6 @@
           </div>
           <div class="home272-toolbar"><span id="homeStatus" role="status">Загрузка сведений…</span><button class="secondary-button" id="homeRefresh">Обновить</button></div>
           <article class="panel home272-panel"><div class="home272-heading"><h2>Доска объявлений</h2><button class="secondary-button" id="homeAnnouncements">Все объявления →</button></div><div id="homeNotices"></div></article>
-          <article class="panel home272-panel"><h2>Быстрый доступ</h2><div class="home272-quick">
-<button class="secondary-button" id="homeCalculator"><span aria-hidden="true">⚒</span>Рассчитать заказ</button>
-<button class="secondary-button" data-goto="storehouse"><span aria-hidden="true">▤</span>Кладовая</button>
-<button class="secondary-button" data-goto="work"><span aria-hidden="true">▧</span>Взять поручение</button>
-<button class="secondary-button" data-goto="treasury"><span aria-hidden="true">◈</span>Внести вклад</button>
-<button class="secondary-button" data-goto="market"><span aria-hidden="true">⚖</span>Рынок</button>
-<button class="secondary-button" data-goto="calendar"><span aria-hidden="true">▦</span>Календарь</button>
-          </div></article>
-          <div class="home272-columns"><article class="panel home272-panel"><div class="home272-heading"><h2>Мои дела</h2><button class="secondary-button" data-goto="profile">Кабинет →</button></div><div id="homePersonal"></div></article><article class="panel home272-panel"><div class="home272-heading"><h2>Ближайшие события</h2><button class="secondary-button" data-goto="calendar">Календарь →</button></div><div id="homeEvents"></div></article></div>
-          <article class="panel home272-panel" id="homeAdmin" hidden><div class="home272-heading"><h2>Совет братства</h2><button class="secondary-button" data-goto="storehouse">Кладовая →</button></div><div id="homePending"></div></article>
-          <article class="panel home272-panel"><div class="home272-heading"><h2>Летопись братства</h2><button class="secondary-button" data-goto="chronicle">Вся летопись →</button></div><div id="homeChronicle"></div></article>
         </section>
 
         <section class="page" id="page-waiting">
@@ -148,11 +137,13 @@
           </form>
         </section>
         <section class="page" id="page-members">
-          <div class="page-title-block"><div class="eyebrow">Реестр братства</div><h1>Участники</h1><p>Лица, ремёсла и истории тех, кто состоит при братстве.</p></div>
+          <div class="page-title-block"><div class="eyebrow">Реестр братства</div><h1>Реестр братства</h1><p>Книга имён, достоинств и ремёсел</p></div>
           <div class="members-tools panel">
             <label for="memberSearch">Поиск по имени или ремеслу</label>
             <input id="memberSearch" type="search" placeholder="Например, Милош или кузнец" autocomplete="off">
-            <span id="membersCount" aria-live="polite"></span>
+            <select id="memberRankFilter" aria-label="Звание"><option value="">Все звания</option></select>
+            <select id="memberCraftFilter" aria-label="Ремесло"><option value="">Все ремёсла</option></select>
+            <div class="registry-view"><span id="membersCount" aria-live="polite"></span><div role="group" aria-label="Вид реестра"><button type="button" class="secondary-button" id="memberCardsMode" aria-pressed="true">▦ Карточки</button> <button type="button" class="secondary-button" id="memberListMode" aria-pressed="false">☰ Список</button></div></div>
           </div>
           <p id="membersMessage" class="members-message" role="status" aria-live="polite"></p>
           <div id="membersGrid" class="members-grid"></div>
@@ -690,7 +681,7 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=272"></script>
+  <script src="app.js?v=273"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

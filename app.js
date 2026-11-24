@@ -468,31 +468,55 @@ function photoNode(profile, className) {
 function displayStatus(status) {
   return ({pending:"Ожидает рассмотрения",approved:"Принят",rejected:"Отклонён"})[status] || "Не указан";
 }
-function renderMembers() {
-  const term = memberSearch.value.trim().toLocaleLowerCase();
-  const filtered = membersCache.filter(p => [characterName(p), p.profession, p.game_rank, memberJobs(p), memberMasteries(p)].join(" ").toLocaleLowerCase().includes(term));
-  membersGrid.replaceChildren();
-  membersCount.textContent = `Показано: ${filtered.length} из ${membersCache.length}`;
-  if (!filtered.length) {
-    membersMessage.textContent = membersCache.length ? "По вашему запросу никого не найдено." : "В реестре пока нет заполненных анкет.";
-    return;
-  }
-  membersMessage.textContent = "";
-  for (const profile of filtered) {
-    const card = element("button", "member-card");
-    card.type = "button";
-    card.append(photoNode(profile, "member-photo"));
-    const body = element("div", "member-card-body");
-    body.append(element("span", "member-card-rank", profile.game_rank || "Кандидат"));
-    body.append(element("h2", "member-card-name", characterName(profile)));
-    body.append(element("p", "member-card-profession", memberJobs(profile)));
-    body.append(element("p", "member-card-crafts", memberMasteries(profile)));
-    body.append(element("span", "member-card-more", "Открыть анкету →"));
-    card.append(body);
-    card.addEventListener("click", () => openMember(profile));
-    membersGrid.append(card);
+const memberRankFilter = document.getElementById("memberRankFilter");
+const memberCraftFilter = document.getElementById("memberCraftFilter");
+let registryListMode = false;
+function registrySkills(p) {
+  const jobs = Array.isArray(p.jobs) && p.jobs.length ? p.jobs : (p.profession ? [{name:p.profession}] : []);
+  const crafts = Array.isArray(p.masteries) && p.masteries.length ? p.masteries : (Array.isArray(p.crafts) ? p.crafts.map(name=>({name})) : []);
+  return [...jobs,...crafts].filter(x=>x && typeof x.name === 'string' && x.name.trim());
+}
+function registryFilters() {
+  for (const [select,values,label] of [[memberRankFilter,membersCache.map(p=>p.game_rank||'Кандидат'),'Все звания'],[memberCraftFilter,membersCache.flatMap(p=>registrySkills(p).map(x=>x.name)),'Все ремёсла']]) {
+    const previous=select.value;
+    select.replaceChildren(new Option(label,''));
+    [...new Set(values)].sort((a,b)=>a.localeCompare(b,'ru')).forEach(v=>select.add(new Option(v,v)));
+    if ([...select.options].some(o=>o.value===previous)) select.value=previous;
   }
 }
+function registrySkillRows(parent,skills,bars=false) {
+  if (!skills.length) {parent.append(element('p','registry-empty','Не указано'));return;}
+  for (const skill of skills) {
+    const row=element('div','registry-skill');row.append(element('span','',skill.name));
+    const level=Number(skill.level);
+    if (skill.level!=null && Number.isFinite(level) && level>=1 && level<=10) {
+      row.append(element('b','',`${level} / 10`));
+      if(bars){const bar=element('div','registry-bar');const fill=element('i');fill.style.width=`${level*10}%`;bar.append(fill);row.append(bar);}
+    }
+    parent.append(row);
+  }
+}
+function renderMembers() {
+  const term = memberSearch.value.trim().toLocaleLowerCase();
+  const filtered = membersCache.filter(p => [characterName(p), p.profession, p.game_rank, memberJobs(p), memberMasteries(p)].join(" ").toLocaleLowerCase().includes(term) && (!memberRankFilter.value || (p.game_rank||'Кандидат')===memberRankFilter.value) && (!memberCraftFilter.value || registrySkills(p).some(x=>x.name===memberCraftFilter.value)));
+  membersGrid.replaceChildren();
+  membersGrid.classList.toggle('registry-list',registryListMode);
+  membersCount.textContent = `Показано: ${filtered.length} из ${membersCache.length}`;
+  membersMessage.textContent = filtered.length ? '' : membersCache.length ? 'По вашему запросу никого не найдено.' : 'В реестре пока нет заполненных анкет.';
+  for (const profile of filtered) {
+    const card=element('article','member-card');
+    const top=element('div','registry-top');top.append(photoNode(profile,'member-photo'));
+    const body=element('div','member-card-body');
+    body.append(element('span','member-card-rank',profile.game_rank||'Кандидат'),element('h2','member-card-name',characterName(profile)),element('p','member-card-profession',memberJobs(profile)));
+    top.append(body);card.append(top);
+    const skills=element('div','registry-skills');registrySkillRows(skills,registrySkills(profile));card.append(skills);
+    const open=element('button','registry-open','Анкета →');open.type='button';open.setAttribute('aria-label','Открыть анкету: '+characterName(profile));open.addEventListener('click',()=>openMember(profile));card.append(open);membersGrid.append(card);
+  }
+}
+function registryMode(list){registryListMode=list;document.getElementById('memberCardsMode').setAttribute('aria-pressed',String(!list));document.getElementById('memberListMode').setAttribute('aria-pressed',String(list));renderMembers();}
+document.getElementById('memberCardsMode').addEventListener('click',()=>registryMode(false));
+document.getElementById('memberListMode').addEventListener('click',()=>registryMode(true));
+for(const filter of [memberRankFilter,memberCraftFilter]) filter.addEventListener('change',()=>{closeMember();renderMembers();});
 function detailField(parent, title, value) {
   const block = element("div", "member-detail-field");
   block.append(element("span", "member-detail-label", title));
@@ -509,7 +533,7 @@ function openMember(profile) {
   detailField(text, "Статус", displayStatus(profile.membership_status));
   detailField(text, "Возраст", profile.character_age == null ? null : profile.character_age + " лет");
   detailField(text, "Работы", memberJobs(profile));
-  detailField(text, "Мастерства", memberMasteries(profile));
+  const skillBlock=element("div","member-detail-field");skillBlock.append(element("span","member-detail-label","Ремесленные навыки"));registrySkillRows(skillBlock,registrySkills(profile),true);text.append(skillBlock);
   detailField(text, "О персонаже", profile.about);
   awardAttachToProfile(text,profile.id);
   memberDetailsBody.append(text);
@@ -547,6 +571,7 @@ async function loadMembers() {
   }
   // Do not list blank profiles; registered members with a named character are included.
   membersCache = (data || []).filter(p => p.character_first_name?.trim() && p.character_last_name?.trim());
+  registryFilters();
   renderMembers();
 }
 
@@ -2511,26 +2536,21 @@ function home272List(id,rows,empty){const root=home272(id);root.replaceChildren(
 async function loadHome272(){
  const uid=currentSession?.user?.id,admin=accessState.mode==='admin';if(!uid||!supabaseClient||!['admin','approved'].includes(accessState.mode))return;
  const seq=++home272Sequence;const active=()=>seq===home272Sequence&&currentSession?.user?.id===uid&&['admin','approved'].includes(accessState.mode)&&homePage.classList.contains('active-page');
- const ids=['homeNotices','homePersonal','homeEvents','homeChronicle','homePending'];for(const id of ids)home272List(id,[],'Загрузка…');for(const id of ['homeMembers','homeBalance','homeTasks','homeMine'])home272(id).textContent='—';home272('homeGreeting').textContent='Добро пожаловать!';home272('homeAdmin').hidden=!admin;home272('homeStatus').textContent='Загрузка сведений…';
+ const ids=['homeNotices'];for(const id of ids)home272List(id,[],'Загрузка…');for(const id of ['homeMembers','homeBalance','homeTasks','homeMine'])home272(id).textContent='—';home272('homeGreeting').textContent='Добро пожаловать!';home272('homeStatus').textContent='Загрузка сведений…';
  const count=(table,field,value)=>supabaseClient.from(table).select('*',{count:'exact',head:true}).eq(field,value);
  const jobs=[
  supabaseClient.from('profiles').select('character_first_name').eq('id',uid).maybeSingle(),
  count('profiles','membership_status','approved'),
  workFetchAll('treasury_transactions','amount'),
  supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('status','open').eq('task_type','public'),
- supabaseClient.from('work_tasks').select('title,status,created_at',{count:'exact'}).eq('assigned_to',uid).in('status',['assigned','submitted']).order('created_at',{ascending:false}).limit(5),
- supabaseClient.from('storage_requests').select('comment,created_at',{count:'exact'}).eq('user_id',uid).eq('status','pending').order('created_at',{ascending:false}).limit(5),
- supabaseClient.from('storage_craft_batches').select('order_name,created_at',{count:'exact'}).eq('user_id',uid).eq('status','pending').order('created_at',{ascending:false}).limit(5),
+ supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('assigned_to',uid).in('status',['assigned','submitted']),
+ supabaseClient.from('storage_requests').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'),
+ supabaseClient.from('storage_craft_batches').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'),
  supabaseClient.from('guild_documents').select('title,summary,is_pinned,updated_at').eq('category','announcements').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(4),
- supabaseClient.from('guild_events').select('title,starts_at,location').eq('status','scheduled').gte('starts_at',new Date().toISOString()).order('starts_at').limit(4),
- supabaseClient.from('guild_chronicle').select('title,event_date,summary').order('event_date',{ascending:false}).order('created_at',{ascending:false}).limit(4)
- ];if(admin)jobs.push(count('storage_requests','status','pending'),count('storage_craft_batches','status','pending'),count('treasury_requests','status','pending'),count('profiles','membership_status','pending'));
+ ];
  const results=await Promise.allSettled(jobs);if(!active())return;const ok=i=>results[i]?.status==='fulfilled'&&!results[i].value?.error;const val=i=>ok(i)?results[i].value:null;const rows=i=>val(i)?.data||[];const num=i=>val(i)?.count;const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—';const set=(id,n)=>home272(id).textContent=fmt(n);
  if(val(0)?.data?.character_first_name)home272('homeGreeting').textContent='Доброго дня, '+val(0).data.character_first_name+'!';set('homeMembers',num(1));set('homeBalance',ok(2)?val(2).reduce((n,t)=>n+Number(t.amount),0):NaN);set('homeTasks',num(3));set('homeMine',[4,5,6].every(i=>Number.isFinite(num(i)))?num(4)+num(5)+num(6):NaN);
- const personal=[...rows(4).map(t=>({title:t.title,meta:workStatusNames[t.status],at:t.created_at})),...rows(5).map(t=>({title:t.comment||'Заявка в кладовую',meta:'Кладовая · Ожидает решения',at:t.created_at})),...rows(6).map(t=>({title:t.order_name||'Ремесленный заказ',meta:'Ресурсы · Ожидает решения',at:t.created_at}))].sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,5);
- home272List('homePersonal',personal,[4,5,6].every(ok)?'Активных дел нет.':'Не удалось загрузить все дела.');home272List('homeNotices',rows(7).map(t=>({title:t.title,body:t.summary,meta:(t.is_pinned?'Закреплено · ':'')+home272Date(t.updated_at),pinned:t.is_pinned})),ok(7)?'Объявлений пока нет.':'Объявления недоступны.');home272List('homeEvents',rows(8).map(t=>({title:t.title,meta:home272Date(t.starts_at),body:t.location})),ok(8)?'Ближайших событий нет.':'Календарь недоступен.');home272List('homeChronicle',rows(9).map(t=>({title:t.title,meta:t.event_date,body:t.summary})),ok(9)?'Записей пока нет.':'Летопись недоступна.');
- if(admin)home272List('homePending',['Заявки в кладовую','Ремесленные заявки','Заявки в казну','Заявки на вступление'].map((title,i)=>({title,meta:fmt(num(10+i))+' · Ожидают рассмотрения'})),'');home272('homeStatus').textContent=results.every((_,i)=>ok(i))?'Обновлено: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Часть сведений недоступна. Попробуйте обновить.';
+ home272List('homeNotices',rows(7).map(t=>({title:t.title,body:t.summary,meta:(t.is_pinned?'Закреплено · ':'')+home272Date(t.updated_at),pinned:t.is_pinned})),ok(7)?'Объявлений пока нет.':'Объявления недоступны.');home272('homeStatus').textContent=results.every((_,i)=>ok(i))?'Обновлено: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Часть сведений недоступна. Попробуйте обновить.';
 }
 home272('homeRefresh').onclick=loadHome272;
-home272('homeCalculator').onclick=()=>{if(canVisit('crafts')){navigate('crafts');home272('craftShowCalculator').click();}};
 home272('homeAnnouncements').onclick=()=>{if(canVisit('info')){navigate('info');libOpenCategory('announcements');}};

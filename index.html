@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="residence.css?v=2775">
 <link rel="stylesheet" href="theme/global.css?v=280">
 <link rel="stylesheet" href="theme/residence-final.css?v=281">
-<link rel="stylesheet" href="theme/market.css?v=2821">
+<link rel="stylesheet" href="theme/market.css?v=2822">
 </head>
 <body>
   <div class="site-shell">
@@ -59,7 +59,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.2.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.2.2</div>
       </div>
     </aside>
 
@@ -558,7 +558,7 @@
         <section class="page" id="page-market">
           <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
           <div class="market-toolbar"><div class="market-tabs" role="group" aria-label="Разделы рынка">
-            <button type="button" class="secondary-button" id="marketAll">Все объявления</button><button type="button" class="secondary-button" data-market-type="buy">Куплю</button><button type="button" class="secondary-button" data-market-type="sell">Продам</button><button type="button" class="secondary-button" data-market-panel="marketMinePanel">Мои объявления</button></div><button type="button" class="primary-button" data-market-panel="marketCreatePanel">+ Подать объявление</button></div>
+            <button type="button" class="secondary-button" id="marketAll">Все объявления</button><button type="button" class="secondary-button" data-market-type="buy">Куплю</button><button type="button" class="secondary-button" data-market-type="sell">Продам</button><button type="button" class="secondary-button" data-market-panel="marketMinePanel">Мои объявления <span id="marketMineBadge"></span></button></div><button type="button" class="primary-button" data-market-panel="marketCreatePanel">+ Подать объявление</button></div>
           <p id="marketNotice" class="members-message" role="status" aria-live="polite"></p>
           <form id="marketCreatePanel" class="market-panel market-editor" hidden>
             <div class="market-editor-head"><h2 id="marketFormTitle">Новое объявление</h2><select name="ad_type" aria-label="Тип объявления" required><option value="sell">Продам</option><option value="buy">Куплю</option></select></div>
@@ -569,13 +569,13 @@
             <details class="market-extra"><summary>Дополнительно: заголовок и контакт</summary><label>Заголовок<input name="title" minlength="3" maxlength="140" placeholder="Автоматически"></label><label>Как связаться<input name="contact" maxlength="200" placeholder="Discord или имя персонажа"></label></details>
             <div class="market-editor-actions"><button type="submit" class="primary-button" id="marketSubmit">Опубликовать объявление</button><button type="button" class="secondary-button" id="marketCancelEdit">Отмена</button></div>
           </form>
-          <article class="market-panel" id="marketMinePanel" hidden><div id="marketMineList" class="work-list"></div></article>
+          <article class="market-panel" id="marketMinePanel" hidden><div class="market-tabs market-own-tabs"><button type="button" class="secondary-button" id="marketOwnActive">Активные</button><button type="button" class="secondary-button" id="marketOwnClosed">Закрытые</button></div><div id="marketMineList" class="market-table-wrap"></div></article>
           <article class="market-panel" id="marketArchivePanel" hidden><h2>История сделок</h2><div id="marketArchiveList" class="work-list"></div></article>
           <article id="marketBoardPanel">
             <div class="market-filters"><select id="marketFilterType" hidden><option value="all">Все</option><option value="sell">Продам</option><option value="buy">Куплю</option></select>
               <input id="marketSearch" type="search" aria-label="Поиск" placeholder="Предмет или участник…"><select id="marketFilterCategory" aria-label="Категория"><option value="all">Все предметы</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select><select id="marketCraft" aria-label="Ремесло"><option value="all">Все ремёсла</option></select><select id="marketSort" aria-label="Сортировка"><option value="new">Сначала новые</option><option value="low">Цена ↑</option><option value="high">Цена ↓</option></select>
-            </div><div id="marketAdList" class="market-table-wrap"></div><div id="marketDetail" hidden></div>
-          </article><div class="market-footer"><span id="marketCount" class="store-muted"></span><button type="button" class="secondary-button" data-market-panel="marketArchivePanel">История сделок</button><button type="button" class="secondary-button" id="marketRefresh">Обновить</button></div>
+            </div><div id="marketAdList" class="market-table-wrap"></div>
+          </article><dialog id="marketDetail" aria-label="Подробности предложения"></dialog><div class="market-footer"><span id="marketCount" class="store-muted"></span><button type="button" class="secondary-button" data-market-panel="marketArchivePanel">История сделок</button><button type="button" class="secondary-button" id="marketRefresh">Обновить</button></div>
         </section>
         <section class="page" id="page-work">
           <div class="page-title-block"><div class="eyebrow">Дела братства</div><h1>Работа и поручения</h1><p>Общая доска, личные задания и отчёты о выполнении.</p></div>
@@ -668,7 +668,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2821"></script>
+  <script src="app.js?v=2822"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

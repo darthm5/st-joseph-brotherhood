@@ -43,3 +43,9 @@ Personal cabinet: charter, profile editing, skill levels, personal guild activit
 
 ### v2.7.6.4
 Исправлены поиск иконок, резервный значок ресурса и сетка инвентаря. Названия не обрезаются. SQL не требуется.
+
+## v2.7.7
+Run storage_products_v2_7_7.sql in Supabase before deployment. Existing rows and balances are preserved; matching material rows are also visible in products.
+
+## v2.7.7.1
+Market screenshot material icons. No new SQL migration required.

@@ -6,7 +6,7 @@ const pageInfo = {
   profile: ["Мой кабинет", "Личная анкета персонажа."],
   home: ["Главная", "Новости, объявления и основные сведения резиденции."],
   members: ["Участники", "Реестр членов братства, их анкеты, звания и достижения."],
-  info: ["Важная информация", "Устав, правила, решения совета и важные распоряжения."],
+  info: ["Библиотека", "Устав, правила, решения совета и важные распоряжения."],
   calendar: ["Календарь", "Собрания, события, встречи и общие мероприятия братства."],
   treasury: ["Казна", "Доходы, расходы, взносы и текущее состояние общей казны."],
   market: ["Рынок", "Объявления о покупке и продаже ресурсов и изделий."],
@@ -56,6 +56,7 @@ function updateNavigationAccess() {
   adminNav.hidden = accessState.mode !== "admin";
   // The admin link is hidden for ordinary approved members too.
   if (accessState.mode === "approved") adminNav.hidden = true;
+  document.querySelectorAll(".guild-nav-group").forEach(group => { group.hidden = !group.querySelector(".nav-item:not([hidden])"); });
 }
 function showWaiting() {
   const heading = document.getElementById("waitingHeading");
@@ -132,7 +133,7 @@ function showToast(message) {
 function navigate(page) {
   if (!canVisit(page)) page = "waiting";
   const info = pageInfo[page] || pageInfo.home;
-  navButtons.forEach(button => button.classList.toggle("active", button.dataset.page === page));
+  navButtons.forEach(button => { const active = button.dataset.page === page; button.classList.toggle("active", active); if (active) { button.setAttribute("aria-current", "page"); const group = button.closest("details"); if (group) group.open = true; } else button.removeAttribute("aria-current"); });
   profilePage.classList.toggle("active-page", page === "profile");
   membersPage.classList.toggle("active-page", page === "members");
   craftsPage.classList.toggle("active-page", page === "crafts");
@@ -276,7 +277,7 @@ loginButton.addEventListener("click", async () => {
 document.getElementById("mobileMenu").addEventListener("click", () => sidebar.classList.toggle("open"));
 
 document.addEventListener("click", event => {
-  if (window.innerWidth <= 800 && sidebar.classList.contains("open") &&
+  if (window.innerWidth <= 900 && sidebar.classList.contains("open") &&
       !sidebar.contains(event.target) && !event.target.closest("#mobileMenu")) {
     sidebar.classList.remove("open");
   }

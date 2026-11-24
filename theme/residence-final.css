@@ -1,0 +1,67 @@
+/* 2.8.1 — five residence pages only. Existing controls and data remain intact. */
+:is(#page-home,#page-profile,#page-members,#page-management,#page-treasury){--folio-line:#b99a65;--folio-ink:#493421;--folio-wine:#783831;--folio-paper:#f6e7c8}
+:is(#page-home,#page-profile,#page-members,#page-management,#page-treasury) .page-title-block{margin-bottom:18px;padding-bottom:12px}
+:is(#page-home,#page-profile,#page-members,#page-management,#page-treasury) .panel h2,:is(#page-home,#page-profile,#page-members,#page-management,#page-treasury) .panel h3{overflow-wrap:anywhere}
+#page-home .home272-hero{min-height:0;padding:22px clamp(18px,3vw,36px);margin-bottom:12px;gap:20px}
+#page-home .home272-hero h2{font-size:clamp(25px,3vw,35px);margin:7px 0}
+#page-home .home272-hero p{margin:8px 0 14px;max-width:58ch}
+#page-home .hero-emblem-ring{width:104px;height:104px;min-width:0}
+#page-home .hero-emblem-ring svg{width:76px;height:88px}
+#page-home .home272-stat{grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;text-align:left;justify-items:start;align-items:center;padding:12px;gap:3px 8px;margin:0}
+#page-home .home272-symbol{grid-row:1/3;align-self:center}
+#page-home .home272-stat strong{font-size:clamp(20px,2.3vw,29px);line-height:1.1;font-variant-numeric:tabular-nums}
+#page-home .home272-stat small{line-height:1.3}
+#page-home .home272-panel{padding:20px 22px}
+#page-home .home272-heading{border-bottom:3px double var(--folio-line);padding-bottom:12px}
+#page-home .home272-record{padding:12px 8px}
+#page-home .home272-pinned{background:#e8d3a9;border-left:3px solid var(--folio-wine)}
+#page-profile #personalCabinet{max-width:none}
+#page-profile .pc-charter{background:linear-gradient(100deg,#fff6df88,#e5cda455),url(parchment.jpg);border:4px double #a88a54;padding:26px;box-shadow:0 3px 9px #49342122,inset 0 0 0 4px #f3e1ba}
+#page-profile .pc-portrait{width:150px;box-shadow:0 3px 7px #49342133}
+#page-profile .pc-rank{background:#783831;color:#fff0d0;border:1px solid #a8864c}
+#page-profile .pc-seal{width:62px;height:62px;right:24px;top:24px}
+#page-profile .pc-stats article{margin:0;padding:14px 10px}
+#page-profile .pc-stats strong{font-variant-numeric:tabular-nums}
+#page-profile #pcAbout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+#page-profile #pcAbout .pc-panel{margin:0;min-width:0}
+#page-profile .pc-panel h3{border-bottom:3px double var(--folio-line);padding-bottom:10px}
+#page-profile .pc-progress::-webkit-progress-value{background:linear-gradient(90deg,#806031,#b89554)}
+#page-profile .pc-progress::-moz-progress-bar{background:#9e7940}
+#page-profile .profile-form{max-width:100%;padding:22px}
+:is(#page-profile .pc-tabs,#page-management .admin-tabs,#page-treasury .tr-tabs){gap:6px;flex-wrap:wrap;overflow:visible;border-bottom:3px double var(--folio-line);padding:0 0 9px;margin:14px 0}
+:is(#page-profile .pc-tabs,#page-management .admin-tabs,#page-treasury .tr-tabs) button{padding:9px 13px;border:1px solid #b99a65;border-radius:3px;background:linear-gradient(#f9edcf,#e6d0a6);color:#493421;white-space:normal;line-height:1.25;font-size:13px}
+:is(#page-profile .pc-tabs,#page-management .admin-tabs,#page-treasury .tr-tabs) button[aria-pressed=true]{background:linear-gradient(#8b443a,#682e28);color:#fff1d5;border-color:#a8864c}
+#page-members .members-tools{padding:14px;gap:9px;margin-bottom:14px}
+#page-members .member-card{background:linear-gradient(#fff6df66,#e6d0a633),url(parchment.jpg);border:3px double #b19460;box-shadow:0 2px 5px #49342118;overflow:hidden}
+#page-members .registry-top{padding:14px;align-items:center}
+#page-members .member-photo{width:82px;height:100px;flex-basis:82px}
+#page-members .member-card-name{font-size:22px;color:#493421}
+#page-members .registry-skills{padding:10px 14px}
+#page-members .registry-skill{padding:3px 0;border-bottom:1px solid #b99a6538}
+#page-members .registry-open{background:linear-gradient(#f6e8c9,#e6d0a6);font-weight:600;min-height:40px}
+#page-members .registry-list .registry-open{background:transparent}
+#page-management .admin-seal-line{margin:0 0 12px;padding:10px 14px;border:1px solid #b19460;background:#ead7b1;border-radius:3px}
+#page-management .admin-seal-line>span{flex:none}
+#page-management .members-tools{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:12px}
+#page-management .members-tools label{font-size:13px}
+#page-management .members-tools select{min-width:0;max-width:100%}
+#page-management .admin-card{padding:15px 18px;border-left:3px solid #a8864c}
+#page-management .admin-card-heading h2{margin:0;font-size:21px}
+#page-management .admin-controls{gap:10px}
+#page-treasury .treasury-stats{gap:10px;margin-bottom:12px}
+#page-treasury .treasury-stats .panel{padding:18px 20px;min-width:0}
+#page-treasury .treasury-stats .panel:first-child{background:linear-gradient(110deg,#24160dcc,#3b261b88),url(oak.jpg);border:3px double #b3935b;box-shadow:0 3px 8px #49342133;color:#fff1d5}
+#page-treasury .treasury-stats h2{margin:8px 0;font-size:clamp(22px,3vw,34px);overflow-wrap:anywhere}
+#page-treasury #treasuryIncome{color:#365b32}#page-treasury #treasuryExpenses{color:#943f3f}
+#page-treasury .treasury-section{padding:20px}
+#page-treasury .treasury-section>h2,#page-treasury .treasury-heading{border-bottom:3px double var(--folio-line);padding-bottom:10px;margin-bottom:10px}
+#page-treasury .tr-filter{margin-top:10px}
+#page-treasury .treasury-list{gap:0;margin-top:12px;border-top:1px solid #c8b18a}
+#page-treasury .treasury-row{padding:12px 10px;gap:8px 16px;min-width:0}
+#page-treasury .treasury-row:nth-child(even){background:#b99a6515}
+#page-treasury .treasury-row>div:first-child{flex:1 1 200px;min-width:0;overflow-wrap:anywhere}
+#page-treasury .treasury-row>b{font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}
+#page-treasury .treasury-status{border:1px solid #c8b18a;padding:3px 7px;border-radius:3px}
+#page-treasury .treasury-form button[type=submit]{background:linear-gradient(#8b443a,#682e28);color:#fff1d5;border-color:#a8864c}
+@media(max-width:850px){#page-profile #pcAbout{grid-template-columns:1fr}#page-home .home272-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#page-home .home272-hero{padding:16px}#page-home .home272-stat{padding:9px;grid-template-columns:22px minmax(0,1fr)}#page-home .home272-symbol{font-size:19px}#page-home .home272-panel,#page-treasury .treasury-section{padding:14px}#page-profile .pc-charter{padding:14px;gap:12px}#page-profile .pc-portrait{width:78px}#page-profile .pc-stats article{padding:10px 5px}#page-profile .pc-stats strong{font-size:22px}#page-management .members-tools>*{max-width:100%}#page-treasury .treasury-stats .panel{padding:12px}#page-treasury .treasury-row{padding:10px 5px}#page-members .registry-list .member-photo{width:60px;height:76px;flex-basis:60px}}

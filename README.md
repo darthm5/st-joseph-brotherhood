@@ -52,3 +52,7 @@ Market screenshot material icons. No new SQL migration required.
 
 ## v2.8.0
 Visual-only theme layer in theme/global.css; local oak and parchment textures. No SQL migration.
+
+
+## v2.8.1
+Scoped visual refinements for home, profile, members, management and treasury. No JS or database changes. Upload all files; hard refresh. Existing award functionality remains in member details; no new profile award integration.

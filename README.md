@@ -59,3 +59,6 @@ Scoped visual refinements for home, profile, members, management and treasury. N
 
 ## v2.8.2
 Run market_v2_8_2.sql before deployment. Market price ranges are integer groschen per unit. Existing multi-item RPCs required.
+
+### v2.8.2.1
+Compact market board and editor. No new SQL migration.

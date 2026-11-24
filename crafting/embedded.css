@@ -1119,3 +1119,25 @@
 #craftEmbedded.craft-v252 .craft255-resource-panel .craft-quick-item>small{grid-column:1/-1!important;grid-row:2!important;text-align:left!important}
 #craftEmbedded.craft-v252 .craft255-resource-panel .craft-detail-group{margin-top:12px!important}
 @media(max-width:750px){#craftEmbedded.craft-v252 #catbook .book th:nth-child(4),#craftEmbedded.craft-v252 #catbook .book td:nth-child(4),#craftEmbedded.craft-v252 #catbook .book th:nth-child(5),#craftEmbedded.craft-v252 #catbook .book td:nth-child(5){width:67px!important}#craftEmbedded.craft-v252 #catbook .book th:last-child,#craftEmbedded.craft-v252 #catbook .book td:last-child{width:90px!important}#craftEmbedded.craft-v252 .craft255-resource-panel .craft-quick-rows{grid-template-columns:1fr!important}}
+/* v2.5.6: real five-column recipe table, not hidden table cells. */
+#craftEmbedded.craft-v252 #catbook table.book{display:table!important;width:100%!important;max-width:none!important;table-layout:fixed!important}
+#craftEmbedded.craft-v252 #catbook .book thead{display:table-header-group!important}
+#craftEmbedded.craft-v252 #catbook .book tbody{display:table-row-group!important}
+#craftEmbedded.craft-v252 #catbook .book tr{display:table-row!important;width:auto!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th,#craftEmbedded.craft-v252 #catbook table.book tr>td{display:table-cell!important;width:auto!important;max-width:none!important;min-width:0!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(1),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(1){width:48px!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(2),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(2){width:auto!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(3),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(3){width:76px!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(4),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(4){width:78px!important}
+#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(5),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(5){width:92px!important}
+#craftEmbedded.craft-v252 #catbook .craft-fav-name{width:100%;min-width:0;gap:3px}
+#craftEmbedded.craft-v252 #catbook .craft255-recipe-name{flex:1;min-width:0;word-break:normal!important;overflow-wrap:normal!important;font-size:14px;line-height:1.3}
+#craftEmbedded.craft-v252 .craft252-recipegrid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)!important}
+#craftEmbedded.craft-v252 #catbook table.book tr.craft255-recipe-detail>td{width:auto!important;text-align:left!important}
+#craftEmbedded.craft-v252 #craftDetailedBreakdown>summary,#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices>summary{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;list-style:none;padding:13px 16px!important;border:1px solid #a0804e;border-radius:6px;background:linear-gradient(180deg,#493829,#30251c);color:#f2d49a;font-size:15px!important;font-weight:700;box-shadow:inset 0 1px #ffffff12}
+#craftEmbedded.craft-v252 #craftDetailedBreakdown>summary::after,#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices>summary::after{content:'▾';margin-left:auto;color:#e9c382}
+#craftEmbedded.craft-v252 #craftDetailedBreakdown[open]>summary::after,#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices[open]>summary::after{content:'▴'}
+#craftEmbedded.craft-v252 #craftDetailedBreakdown>summary small,#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices>summary small{font-size:12px!important;font-weight:400;color:#c9b394}
+#craftEmbedded.craft-v252 #craftDetailedBreakdown>summary:hover,#craftEmbedded.craft-v252 .craft252-cost .craft-item-prices>summary:hover{background:#59432e;border-color:#d2aa6a}
+@media(max-width:1100px){#craftEmbedded.craft-v252 .craft252-recipegrid{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:600px){#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(1),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(1){width:34px!important}#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(3),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(3){width:48px!important}#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(4),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(4){width:54px!important}#craftEmbedded.craft-v252 #catbook table.book tr>th:nth-child(5),#craftEmbedded.craft-v252 #catbook table.book tr[data-tip]>td:nth-child(5){width:72px!important}#craftEmbedded.craft-v252 #catbook .book .qty{width:30px!important}#craftEmbedded.craft-v252 #catbook .craft255-recipe-name{overflow-wrap:anywhere!important}}

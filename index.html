@@ -7,7 +7,7 @@
   <title>Братство Святого Иосифа Обручника</title>
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="crafting/embedded.css?v=255">
+<link rel="stylesheet" href="crafting/embedded.css?v=256">
 </head>
 <body>
   <div class="site-shell">
@@ -184,7 +184,7 @@
       <div id="catbody">
       <div class="tablebox">
         <table class="book">
-          <thead><tr><th></th><th class="name">Предмет</th><th class="l craft254-hide-comp">Состав</th><th>Выход за крафт</th><th>Себест.</th><th class="craft254-hide-sell">С работой</th><th>В заказ</th></tr></thead>
+          <thead><tr><th></th><th class="name">Предмет</th><th>Выход за крафт</th><th>Себест.</th><th>В заказ</th></tr></thead>
           <tbody id="tb"></tbody>
         </table>
       </div>
@@ -235,7 +235,7 @@
       <p id="csum" style="margin:10px 0 0;font-size:14px"></p>
     </div>
     </details>
-    <details class="craft-detail-group" id="craftGuildStock"><summary><span>Склад братства</span><small>Остатки из кладовой, только просмотр</small></summary><p class="hint">Выдача оформляется заявками. Администратор подтверждает каждую позицию в «Кладовой». Изменять остатки здесь нельзя.</p><div id="craftGuildStockRows" class="craft-guild-stock-list"></div></details><details class="craft-detail-group" id="craftPersonalStock">
+    <details class="craft-detail-group" id="craftGuildStock"><summary><span>Склад братства</span><small>Остатки из кладовой, только просмотр</small></summary><p class="hint">Выдача оформляется заявками. Администратор подтверждает каждую позицию в «Кладовой». Изменять остатки здесь нельзя.</p><p id="craftGuildStockStatus" class="hint" role="status"></p><div id="craftGuildStockRows" class="craft-guild-stock-list"></div></details><details class="craft-detail-group" id="craftPersonalStock">
       <summary><span>Мой личный склад</span><small>Учесть имеющиеся ресурсы и заготовки</small></summary>
       <p class="hint">Показаны ресурсы и заготовки выбранного ремесла и всё, что нужно на текущий заказ. Впиши, что у тебя уже лежит. Готовые заготовки (сталь, железо, гарды…) уменьшают число крафтов, а сырьё — сколько докупать.</p>
       <div class="stock" id="stock"></div>
@@ -261,7 +261,7 @@
       <div class="prices pmk" id="pricesm"></div>
       <div class="obar"><label class="sr" for="osel">Выбрать заказ</label><select id="osel"></select><button class="btn" id="onew" type="button">+ Новый</button></div>
       <div id="tiles"></div><datalist id="varlist"></datalist>
-      <details class="craft-item-prices" open><summary>Стоимость по изделиям <small>Без работы / с работой</small></summary><div class="craft-price-head"><span>Изделие</span><span>Мат. + верстак</span><span>С работой</span></div><div id="craftItemPriceRows"></div></details><div class="sum" id="bsum"></div>
+      <details class="craft-item-prices"><summary>Стоимость по изделиям <small>Без работы / с работой</small></summary><div class="craft-price-head"><span>Изделие</span><span>Мат. + верстак</span><span>С работой</span></div><div id="craftItemPriceRows"></div></details><div class="sum" id="bsum"></div>
       <details class="omore" id="omore"><summary>Детали: название, срок, оплата, подпись</summary>
       <div class="obar"><label class="sr" for="oname">Название заказа</label><input id="oname" type="text" maxlength="40" placeholder="Название, например: Ян, латы"></div>
       <div class="ostat">
@@ -703,8 +703,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
-  <script src="crafting/embedded.js?v=255"></script>
-  <script src="crafting/workshop-layout.js?v=255"></script>
+  <script src="crafting/embedded.js?v=256"></script>
+  <script src="crafting/workshop-layout.js?v=256"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});

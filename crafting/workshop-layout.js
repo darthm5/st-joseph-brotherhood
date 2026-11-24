@@ -64,7 +64,7 @@
  if(resourceBreakdown)resourcePanel.append(resourceBreakdown);
  if(calcStatus)resourcePanel.append(calcStatus);
  // Show breakdown on the final screen, not buried in the stock section.
- if(resourceBreakdown)resourceBreakdown.open=true;
+ if(resourceBreakdown)resourceBreakdown.open=false;
 
  const legacyNav=get('.views');const legacyBtn=v=>legacyNav?.querySelector(`[data-view="${v}"]`);
  let current='home';function open(which){current=which;root.dataset.screen=which;home.hidden=which!=='home';nav.hidden=which!=='home';body.hidden=which==='home';for(const p of body.querySelectorAll('.craft252-page'))p.hidden=p.dataset.page!==which;

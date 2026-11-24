@@ -1325,7 +1325,7 @@ workEl('workCreatePanel').addEventListener('submit',async event=>{
   const amount=Number(f.elements.namedItem('reward_amount').value);
   if(!Number.isSafeInteger(amount)||amount<0)return showToast('Укажите целую неотрицательную награду.');
   const deadline=f.elements.namedItem('deadline').value;
-  const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_task_type:f.elements.namedItem('task_type').value,p_reward_amount:amount,p_assigned_to:f.elements.namedItem('assigned_to').value||null,p_deadline:deadline?new Date(deadline).toISOString():null};
+  const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_task_type:f.elements.namedItem('task_type').value,p_reward_amount:amount,p_assigned_to:f.elements.namedItem('assigned_to').value||null,p_deadline:deadline?new Date(deadline).toISOString():null};
   workBusy=true;
   try{const {error}=await supabaseClient.rpc('work_create_task',args);if(error)throw error;f.reset();workEl('workAssigneeLabel').hidden=true;workEl('workAssignee').required=false;workOpenPanel('workCreatePanel');showToast('Поручение создано');await loadWork();}
   catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
@@ -1356,9 +1356,9 @@ function marketAddRow(item=null){
   const wrap=marketNode('div',null,'market-item-row');
   const section=marketSelect([['materials','Материалы и ресурсы'],['products','Готовая продукция']]);
   const category=marketSelect([]),product=marketSelect([]);
-  const quantity=marketNode('input'),price=marketNode('input');
+  const quantity=marketNode('input'),price=marketNode('input'),priceMax=marketNode('input'),search=marketNode('input'); search.type='search';search.placeholder='Название предмета';
   quantity.type='number';quantity.min='1';quantity.max='100000000';quantity.step='1';quantity.required=true;quantity.value=String(item?.quantity??1);
-  price.type='number';price.min='0';price.step='1';price.placeholder='По договорённости';if(item?.price!=null)price.value=String(item.price);
+  for(const x of [price,priceMax]){x.type='number';x.min='0';x.max='1000000000';x.step='1';x.placeholder='Договорная';}if(item?.price!=null){price.value=String(item.price);priceMax.value=String(item.price_max??item.price);}
   const remove=marketNode('button','Удалить позицию','secondary-button');remove.type='button';remove.addEventListener('click',()=>{wrap.remove();});
   function updateCategories(wanted){
     const cats=[...new Set(marketCatalog.filter(x=>(x.section||'materials')===section.value).map(x=>x.category))].sort((a,b)=>a.localeCompare(b,'ru'));
@@ -1367,14 +1367,14 @@ function marketAddRow(item=null){
     updateProducts(item?.item_id);
   }
   function updateProducts(wanted){
-    const matches=marketCatalog.filter(x=>(x.section||'materials')===section.value&&x.category===category.value).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+    const matches=marketCatalog.filter(x=>(x.section||'materials')===section.value&&x.category===category.value&&(!search.value||x.name.toLowerCase().includes(search.value.toLowerCase()))).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
     product.replaceChildren(...matches.map(x=>new Option(x.name,x.id)));
     if(wanted&&matches.some(x=>x.id===wanted))product.value=wanted;
   }
-  section.addEventListener('change',()=>updateCategories());category.addEventListener('change',()=>updateProducts());
+  section.addEventListener('change',()=>{search.value='';updateCategories();});category.addEventListener('change',()=>{search.value='';updateProducts();});search.addEventListener('input',()=>updateProducts(product.value));
   const selected=marketCatalog.find(x=>x.id===item?.item_id);if(selected)section.value=selected.section||'materials';
   updateCategories(selected?.category);
-  for(const [label,el] of [['Раздел',section],['Категория',category],['Предмет',product],['Количество',quantity],['Цена за единицу, грошей',price]]){const field=marketNode('label',label);field.append(el);wrap.append(field);}
+  for(const [label,el] of [['Раздел',section],['Категория',category],['Поиск',search],['Предмет',product],['Количество',quantity],['Цена от, гр./ед.',price],['Цена до, гр./ед.',priceMax]]){const field=marketNode('label',label);field.append(el);wrap.append(field);}
   wrap.append(remove);marketEl('marketItemRows').append(wrap);
   return wrap;
 }
@@ -1395,16 +1395,13 @@ function marketCard(ad){
   if(['deal','completed'].includes(ad.status))card.append(marketNode('p',(ad.status==='completed'?'✓ Сделка завершена с ':'🤝 Сделка с ')+(marketNames.get(ad.deal_with)||'участником братства'),'market-deal-person'));
   if(ad.status==='completed'&&ad.completed_at)card.append(marketNode('small','Дата завершения: '+new Date(ad.completed_at).toLocaleString('ru-RU')));
   const items=ad.market_ad_items||[];
-  if(items.length){const list=marketNode('ul',null,'market-card-items');for(const it of items)list.append(marketNode('li',`${it.item_name} — ${it.quantity} ${it.unit||'шт.'} · ${it.price==null?'Цена договорная':it.price+' грошей/ед.'}`));card.append(list);}
+  if(items.length){const list=marketNode('ul',null,'market-card-items');for(const it of items)list.append(marketNode('li',`${it.item_name} — ${it.quantity} ${it.unit||'шт.'} · ${it.price==null?'Цена договорная':marketPrice(it)+' грошей/ед.'}`));card.append(list);}
   else card.append(marketNode('small',`${ad.category} · ${ad.quantity} шт. · ${ad.price==null?'Цена договорная':ad.price+' грошей'} (старое объявление)`));
   if(ad.description)card.append(marketNode('p',ad.description));
   card.append(marketNode('small',`Автор: ${marketNames.get(ad.author_id)||'Участник'} · ${new Date(ad.created_at).toLocaleString('ru-RU')}`));
   if(ad.contact)card.append(marketNode('small',`Связь: ${ad.contact}`));
   const mine=ad.author_id===currentSession?.user?.id;
-  if(ad.status==='active'&&!mine){
-    const actions=marketNode('div',null,'treasury-actions');
-    marketAction(actions,'🤝 Сделка',()=>marketRpc('market_take_deal',{p_id:ad.id},'Сделка закреплена за вами',`Закрепить объявление «${ad.title}» за собой?`));card.append(actions);
-  }
+  
   if(mine||accessState.mode==='admin'){
     const actions=marketNode('div',null,'treasury-actions');
     if(mine){
@@ -1417,38 +1414,32 @@ function marketCard(ad){
   }
   return card;
 }
+function marketPrice(it){return it.price==null?'Договорная':it.price_max!=null&&Number(it.price_max)!==Number(it.price)?`${it.price}–${it.price_max}`:String(it.price);}
 function marketRender(){
-  const myId=currentSession?.user?.id,active=marketRows.filter(ad=>['active','deal'].includes(ad.status)&&ad.ad_type!=='exchange');
-  const type=marketEl('marketFilterType').value,category=marketEl('marketFilterCategory').value,search=marketEl('marketSearch').value.trim().toLocaleLowerCase('ru');
-  const visible=active.filter(ad=>{
-    const items=ad.market_ad_items||[];
-    const matchesCategory=category==='all'||ad.category===category||items.some(it=>it.category===category);
-    const haystack=[ad.title,ad.description,ad.category,...items.flatMap(it=>[it.item_name,it.category])].join(' ').toLocaleLowerCase('ru');
-    return (type==='all'||ad.ad_type===type)&&matchesCategory&&(!search||haystack.includes(search));
-  });
-  const board=marketEl('marketAdList');board.replaceChildren();for(const ad of visible)board.append(marketCard(ad));
-  if(!visible.length)board.append(marketNode('p','Объявлений по выбранным условиям пока нет.','store-muted'));
-  marketEl('marketCount').textContent=`Найдено: ${visible.length}`;
-  const mine=marketEl('marketMineList');mine.replaceChildren();const own=marketRows.filter(ad=>ad.author_id===myId);
-  for(const ad of own)mine.append(marketCard(ad));if(!own.length)mine.append(marketNode('p','Вы пока не размещали объявления.','store-muted'));
-  const archive=marketEl('marketArchiveList');archive.replaceChildren();const done=marketRows.filter(ad=>ad.status==='completed'&&ad.ad_type!=='exchange').sort((a,b)=>new Date(b.completed_at||b.created_at)-new Date(a.completed_at||a.created_at));for(const ad of done)archive.append(marketCard(ad));if(!done.length)archive.append(marketNode('p','Завершённых сделок пока нет.','store-muted'));
+ const uid=currentSession?.user?.id,type=marketEl('marketFilterType').value,section=marketEl('marketFilterCategory').value,craft=marketEl('marketCraft').value,search=marketEl('marketSearch').value.trim().toLowerCase(),sort=marketEl('marketSort').value;
+ const catalog=new Map(marketCatalog.map(x=>[x.id,x]));
+ const entries=marketRows.filter(a=>a.status==='active'&&a.ad_type!=='exchange').flatMap(ad=>(ad.market_ad_items?.length?ad.market_ad_items:[{item_name:ad.title,quantity:ad.quantity,price:ad.price,category:ad.category}]).map(it=>({ad,it,cat:catalog.get(it.item_id)}))).filter(({ad,it,cat})=>(type==='all'||ad.ad_type===type)&&(section==='all'||cat?.section===section)&&(craft==='all'||cat&&storeProductCrafts(cat).includes(craft))&&[it.item_name,ad.title,ad.description,marketNames.get(ad.author_id)].join(' ').toLowerCase().includes(search));
+ entries.sort((a,b)=>{if(sort!=='new'){if(a.it.price==null)return b.it.price==null?0:1;if(b.it.price==null)return -1;return sort==='low'?Number(a.it.price)-Number(b.it.price):Number(b.it.price_max??b.it.price)-Number(a.it.price_max??a.it.price);}return new Date(b.ad.created_at)-new Date(a.ad.created_at);});
+ const board=marketEl('marketAdList');board.replaceChildren();marketEl('marketDetail').replaceChildren();marketEl('marketDetail').hidden=true;
+ const table=marketNode('table',null,'market-table'),head=table.createTHead().insertRow();for(const label of ['Тип','Предмет','Кол-во','Гр./ед.','Участник',''])head.append(marketNode('th',label));const body=table.createTBody();
+ for(const {ad,it,cat} of entries){const tr=body.insertRow();tr.insertCell().append(marketNode('strong',marketTypeNames[ad.ad_type],`market-${ad.ad_type}`));const cell=tr.insertCell(),item=marketNode('div',null,'market-product'),img=marketNode('img');img.alt='';img.loading='lazy';img.onerror=()=>{img.onerror=null;img.src='store-icons/resource.svg';};img.src=window.storeIconFor?.(it.item_name)||'store-icons/resource.svg';const name=marketNode('div');name.append(marketNode('strong',it.item_name),marketNode('small',cat?.category||it.category));item.append(img,name);cell.append(item);tr.insertCell().textContent=`${it.quantity} ${it.unit||'шт.'}`;tr.insertCell().textContent=marketPrice(it);tr.insertCell().textContent=marketNames.get(ad.author_id)||'Участник';marketAction(tr.insertCell(),'›',()=>{const d=marketEl('marketDetail');d.replaceChildren(marketCard(ad));d.hidden=false;marketAction(d,'Скрыть',()=>{d.hidden=true;});d.scrollIntoView({block:'nearest'});});}
+ board.append(table);if(!entries.length)board.append(marketNode('p','Объявлений нет.','store-muted'));marketEl('marketCount').textContent=`Позиций: ${entries.length}`;
+ const mine=marketEl('marketMineList');mine.replaceChildren();for(const ad of marketRows.filter(a=>a.author_id===uid).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)))mine.append(marketCard(ad));if(!mine.children.length)mine.append(marketNode('p','У вас пока нет объявлений.'));
+ const archive=marketEl('marketArchiveList');archive.replaceChildren();for(const ad of marketRows.filter(a=>['completed','deal'].includes(a.status)))archive.append(marketCard(ad));
 }
 async function loadMarket(){
   if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
-  const token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
+  const uid=currentSession.user.id,token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
   try{
     const [ads,people,catalog]=await Promise.all([
-      supabaseClient.from('market_ads').select('id,author_id,deal_with,deal_at,completed_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price)').order('created_at',{ascending:false}).limit(1000),
+      storeAllRows('market_ads','id,author_id,deal_with,deal_at,completed_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price,price_max)','id').then(data=>({data})),
       supabaseClient.from('profiles').select('id,character_first_name,character_last_name').limit(1000),
-      supabaseClient.from('storage_items').select('id,name,category,unit,section').order('name').limit(5000)
+      storeAllRows('storage_items','id,name,category,unit,section','id').then(data=>({data}))
     ]);
-    if(ads.error)throw ads.error;if(people.error)throw people.error;if(catalog.error)throw catalog.error;if(token!==marketLoadToken)return;
+    if(ads.error)throw ads.error;if(people.error)throw people.error;if(catalog.error)throw catalog.error;if(token!==marketLoadToken||currentSession?.user?.id!==uid)return;
     marketRows=ads.data||[];marketCatalog=catalog.data||[];
     marketNames=new Map((people.data||[]).map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));
-    const filter=marketEl('marketFilterCategory'),old=filter.value;filter.replaceChildren(new Option('Все категории','all'));
-    const cats=new Set();for(const a of marketRows.filter(a=>['active','deal'].includes(a.status))){cats.add(a.category);for(const it of a.market_ad_items||[])cats.add(it.category);}
-    for(const cat of [...cats].sort((a,b)=>a.localeCompare(b,'ru')))filter.add(new Option(cat,cat));
-    if([...filter.options].some(o=>o.value===old))filter.value=old;
+    const cf=marketEl('marketCraft'),old=cf.value;cf.replaceChildren(new Option('Все ремёсла','all'));for(const c of [...new Set(marketCatalog.flatMap(storeProductCrafts))].sort())cf.add(new Option(c,c));if([...cf.options].some(o=>o.value===old))cf.value=old;
     marketRender();marketEl('marketNotice').textContent='Объявления обновлены.';
   }catch(err){if(token===marketLoadToken)marketEl('marketNotice').textContent='Ошибка загрузки рынка: '+err.message;}
 }
@@ -1459,22 +1450,23 @@ async function marketRpc(name,args,success,confirmText){
 }
 for(const b of document.querySelectorAll('[data-market-panel]'))b.addEventListener('click',()=>{if(b.dataset.marketPanel==='marketCreatePanel'&&marketPanel!=='marketCreatePanel')marketResetForm();marketOpenPanel(b.dataset.marketPanel);});
 marketEl('marketAddItem').addEventListener('click',()=>{if(marketEl('marketItemRows').children.length>=30)return showToast('Не более 30 позиций.');marketAddRow();});
+marketEl('marketAll').onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value='all';marketRender();};for(const b of document.querySelectorAll('[data-market-type]'))b.onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value=b.dataset.marketType;marketRender();};
 marketEl('marketRefresh').addEventListener('click',loadMarket);
-for(const id of ['marketFilterType','marketFilterCategory'])marketEl(id).addEventListener('change',marketRender);
+for(const id of ['marketFilterType','marketFilterCategory','marketCraft','marketSort'])marketEl(id).addEventListener('change',marketRender);
 marketEl('marketSearch').addEventListener('input',marketRender);
 marketEl('marketCancelEdit').addEventListener('click',()=>{marketResetForm();marketOpenPanel(null,true);});
 marketEl('marketCreatePanel').addEventListener('submit',async e=>{
   e.preventDefault();if(marketBusy)return;const f=e.currentTarget;
   const items=[];
   for(const row of marketEl('marketItemRows').children){
-    const [section,category,product,quantity,price]=row.querySelectorAll('select,input');
+    const [section,category,search,product,quantity,price,priceMax]=row.querySelectorAll('select,input');
     const item_id=product.value,q=Number(quantity.value),p=price.value.trim()===''?null:Number(price.value);
     if(!item_id||!Number.isSafeInteger(q)||q<1||q>100000000||(p!==null&&(!Number.isSafeInteger(p)||p<0)))return showToast('Проверьте выбранные товары, количество и цены.');
-    items.push({item_id,quantity:q,price:p});
+    const hi=priceMax.value.trim()===''?p:Number(priceMax.value);if((p===null)!==(hi===null)||hi!==null&&(!Number.isSafeInteger(hi)||hi<p||hi>1000000000))return showToast('Проверьте диапазон цены.');items.push({item_id,quantity:q,price:p,price_max:hi});
   }
   if(!items.length||items.length>30||new Set(items.map(x=>x.item_id)).size!==items.length)return showToast('Добавь от 1 до 30 разных товаров.');
-  const fields={p_type:f.elements.namedItem('ad_type').value,p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_contact:f.elements.namedItem('contact').value.trim(),p_items:items};
-  const editing=marketEditing,rpc=editing?'market_edit_listing':'market_create_listing',args=editing?{p_id:editing,...fields}:fields;
+  const fields={p_type:f.elements.namedItem('ad_type').value,p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_description:f.elements.namedItem('description').value.trim(),p_contact:f.elements.namedItem('contact').value.trim(),p_items:items};
+  const editing=marketEditing,rpc=editing?'market_edit_listing_v282':'market_create_listing_v282',args=editing?{p_id:editing,...fields}:fields;
   marketBusy=true;
   try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;marketResetForm();marketOpenPanel(null,true);showToast(editing?'Объявление обновлено':'Объявление опубликовано');await loadMarket();}
   catch(err){showToast('Ошибка: '+err.message);}finally{marketBusy=false;}
@@ -1542,7 +1534,7 @@ calEl('calendarCreatePanel').addEventListener('submit',async e=>{
  e.preventDefault();if(calBusy||accessState.mode!=='admin')return;const f=e.currentTarget;
  const start=f.elements.namedItem('starts_at').value,end=f.elements.namedItem('ends_at').value;
  if(!start||(end&&new Date(end)<=new Date(start)))return showToast('Проверьте даты мероприятия.');
- const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_location:f.elements.namedItem('location').value.trim(),p_starts_at:new Date(start).toISOString(),p_ends_at:end?new Date(end).toISOString():null};
+ const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_location:f.elements.namedItem('location').value.trim(),p_starts_at:new Date(start).toISOString(),p_ends_at:end?new Date(end).toISOString():null};
  if(calEditing)args.p_event_id=calEditing;const rpc=calEditing?'guild_event_update':'guild_event_create';calBusy=true;
  try{const {error}=await supabaseClient.rpc(rpc,args);if(error)throw error;showToast(calEditing?'Мероприятие обновлено':'Мероприятие создано');calReset();calPanel='calendarCreatePanel';calOpen('calendarCreatePanel');await loadCalendar();}
  catch(err){showToast('Ошибка: '+err.message);}finally{calBusy=false;}
@@ -1709,7 +1701,7 @@ libEl('librarySearch').addEventListener('input',libRender);
 libEl('libraryEditor').addEventListener('submit',async event=>{
  event.preventDefault();if(accessState.mode!=='admin'||libBusy)return;
  const f=event.currentTarget;
- const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_summary:f.elements.namedItem('summary').value.trim(),p_cover_image_url:f.elements.namedItem('cover_image_url').value.trim()||null,p_is_pinned:f.elements.namedItem('is_pinned').checked};
+ const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_summary:f.elements.namedItem('summary').value.trim(),p_cover_image_url:f.elements.namedItem('cover_image_url').value.trim()||null,p_is_pinned:f.elements.namedItem('is_pinned').checked};
  if(!args.p_title||!args.p_body)return showToast('Заполните название и содержание.');
  if(libEditing)args.p_document_id=libEditing;
  else args.p_category=libCategory;
@@ -1799,7 +1791,7 @@ chronEl('chronRefresh').addEventListener('click',loadChronicle);
 chronEl('chronEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(accessState.mode!=='admin'||chronSaving)return;
  const f=e.currentTarget;
- const args={p_title:f.elements.namedItem('title').value.trim(),p_event_date:f.elements.namedItem('event_date').value,p_summary:f.elements.namedItem('summary').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_image_url:f.elements.namedItem('image_url').value.trim()||null};
+ const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_event_date:f.elements.namedItem('event_date').value,p_summary:f.elements.namedItem('summary').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_image_url:f.elements.namedItem('image_url').value.trim()||null};
  if(!args.p_title||!args.p_event_date||!args.p_body){showToast('Укажите название, дату и историю.');return;}
  if(chronEditing)args.p_id=chronEditing;
  const ok=await chronRpc(chronEditing?'guild_chronicle_update':'guild_chronicle_create',args,chronEditing?'Запись обновлена':'Событие внесено в летопись');
@@ -1929,7 +1921,7 @@ pollEl('pollEditor').addEventListener('submit',async e=>{
  const f=e.currentTarget,values=[...pollEl('pollEditorOptions').querySelectorAll('input')].map(i=>i.value.trim());
  if(values.length<2||values.length>12||values.some(x=>!x)){showToast('Заполните от 2 до 12 вариантов');return;}
  const date=new Date(f.elements.namedItem('closes_at').value);if(!Number.isFinite(date.getTime())||date<=new Date()){showToast('Укажите будущую дату завершения');return;}
- const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_visibility:f.elements.namedItem('visibility').value,p_closes_at:date.toISOString(),p_options:values};
+ const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_description:f.elements.namedItem('description').value.trim(),p_visibility:f.elements.namedItem('visibility').value,p_closes_at:date.toISOString(),p_options:values};
  const ok=await pollRpc('guild_poll_create',args,'Голосование опубликовано');if(ok){pollFilter='active';pollShow('board');pollRender();}
 });
 pollEl('pollVoteForm').addEventListener('submit',async e=>{
@@ -2079,7 +2071,7 @@ for(const b of document.querySelectorAll('[data-decree-filter]'))b.addEventListe
 decreeEl('decreeEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(!decreeCanIssue||decreeBusy)return;
  const f=e.currentTarget,year=Number(f.elements.namedItem('decree_year').value);
- const args={p_decree_year:year,p_kind:f.elements.namedItem('kind').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_issued_on:f.elements.namedItem('issued_on').value};
+ const args={p_decree_year:year,p_kind:f.elements.namedItem('kind').value,p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_body:f.elements.namedItem('body').value.trim(),p_issued_on:f.elements.namedItem('issued_on').value};
  if(!Number.isInteger(year)||year<1300||year>2200||!args.p_title||!args.p_body)return showToast('Проверьте поля указа.');
  if(args.p_issued_on.slice(0,4)!==String(year))return showToast('Игровой год должен совпадать с годом даты издания.');
  if(decreeEditing)args.p_decree_id=decreeEditing;
@@ -2198,7 +2190,7 @@ petitionEl('petitionResolveCancel').addEventListener('click',()=>{petitionEl('pe
 petitionEl('petitionEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(petitionBusy)return;
  const f=e.currentTarget;
- const args={p_category:f.elements.namedItem('category').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim()};
+ const args={p_category:f.elements.namedItem('category').value,p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_body:f.elements.namedItem('body').value.trim()};
  if(args.p_title.length<3||args.p_body.length<5)return showToast('Заполните заголовок и текст.');
  if(await petitionRpc('guild_petition_submit',args,'Прошение подано')){petitionFilter='mine';petitionShow('board');loadPetitions();}
 });

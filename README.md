@@ -56,3 +56,6 @@ Visual-only theme layer in theme/global.css; local oak and parchment textures. N
 
 ## v2.8.1
 Scoped visual refinements for home, profile, members, management and treasury. No JS or database changes. Upload all files; hard refresh. Existing award functionality remains in member details; no new profile award integration.
+
+## v2.8.2
+Run market_v2_8_2.sql before deployment. Market price ranges are integer groschen per unit. Existing multi-item RPCs required.

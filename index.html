@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=2761">
+<link rel="stylesheet" href="residence.css?v=2762">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.6.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.6.2</div>
       </div>
     </aside>
 
@@ -278,7 +278,7 @@
           <div class="tr-tabs" role="group" aria-label="Разделы казны"><button type="button" data-tr-tab="journal" aria-pressed="true">Журнал операций</button><button type="button" data-tr-tab="contribution" aria-pressed="false">Взносы</button><button type="button" data-tr-tab="requests" aria-pressed="false">Заявки</button><button type="button" data-tr-tab="admin" aria-pressed="false" hidden>Операция казначея</button><button type="button" class="secondary-button" id="treasuryRefresh">Обновить</button></div>
           <div data-tr-panel="contribution" hidden>
             <form id="treasuryRequestForm" class="panel treasury-form"><h2>Подать заявку на взнос</h2><p>Заявка не изменит баланс, пока администратор не подтвердит передачу грошей в игре.</p><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Кому и когда переданы гроши"></textarea></label><button type="submit" class="secondary-button">Отправить заявку</button></form>
-            </div><div data-tr-panel="admin" hidden><form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Записать операцию</button></form>
+            </div><div data-tr-panel="admin" hidden><form id="treasuryManualForm" class="panel treasury-form" hidden><h2>Ручная операция администрации</h2><label>Тип операции<select name="type"><option value="income">Поступление</option><option value="expense">Расход</option></select></label><label>Сумма, грошей<input name="amount" type="number" min="1" step="1" required></label><label>Участник (необязательно)<select name="member"><option value="">Без привязки к участнику</option></select></label><label>Назначение<input name="description" minlength="3" maxlength="500" required placeholder="Например: закупка древесины"></label><button type="submit" class="secondary-button">Подтвердить операцию</button></form>
           </div>
           <div data-tr-panel="requests" hidden><article class="panel treasury-section" id="treasuryOwnRequestsPanel"><div class="treasury-heading"><h2>Мои заявки</h2></div><div id="treasuryOwnRequests" class="treasury-list"></div></article>
           <article class="panel treasury-section" id="treasuryAdminRequests" hidden><h2>Заявки на рассмотрении</h2><div id="treasuryPendingList" class="treasury-list"></div></article>
@@ -292,10 +292,10 @@
             <article class="panel"><small>Заявок на рассмотрении</small><h2 id="storePendingCount">—</h2></article>
           </div>
           <p id="storeNotice" class="members-message" role="status" aria-live="polite"></p>
-          <div class="store-tabs" role="tablist" aria-label="Раздел кладовой"><button type="button" id="storeTabMaterials" class="store-tab active" role="tab" aria-selected="true">Материалы</button><button type="button" id="storeTabProducts" class="store-tab" role="tab" aria-selected="false">Готовая продукция</button></div>
+          <div id="storeSectionTabs" class="store-tabs" role="tablist" aria-label="Раздел кладовой"><button type="button" id="storeTabMaterials" class="store-tab active" role="tab" aria-selected="true">Материалы</button><button type="button" id="storeTabProducts" class="store-tab" role="tab" aria-selected="false">Готовая продукция</button></div>
           <div class="store-actions" role="group" aria-label="Действия кладовой"><button type="button" class="secondary-button store-action-active" id="storeBackStock">Запасы</button>
-            <button type="button" class="secondary-button" data-store-panel="storeRequestForm" aria-expanded="false">＋ Пополнить / одиночная заявка</button>
-            <button type="button" class="secondary-button" data-store-panel="storeManualForm" data-store-admin hidden aria-expanded="false">Операция кладовщика</button>
+            <button type="button" class="secondary-button" data-store-panel="storeRequestForm" aria-expanded="false">＋ Пополнение</button>
+            <button type="button" class="secondary-button" data-store-panel="storeManualForm" data-store-admin hidden aria-expanded="false">Учёт кладовщика</button>
             <button type="button" class="secondary-button" data-store-panel="storeAddForm" data-store-admin hidden aria-expanded="false">Добавить предмет</button>
             <button type="button" class="secondary-button" data-store-panel="storeOwnRequestsPanel" aria-expanded="false">Мои заявки</button>
             <button type="button" class="secondary-button" data-store-panel="storeAdminRequests" data-store-admin hidden aria-expanded="false">На рассмотрении</button>
@@ -309,28 +309,20 @@
           </div>
           <article class="panel store-section"><div class="treasury-heading"><h2>Запасы братства</h2><span id="storeFilteredCount" class="store-muted"></span></div><div id="storeCatalog" class="store-catalog"></div><div id="storePagination" class="store-pagination"></div></article></div><aside class="panel store-basket"><h2>Заявка на выдачу</h2><div id="storeBasketRows" aria-live="polite"></div><p id="storeBasketCount" class="store-muted"></p><label>Назначение заявки<textarea id="storeBasketPurpose" maxlength="500" rows="3" placeholder="Для какого заказа нужны ресурсы"></textarea></label><button type="button" class="primary-button" id="storeBasketSubmit">Отправить заявку</button><p class="store-muted">Выдача после одобрения администрацией.</p></aside></div>
           <div class="treasury-forms">
-            <form id="storeRequestForm" class="panel treasury-form" hidden><h2>Заявка на ресурсы</h2><p>Передача или выдача учитывается после подтверждения администрации.</p>
-              <div class="store-cascade">
-                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
-                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
-                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
-              </div>
-              <label>Действие<select name="type"><option value="deposit">Передать в кладовую</option><option value="withdraw">Получить из кладовой</option></select></label>
+            <form id="storeRequestForm" class="panel treasury-form" hidden><h2>Пополнение кладовой</h2><p>Найдите ресурс, укажите количество и отправьте заявку на поступление.</p>
+              <label>Поиск ресурса<input type="search" data-store-search placeholder="Введите название или категорию"></label><label>Ресурс<select name="item" required><option value="">Выберите ресурс</option></select></label><p class="store-muted" data-store-balance></p>
+              
               <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
               <label>Комментарий<textarea name="comment" maxlength="500" rows="3" placeholder="Для чего нужны ресурсы или откуда они"></textarea></label>
               <button type="submit" class="secondary-button">Отправить заявку</button>
             </form>
-            <form id="storeManualForm" class="panel treasury-form" hidden><h2>Операция кладовщика</h2>
-              <div class="store-cascade">
-                <label>Раздел<select data-store-section required><option value="">Выберите раздел</option><option value="materials">Материалы</option><option value="products">Готовая продукция</option></select></label>
-                <label>Категория<select data-store-category required disabled><option value="">Сначала выберите раздел</option></select></label>
-                <label>Предмет<select name="item" required disabled><option value="">Сначала выберите категорию</option></select></label>
-              </div>
-              <label>Действие<select name="type"><option value="deposit">Приход</option><option value="withdraw">Расход</option></select></label>
+            <form id="storeManualForm" class="panel treasury-form" hidden><h2>Учёт кладовщика</h2><p>Прямая запись прихода или расхода без заявки. Остаток изменится сразу.</p>
+              <label>Поиск ресурса<input type="search" data-store-search placeholder="Введите название или категорию"></label><label>Ресурс<select name="item" required><option value="">Выберите ресурс</option></select></label><p class="store-muted" data-store-balance></p>
+              <fieldset class="store-direction"><legend>Тип операции</legend><label><input type="radio" name="type" value="deposit" checked> ＋ Приход</label><label><input type="radio" name="type" value="withdraw"> − Расход</label></fieldset>
               <label>Количество<input name="quantity" type="number" min="1" step="1" required></label>
               <label>Участник (необязательно)<select name="member"><option value="">Общая операция</option></select></label>
               <label>Основание<input name="description" minlength="3" maxlength="500" required placeholder="Например: выдача кузнецу"></label>
-              <button type="submit" class="secondary-button">Записать операцию</button>
+              <button type="submit" class="secondary-button">Подтвердить операцию</button>
             </form>
           </div>
           <form id="storeAddForm" class="panel treasury-form store-add" hidden><h2>Добавить предмет в каталог</h2>
@@ -685,8 +677,8 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="store-icons.js?v=2761"></script>
-  <script src="app.js?v=2761"></script>
+  <script src="store-icons.js?v=2762"></script>
+  <script src="app.js?v=2762"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

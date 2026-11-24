@@ -49,3 +49,6 @@ Run storage_products_v2_7_7.sql in Supabase before deployment. Existing rows and
 
 ## v2.7.7.1
 Market screenshot material icons. No new SQL migration required.
+
+## v2.8.0
+Visual-only theme layer in theme/global.css; local oak and parchment textures. No SQL migration.

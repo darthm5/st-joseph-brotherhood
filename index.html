@@ -8,7 +8,7 @@
   <meta name="description" content="Внутренняя резиденция Братства Святого Иосифа Обручника">
   <link rel="stylesheet" href="styles.css?v=270">
 <link rel="stylesheet" href="crafting/embedded.css?v=257">
-<link rel="stylesheet" href="residence.css?v=273">
+<link rel="stylesheet" href="residence.css?v=274">
 </head>
 <body>
   <div class="site-shell">
@@ -56,7 +56,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.7.3</div>
+        <div class="sidebar-version">Резиденция · версия 2.7.4</div>
       </div>
     </aside>
 
@@ -632,15 +632,18 @@
           <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div id="workTaskList" class="work-list"></div></article>
         </section>
         <section class="page" id="page-management">
-          <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Управление</h1><p>Приём кандидатов и назначение игровых званий.</p></div>
+          <div class="page-title-block"><div class="eyebrow">Совет братства</div><h1>Канцелярия совета</h1><p>Управление составом и внутренними делами братства.</p></div>
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>
           <div id="adminPanel" hidden>
+            <div class="admin-seal-line"><span aria-hidden="true">♜</span><div><strong>Полномочия совета</strong><small>Административный доступ</small></div></div>
+            <div class="admin-tabs" aria-label="Разделы канцелярии"><button type="button" data-admin-tab="members" aria-pressed="true">Участники</button><button type="button" data-admin-tab="applications" aria-pressed="false" id="adminApplications">Заявки</button><button type="button" data-admin-tab="ranks" aria-pressed="false">Звания</button><button type="button" data-admin-tab="awards" aria-pressed="false">Награды</button></div>
+            <div id="adminDirectory">
             <div class="members-tools panel"><label for="adminFilter">Показать</label>
-              <select id="adminFilter"><option value="all">Всех зарегистрированных</option><option value="pending">Ожидающих решения</option><option value="approved">Принятых</option><option value="rejected">Отклонённых</option></select>
+              <input id="adminSearch" type="search" placeholder="Поиск по имени или Discord" aria-label="Поиск участника"><select id="adminFilter"><option value="all">Всех зарегистрированных</option><option value="pending">Ожидающих решения</option><option value="approved">Принятых</option><option value="rejected">Отклонённых</option></select>
               <button id="adminRefresh" type="button" class="secondary-button">Обновить список</button>
               <span id="adminCount" aria-live="polite"></span>
             </div>
-            <div id="adminList" class="admin-list"></div>
+            <div id="adminList" class="admin-list"></div></div><div id="adminExtra" hidden></div>
           </div>
         </section>
         <section class="page" id="page-map">
@@ -681,7 +684,7 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=273"></script>
+  <script src="app.js?v=274"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

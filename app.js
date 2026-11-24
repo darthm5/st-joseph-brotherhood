@@ -583,6 +583,23 @@ const adminList = document.getElementById("adminList");
 const adminFilter = document.getElementById("adminFilter");
 const adminCount = document.getElementById("adminCount");
 let adminProfiles = [];
+let adminTab = 'members';
+const adminRanks = ["Глава гильдии", "Старейшина гильдии", "Казначей", "Писарь", "Купец", "Гильдмастер", "Мастер", "Подмастерье", "Возница", "Последователь", "Послушник"];
+const adminSearch = document.getElementById('adminSearch');
+function adminShowTab(tab){
+ adminTab=tab;
+ document.querySelectorAll('[data-admin-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.adminTab===tab)));
+ const directory=document.getElementById('adminDirectory'), extra=document.getElementById('adminExtra');
+ directory.hidden=!['members','applications'].includes(tab);extra.hidden=!directory.hidden;extra.replaceChildren();
+ if(!directory.hidden){adminFilter.value=tab==='applications'?'pending':'all';renderAdminList();return;}
+ const panel=element('div','panel admin-extra-panel');extra.append(panel);
+ if(tab==='ranks'){
+  panel.append(element('h2','','Иерархия братства'),element('p','members-message','Игровые звания не предоставляют административных прав.'));
+  for(const rank of adminRanks){const row=element('div','admin-rank-row');row.append(element('strong','',rank),element('span','',String(adminProfiles.filter(p=>p.membership_status==='approved'&&p.game_rank===rank).length)+' участников'));panel.append(row);}
+  const b=element('button','secondary-button','Открыть иерархию и описания');b.type='button';b.onclick=()=>{navigate('ratusha');hallShow('council');};panel.append(b);
+ }else{panel.append(element('h2','','Почётные награды'),element('p','members-message','Каталог, вручение и отзыв наград доступны в существующем Зале славы.'));const b=element('button','primary-button','Открыть Зал славы');b.type='button';b.onclick=()=>{navigate('ratusha');hallShow('awards');};panel.append(b);}
+}
+
 const allowedStatuses = ["pending", "approved", "rejected"];
 
 async function loadAdminPanel() {
@@ -612,14 +629,16 @@ async function loadAdminPanel() {
     adminProfiles = data || [];
     adminPanel.hidden = false;
     adminNotice.textContent = "";
-    renderAdminList();
+    document.getElementById('adminApplications').textContent='Заявки ('+adminProfiles.filter(p=>p.membership_status==='pending').length+')';
+    adminShowTab(adminTab);
   } catch (error) {
     if (sequence === adminLoadSequence) adminNotice.textContent = "Ошибка: " + error.message;
   }
 }
 function renderAdminList() {
   const filter = adminFilter.value;
-  const rows = adminProfiles.filter(p => filter === "all" || p.membership_status === filter);
+  const query=adminSearch.value.trim().toLocaleLowerCase('ru');
+  const rows = adminProfiles.filter(p => (filter === "all" || p.membership_status === filter) && (!query || [characterName(p),p.discord_username,p.profession,p.game_rank].join(' ').toLocaleLowerCase('ru').includes(query)));
   adminCount.textContent = `Показано: ${rows.length} из ${adminProfiles.length}`;
   adminList.replaceChildren();
   if (!rows.length) {
@@ -633,8 +652,10 @@ function renderAdminList() {
     title.append(element("h2", "", characterName(p)));
     title.append(element("p", "", `Discord: ${p.discord_username || "не указан"} · ${p.profession || "профессия не указана"}`));
     head.append(title, element("span", "admin-status", displayStatus(p.membership_status)));
+    const manage=element('button','secondary-button admin-manage','Управлять');manage.type='button';manage.setAttribute('aria-expanded','false');head.append(manage);
     card.append(head);
-    const controls = element("div", "admin-controls");
+    const controls = element("div", "admin-controls");controls.hidden=true;
+    manage.addEventListener('click',()=>{const opening=controls.hidden;for(const other of adminList.querySelectorAll('.admin-controls'))other.hidden=true;for(const other of adminList.querySelectorAll('.admin-manage')){other.textContent='Управлять';other.setAttribute('aria-expanded','false');}controls.hidden=!opening;manage.textContent=opening?'Свернуть':'Управлять';manage.setAttribute('aria-expanded',String(opening));});
     const statusGroup = element("label");
     statusGroup.append(element("span", "", "Статус членства"));
     const statusSelect = element("select");
@@ -680,6 +701,10 @@ function renderAdminList() {
       await adminMutation("admin_set_member_rank", {target_user_id:p.id, new_rank:rank}, saveRank);
     });
     controls.append(statusGroup,saveStatus,rankGroup,saveRank);
+    if(p.membership_status==='pending'&&adminTab==='applications'){
+      const actions=element('div','admin-application-actions');
+      for(const [status,label,cls] of [['approved','Принять','primary-button'],['rejected','Отклонить','secondary-button']]){const b=element('button',cls,label);b.type='button';b.onclick=async()=>{if(confirm(label+' заявку персонажа «'+characterName(p)+'»?'))await adminMutation('admin_set_member_status',{target_user_id:p.id,new_status:status},b);};actions.append(b);}card.append(actions);
+    }
     card.append(controls);
     adminList.append(card);
   }
@@ -699,6 +724,8 @@ async function adminMutation(functionName, args, button) {
   } finally { button.disabled = false; }
 }
 adminFilter.addEventListener("change", renderAdminList);
+adminSearch.addEventListener('input',renderAdminList);
+for(const b of document.querySelectorAll('[data-admin-tab]'))b.addEventListener('click',()=>adminShowTab(b.dataset.adminTab));
 document.getElementById("adminRefresh").addEventListener("click", loadAdminPanel);
 
 // Always begin behind the access gate until Supabase confirms the user status.

@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="theme/global.css?v=280">
 <link rel="stylesheet" href="theme/residence-final.css?v=281">
 <link rel="stylesheet" href="theme/market.css?v=2822">
-<link rel="stylesheet" href="theme/work.css?v=2832">
+<link rel="stylesheet" href="theme/work.css?v=2833">
 </head>
 <body>
   <div class="site-shell">
@@ -60,7 +60,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.3.2</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.3.3</div>
       </div>
     </aside>
 
@@ -582,7 +582,7 @@
           <div class="page-title-block"><div class="eyebrow">Дела братства</div><h1>Работа и поручения</h1><p>Общая доска, личные задания и отчёты о выполнении.</p></div>
           <div class="work283-nav" role="group" aria-label="Разделы поручений">
             <button type="button" class="store-tab active" id="workTabPublic" aria-selected="true">Все поручения</button>
-            <button type="button" class="store-tab" id="workTabPersonal" aria-selected="false">Личные</button>
+            
             <button type="button" class="secondary-button" data-work-panel="workMinePanel" aria-expanded="false">Мои задания</button>
             <button type="button" class="secondary-button" data-work-panel="workArchivePanel" aria-expanded="false">Архив</button>
             <button type="button" class="secondary-button" data-work-panel="workReportsPanel" data-work-admin hidden aria-expanded="false">Проверка отчётов <span id="workPendingCount"></span></button>
@@ -603,12 +603,12 @@
             <div id="workPreview" class="work-preview" aria-live="polite"></div><button type="submit" class="primary-button">Опубликовать поручение</button>
           </form>
           <article class="panel treasury-section work-panel" id="workMinePanel" hidden><h2>Мои задания</h2><div id="workMineList" class="work-list"></div></article>
-          <article class="panel treasury-section work-panel" id="workReportsPanel" hidden><h2>Отчёты на проверке</h2><div id="workReportsList" class="work-list"></div></article>
+          <article class="panel treasury-section work-panel" id="workReportsPanel" hidden><div class="work-new-head"><h2>Отчёты на проверке</h2><span id="workReviewCount" class="store-muted"></span></div><div id="workReportsList" class="work-list"></div></article>
           <article class="panel treasury-section work-panel" id="workArchivePanel" hidden><h2>Архив поручений</h2><div id="workArchiveList" class="work-list"></div></article>
-          <article class="panel treasury-section work-panel" id="workReportPanel" hidden><h2 id="workReportTitle">Отчёт о выполнении</h2>
-            <form id="workReportForm" class="treasury-form"><input type="hidden" name="task_id"><label>Результат работы<textarea name="report_text" minlength="3" maxlength="3000" rows="5" required placeholder="Что выполнено, где переданы ресурсы, подробности"></textarea></label><button type="submit" class="secondary-button">Отправить отчёт</button></form>
+          <article class="panel treasury-section work-panel" id="workReportPanel" hidden><div class="work-new-head"><h2 id="workReportTitle">Отчёт о выполнении</h2><button type="button" class="secondary-button" id="workReportClose" aria-label="Закрыть">×</button></div>
+            <form id="workReportForm" class="treasury-form"><input type="hidden" name="task_id"><label>Комментарий (необязательно)<textarea name="report_text" maxlength="2980" rows="2" placeholder="Дополнительные сведения…"></textarea></label><div class="work-result-actions"><button type="submit" name="result" value="Выполнено" class="primary-button work-result-ok">✓ Выполнено</button><button type="submit" name="result" value="Не выполнено" class="secondary-button work-result-no">× Не выполнено</button></div></form>
           </article>
-          <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div class="work283-filters"><input id="workSearch" type="search" placeholder="Поиск поручения или исполнителя" aria-label="Поиск поручения"><select id="workActionFilter" aria-label="Действие"><option value="">Все действия</option></select><select id="workStatusFilter" aria-label="Статус"><option value="">Все статусы</option><option value="open">Свободно</option><option value="assigned">В работе</option><option value="submitted">На проверке</option></select></div><div id="workTaskList" class="work-list"></div></article>
+          <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Все поручения</h2><span id="workCount" class="store-muted"></span></div><div class="work283-filters"><input id="workSearch" type="search" placeholder="Поиск поручения или исполнителя" aria-label="Поиск поручения"><select id="workActionFilter" aria-label="Действие"><option value="">Все действия</option></select><select id="workTypeFilter" aria-label="Тип поручения"><option value="">Все поручения</option><option value="public">Общие</option><option value="personal">Личные</option></select><select id="workStatusFilter" aria-label="Статус"><option value="">Все статусы</option><option value="open">Свободно</option><option value="assigned">В работе</option><option value="submitted">На проверке</option></select></div><div id="workTaskList" class="work-list"></div></article>
           <dialog id="work283Detail" class="work283-dialog"><div id="work283DetailBody"></div></dialog>
         </section>
         <section class="page" id="page-management">
@@ -666,7 +666,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2832"></script>
+  <script src="app.js?v=2833"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

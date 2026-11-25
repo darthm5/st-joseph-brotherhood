@@ -1196,7 +1196,7 @@ function workOpenPanel(id) {
   // Показываем основную доску только когда дополнительные панели закрыты.
   workEl('workBoardPanel').hidden=Boolean(workPanel);
   if(workPanel==='workCreatePanel'){workLoadCatalog();workSyncForm();}
-  for(const [id,value] of [['workTabPublic','public'],['workTabPersonal','personal']]){const b=workEl(id),active=!workPanel&&workTab===value;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));}
+  for(const [id,value] of [['workTabPublic','public']]){const b=workEl(id),active=!workPanel&&workTab===value;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));}
   for(const button of document.querySelectorAll('[data-work-panel]')){
     const expanded=button.dataset.workPanel===workPanel;
     button.setAttribute('aria-expanded',String(expanded));
@@ -1206,6 +1206,7 @@ function workOpenPanel(id) {
 function workShowReport(task) {
   workOpenPanel(workPanel==='workReportPanel'?null:'workReportPanel');
   if(workPanel==='workReportPanel'){
+    workEl('workReportForm').reset();
     workEl('workReportForm').elements.namedItem('task_id').value=task.id;
     workEl('workReportTitle').textContent='Отчёт: '+task.title;
     workEl('workReportPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1252,15 +1253,15 @@ function workCard(parent,task,kind='board') {
   workAction(row.insertCell(),'›',()=>{const d=workEl('work283Detail'),body=workEl('work283DetailBody');body.replaceChildren();const close=workAction(body,'×',()=>d.close());close.classList.add('work283-close');workDetailCard(body,task,kind);for(const b of body.querySelectorAll('.treasury-actions button'))b.addEventListener('click',()=>d.close(),{capture:true});d.showModal();}).setAttribute('aria-label','Подробности: '+task.title);
 }
 function workRender() {
-  const personal=workTab==='personal';
-  workEl('workListTitle').textContent=personal?'Личные поручения':'Все поручения';
+  const type=workEl('workTypeFilter').value;
+  workEl('workListTitle').textContent='Все поручения';
   const action=workEl('workActionFilter');
   const term=workEl('workSearch').value.trim().toLocaleLowerCase(),status=workEl('workStatusFilter').value;
-  const filtered=workTasks.filter(t=>(!personal||t.task_type==='personal')&&!['completed','cancelled'].includes(t.status)&&(!action.value||workParts(t).action===action.value)&&(!status||t.status===status)&&[t.title,t.description,workPeople.get(t.assigned_to)].join(' ').toLocaleLowerCase().includes(term));
+  const filtered=workTasks.filter(t=>(!type||t.task_type===type)&&!['completed','cancelled'].includes(t.status)&&(!action.value||workParts(t).action===action.value)&&(!status||t.status===status)&&[t.title,t.description,workPeople.get(t.assigned_to)].join(' ').toLocaleLowerCase().includes(term));
   const pendingCount=workReports.filter(r=>r.status==='pending').length;workEl('workPendingCount').textContent=pendingCount?'('+pendingCount+')':'';
   workEl('workCount').textContent=`${filtered.length} поручений`;
   const board=workEl('workTaskList');board.replaceChildren();
-  if(!filtered.length)board.append(workNode('p',personal?'Личных поручений пока нет.':'Общих поручений пока нет.','store-muted'));
+  if(!filtered.length)board.append(workNode('p','Нет поручений по выбранным фильтрам.','store-muted'));
   for(const task of filtered)workCard(board,task);
   const mine=workEl('workMineList');mine.replaceChildren();
   const myTasks=workTasks.filter(t=>t.assigned_to===currentSession?.user?.id && !['completed','cancelled'].includes(t.status));
@@ -1273,15 +1274,25 @@ function workRender() {
   const reports=workEl('workReportsList');reports.replaceChildren();
   if(accessState.mode==='admin'){
     const pending=workReports.filter(r=>r.status==='pending');
+    workEl('workReviewCount').textContent='Ожидают решения: '+pending.length;
     if(!pending.length)reports.append(workNode('p','Отчётов на проверке нет.','store-muted'));
-    for(const r of pending){
-      const task=workTasks.find(t=>t.id===r.task_id);
-      const card=workNode('article',null,'work-card');
-      card.append(workNode('strong',task?.title||'Поручение'),workNode('small',`${workPeople.get(r.user_id)||'Участник'} · ${workDate(r.created_at)}`),workNode('p',r.report_text));
-      const actions=workNode('div',null,'treasury-actions');
-      workAction(actions,'Подтвердить',()=>workPerform('work_review_report',{p_report_id:r.id,p_approve:true},'Отчёт принят',`Подтвердить отчёт по «${task?.title||'поручению'}»?`));
-      workAction(actions,'Отклонить',()=>workPerform('work_review_report',{p_report_id:r.id,p_approve:false},'Отчёт отклонён',`Отклонить отчёт? Исполнитель сможет отправить новый.`));
-      card.append(actions);reports.append(card);
+    else {
+      const table=workNode('table',null,'work283-table work-review-table');
+      const head=table.createTHead().insertRow();for(const label of ['Поручение','Исполнитель','Результат','Дата',''])head.append(workNode('th',label));const tbody=table.createTBody();reports.append(table);
+      for(const r of pending){
+        const task=workTasks.find(t=>t.id===r.task_id),parts=task?workParts(task):null;
+        const [first,...rest]=String(r.report_text||'').split('\n');const known=['Выполнено','Не выполнено'].includes(first),failed=first==='Не выполнено';
+        const result=known?first:'Отчёт',comment=known?rest.join('\n'):r.report_text;
+        const row=tbody.insertRow(),line=workNode('div',null,'work-item-line');line.append(workPicture(parts?.resource?parts.name:''),workNode('strong',task?.title||'Поручение'));row.insertCell().append(line);
+        row.insertCell().textContent=workPeople.get(r.user_id)||'Участник';row.insertCell().append(workNode('span',result,'work283-status '+(failed?'submitted':'open')));row.insertCell().textContent=workDate(r.created_at);
+        workAction(row.insertCell(),'Проверить',()=>{
+          const d=workEl('work283Detail'),body=workEl('work283DetailBody');body.replaceChildren();workAction(body,'×',()=>d.close()).classList.add('work283-close');
+          const card=workNode('article',null,'work-review-detail');card.append(workNode('h3',task?.title||'Поручение'),workNode('small',workPeople.get(r.user_id)||'Участник'),workNode('strong',result,'work283-status '+(failed?'submitted':'open')),workNode('p',comment||'Без комментария'));
+          const actions=workNode('div',null,'work-result-actions');
+          if(!failed)workAction(actions,'✓ Подтвердить выполнение',()=>{d.close();workPerform('work_review_report',{p_report_id:r.id,p_approve:true},'Отчёт принят','Подтвердить выполнение?');}).classList.add('work-result-ok');
+          workAction(actions,'Вернуть в работу',()=>{d.close();workPerform('work_review_report',{p_report_id:r.id,p_approve:false},'Поручение возвращено в работу','Вернуть поручение исполнителю?');}).classList.add('work-result-no');card.append(actions);body.append(card);d.showModal();
+        });
+      }
     }
   }
 }
@@ -1326,17 +1337,17 @@ async function workPerform(rpc,args,success,confirmText){
 }
 for(const button of document.querySelectorAll('[data-work-panel]'))button.addEventListener('click',()=>workOpenPanel(button.dataset.workPanel));
 workEl('workTabPublic').addEventListener('click',()=>workSwitchTab('public'));
-workEl('workTabPersonal').addEventListener('click',()=>workSwitchTab('personal'));
+
 function workSwitchTab(tab){
   workTab=tab;
-  for(const [id,value] of [['workTabPublic','public'],['workTabPersonal','personal']]){
+  for(const [id,value] of [['workTabPublic','public']]){
     const b=workEl(id);b.classList.toggle('active',tab===value);b.setAttribute('aria-selected',String(tab===value));
   }
   if(workPanel)workOpenPanel(workPanel);
   workRender();
 }
 workEl('workRefresh').addEventListener('click',loadWork);
-for(const id of ['workSearch','workActionFilter','workStatusFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
+for(const id of ['workSearch','workActionFilter','workStatusFilter','workTypeFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
 setInterval(()=>{if(!document.hidden&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)loadWork();},30000);
 for(const a of workActions)workEl('workActionFilter').add(new Option(a,a));
 workEl('workTypeChoice').addEventListener('click',e=>{const b=e.target.closest('button');if(b){workEl('workCreateType').value=b.dataset.value;workSyncForm();}});
@@ -1355,10 +1366,13 @@ workEl('workCreatePanel').addEventListener('submit',async event=>{
   try{const {error}=await supabaseClient.rpc('work_create_task',args);if(error)throw error;f.reset();workSection='materials';workUpdateItems();workSyncForm();workOpenPanel('workCreatePanel');showToast('Поручение создано');await loadWork();}
   catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
 });
+workEl('workReportClose').onclick=()=>workOpenPanel('workReportPanel');
 workEl('workReportForm').addEventListener('submit',async event=>{
   event.preventDefault();if(workBusy)return;
   const f=event.currentTarget;
-  const args={p_task_id:f.elements.namedItem('task_id').value,p_report_text:f.elements.namedItem('report_text').value.trim()};
+  const result=event.submitter?.value;if(!['Выполнено','Не выполнено'].includes(result))return;
+  const comment=f.elements.namedItem('report_text').value.trim();
+  const args={p_task_id:f.elements.namedItem('task_id').value,p_report_text:result+(comment?'\n'+comment:'')};
   workBusy=true;
   try{const {error}=await supabaseClient.rpc('work_submit_report',args);if(error)throw error;f.reset();workOpenPanel('workReportPanel');showToast('Отчёт отправлен на проверку');await loadWork();}
   catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}

@@ -62,3 +62,6 @@ Run market_v2_8_2.sql before deployment. Market price ranges are integer grosche
 
 ### v2.8.2.1
 Compact market board and editor. No new SQL migration.
+
+### v2.8.3.1
+Компактная доска поручений, фильтры, окна подробностей, счётчик ожидающих отчётов. Существующие RPC и права сохранены. SQL не требуется.

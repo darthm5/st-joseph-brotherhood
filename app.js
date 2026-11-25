@@ -1195,6 +1195,7 @@ function workOpenPanel(id) {
   for(const panel of document.querySelectorAll('.work-panel'))panel.hidden=panel.id!==workPanel;
   // Показываем основную доску только когда дополнительные панели закрыты.
   workEl('workBoardPanel').hidden=Boolean(workPanel);
+  for(const [id,value] of [['workTabPublic','public'],['workTabPersonal','personal']]){const b=workEl(id),active=!workPanel&&workTab===value;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));}
   for(const button of document.querySelectorAll('[data-work-panel]')){
     const expanded=button.dataset.workPanel===workPanel;
     button.setAttribute('aria-expanded',String(expanded));
@@ -1213,7 +1214,7 @@ function workAction(parent,label,callback) {
   const button=workNode('button',label,'secondary-button');button.type='button';
   button.addEventListener('click',callback);parent.appendChild(button);return button;
 }
-function workCard(parent,task,kind='board') {
+function workDetailCard(parent,task,kind='board') {
   const card=workNode('article',null,'work-card');
   const top=workNode('div',null,'work-card-top');
   top.append(workNode('strong',task.title),workNode('span',workStatusNames[task.status]||task.status,'treasury-status'));
@@ -1232,10 +1233,20 @@ function workCard(parent,task,kind='board') {
   if(actions.childNodes.length)card.append(actions);
   parent.append(card);
 }
+function workCard(parent,task,kind='board') {
+  let table=parent.querySelector('table');
+  if(!table){table=workNode('table',null,'work283-table');const head=table.createTHead().insertRow();for(const label of ['Поручение','Награда','Исполнитель','Статус',''])head.append(workNode('th',label));table.createTBody();parent.append(table);}
+  const row=table.tBodies[0].insertRow();const title=row.insertCell();title.append(workNode('strong',task.title),workNode('small',task.category+' · '+(task.task_type==='personal'?'Личное':'Общее')));
+  row.insertCell().textContent=task.reward_amount+' гр.';row.insertCell().textContent=workPeople.get(task.assigned_to)||'—';row.insertCell().append(workNode('span',workStatusNames[task.status]||task.status,'work283-status '+task.status));
+  workAction(row.insertCell(),'›',()=>{const d=workEl('work283Detail'),body=workEl('work283DetailBody');body.replaceChildren();const close=workAction(body,'×',()=>d.close());close.classList.add('work283-close');workDetailCard(body,task,kind);for(const b of body.querySelectorAll('.treasury-actions button'))b.addEventListener('click',()=>d.close(),{capture:true});d.showModal();}).setAttribute('aria-label','Подробности: '+task.title);
+}
 function workRender() {
   const personal=workTab==='personal';
-  workEl('workListTitle').textContent=personal?'Личные поручения':'Доска общих поручений';
-  const filtered=workTasks.filter(t=>t.task_type===workTab && !['completed','cancelled'].includes(t.status));
+  workEl('workListTitle').textContent=personal?'Личные поручения':'Все поручения';
+  const category=workEl('workCategory'),old=category.value;category.replaceChildren(new Option('Все категории',''));for(const c of [...new Set(workTasks.map(t=>t.category).filter(Boolean))].sort())category.add(new Option(c,c));category.value=[...category.options].some(o=>o.value===old)?old:'';
+  const term=workEl('workSearch').value.trim().toLocaleLowerCase(),status=workEl('workStatusFilter').value;
+  const filtered=workTasks.filter(t=>(!personal||t.task_type==='personal')&&!['completed','cancelled'].includes(t.status)&&(!category.value||t.category===category.value)&&(!status||t.status===status)&&[t.title,t.description,workPeople.get(t.assigned_to)].join(' ').toLocaleLowerCase().includes(term));
+  const pendingCount=workReports.filter(r=>r.status==='pending').length;workEl('workPendingCount').textContent=pendingCount?'('+pendingCount+')':'';
   workEl('workCount').textContent=`${filtered.length} поручений`;
   const board=workEl('workTaskList');board.replaceChildren();
   if(!filtered.length)board.append(workNode('p',personal?'Личных поручений пока нет.':'Общих поручений пока нет.','store-muted'));
@@ -1314,6 +1325,8 @@ function workSwitchTab(tab){
   workRender();
 }
 workEl('workRefresh').addEventListener('click',loadWork);
+for(const id of ['workSearch','workCategory','workStatusFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
+setInterval(()=>{if(!document.hidden&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)loadWork();},30000);
 workEl('workCreateType').addEventListener('change',event=>{
   const personal=event.target.value==='personal';
   workEl('workAssigneeLabel').hidden=!personal;

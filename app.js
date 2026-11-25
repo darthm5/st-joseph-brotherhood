@@ -1195,6 +1195,7 @@ function workOpenPanel(id) {
   for(const panel of document.querySelectorAll('.work-panel'))panel.hidden=panel.id!==workPanel;
   // Показываем основную доску только когда дополнительные панели закрыты.
   workEl('workBoardPanel').hidden=Boolean(workPanel);
+  if(workPanel==='workCreatePanel'){workLoadCatalog();workSyncForm();}
   for(const [id,value] of [['workTabPublic','public'],['workTabPersonal','personal']]){const b=workEl(id),active=!workPanel&&workTab===value;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));}
   for(const button of document.querySelectorAll('[data-work-panel]')){
     const expanded=button.dataset.workPanel===workPanel;
@@ -1214,12 +1215,22 @@ function workAction(parent,label,callback) {
   const button=workNode('button',label,'secondary-button');button.type='button';
   button.addEventListener('click',callback);parent.appendChild(button);return button;
 }
+const workActions=['Добыть','Изготовить','Закупить','Доставить','Пополнить кладовую','Охранять','Сопроводить','Другое'];
+let workCatalog=[],workSection='materials';
+function workParts(task){const action=workActions.find(a=>task.title.startsWith(a+': '));const rest=action?task.title.slice(action.length+2):task.title;const match=action&&rest.match(/^(.*) × (\d+)$/);return {action:action||'',name:match?match[1]:rest,qty:match?match[2]:'—',resource:!!match};}
+function workPicture(name){const img=workNode('img',null,'work-item-icon');img.alt='';img.src=window.storeIconFor?.(name)||'store-icons/resource.svg';img.onerror=()=>{img.onerror=null;img.src='store-icons/resource.svg';};return img;}
+function workResource(){return workActions.indexOf(workEl('workActionType').value)<5;}
+function workUpdateItems(){const select=workEl('workItem'),old=select.value,term=workEl('workItemSearch').value.trim().toLowerCase();const matches=workCatalog.filter(x=>(x.section||'materials')===workSection&&x.name.toLowerCase().includes(term)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));select.replaceChildren(new Option('Выберите предмет',''),...matches.map(x=>new Option(x.name,x.id)));if(matches.some(x=>x.id===old))select.value=old;workPreview();}
+function workDraft(){const action=workEl('workActionType').value,item=workCatalog.find(x=>x.id===workEl('workItem').value),qty=workEl('workQty').value;return {action,item,qty,title:action+': '+(workResource()?(item?.name||'Выберите предмет')+' × '+qty:workEl('workCustom').value.trim())};}
+function workPreview(){const d=workDraft(),box=workEl('workPreview');box.replaceChildren(workNode('small','Предварительный вид поручения'));const line=workNode('div',null,'work-item-line');line.append(workPicture(d.item?.name||''));const text=workNode('div');text.append(workNode('strong',d.title),workNode('small','Награда: '+workEl('workCreatePanel').elements.reward_amount.value+' гр.'));line.append(text);box.append(line);}
+function workSyncForm(){const resource=workResource(),personal=workEl('workCreateType').value==='personal';for(const [id,visible] of [['workResourceFields',resource],['workQtyLabel',resource],['workCustomLabel',!resource],['workAssigneeLabel',personal]])workEl(id).hidden=!visible;for(const [id,enabled] of [['workItem',resource],['workQty',resource],['workCustom',!resource],['workAssignee',personal]]){workEl(id).disabled=!enabled;workEl(id).required=enabled;}for(const [id,value] of [['workTypeChoice',workEl('workCreateType').value],['workSectionChoice',workSection]])for(const b of workEl(id).querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.value===value));workPreview();}
+async function workLoadCatalog(){try{workCatalog=await storeAllRows('storage_items','id,name,section','name');workUpdateItems();}catch(e){showToast('Не удалось загрузить каталог: '+e.message);}}
 function workDetailCard(parent,task,kind='board') {
   const card=workNode('article',null,'work-card');
   const top=workNode('div',null,'work-card-top');
   top.append(workNode('strong',task.title),workNode('span',workStatusNames[task.status]||task.status,'treasury-status'));
   card.append(top);
-  card.append(workNode('small',`${task.category} · ${task.task_type==='personal'?'Личное':'Общее'} · Награда: ${task.reward_amount} грошей`));
+  card.append(workNode('small',`${task.task_type==='personal'?'Личное':'Общее'} · Награда: ${task.reward_amount} грошей`));
   if(task.description)card.append(workNode('p',task.description));
   card.append(workNode('small',`Срок: ${workDate(task.deadline)} · Исполнитель: ${workPeople.get(task.assigned_to)||'Не назначен'}`));
   const actions=workNode('div',null,'treasury-actions');
@@ -1235,17 +1246,17 @@ function workDetailCard(parent,task,kind='board') {
 }
 function workCard(parent,task,kind='board') {
   let table=parent.querySelector('table');
-  if(!table){table=workNode('table',null,'work283-table');const head=table.createTHead().insertRow();for(const label of ['Поручение','Награда','Исполнитель','Статус',''])head.append(workNode('th',label));table.createTBody();parent.append(table);}
-  const row=table.tBodies[0].insertRow();const title=row.insertCell();title.append(workNode('strong',task.title),workNode('small',task.category+' · '+(task.task_type==='personal'?'Личное':'Общее')));
+  if(!table){table=workNode('table',null,'work283-table');const head=table.createTHead().insertRow();for(const label of ['Поручение','Кол-во','Награда','Исполнитель','Статус',''])head.append(workNode('th',label));table.createTBody();parent.append(table);}
+  const row=table.tBodies[0].insertRow();const title=row.insertCell();const parts=workParts(task),line=workNode('div',null,'work-item-line'),label=workNode('div');label.append(workNode('strong',parts.name),workNode('small',[parts.action,task.task_type==='personal'?'Личное':'Общее'].filter(Boolean).join(' · ')));line.append(workPicture(parts.resource?parts.name:''),label);title.append(line);row.insertCell().textContent=parts.qty;
   row.insertCell().textContent=task.reward_amount+' гр.';row.insertCell().textContent=workPeople.get(task.assigned_to)||'—';row.insertCell().append(workNode('span',workStatusNames[task.status]||task.status,'work283-status '+task.status));
   workAction(row.insertCell(),'›',()=>{const d=workEl('work283Detail'),body=workEl('work283DetailBody');body.replaceChildren();const close=workAction(body,'×',()=>d.close());close.classList.add('work283-close');workDetailCard(body,task,kind);for(const b of body.querySelectorAll('.treasury-actions button'))b.addEventListener('click',()=>d.close(),{capture:true});d.showModal();}).setAttribute('aria-label','Подробности: '+task.title);
 }
 function workRender() {
   const personal=workTab==='personal';
   workEl('workListTitle').textContent=personal?'Личные поручения':'Все поручения';
-  const category=workEl('workCategory'),old=category.value;category.replaceChildren(new Option('Все категории',''));for(const c of [...new Set(workTasks.map(t=>t.category).filter(Boolean))].sort())category.add(new Option(c,c));category.value=[...category.options].some(o=>o.value===old)?old:'';
+  const action=workEl('workActionFilter');
   const term=workEl('workSearch').value.trim().toLocaleLowerCase(),status=workEl('workStatusFilter').value;
-  const filtered=workTasks.filter(t=>(!personal||t.task_type==='personal')&&!['completed','cancelled'].includes(t.status)&&(!category.value||t.category===category.value)&&(!status||t.status===status)&&[t.title,t.description,workPeople.get(t.assigned_to)].join(' ').toLocaleLowerCase().includes(term));
+  const filtered=workTasks.filter(t=>(!personal||t.task_type==='personal')&&!['completed','cancelled'].includes(t.status)&&(!action.value||workParts(t).action===action.value)&&(!status||t.status===status)&&[t.title,t.description,workPeople.get(t.assigned_to)].join(' ').toLocaleLowerCase().includes(term));
   const pendingCount=workReports.filter(r=>r.status==='pending').length;workEl('workPendingCount').textContent=pendingCount?'('+pendingCount+')':'';
   workEl('workCount').textContent=`${filtered.length} поручений`;
   const board=workEl('workTaskList');board.replaceChildren();
@@ -1325,22 +1336,23 @@ function workSwitchTab(tab){
   workRender();
 }
 workEl('workRefresh').addEventListener('click',loadWork);
-for(const id of ['workSearch','workCategory','workStatusFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
+for(const id of ['workSearch','workActionFilter','workStatusFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
 setInterval(()=>{if(!document.hidden&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)loadWork();},30000);
-workEl('workCreateType').addEventListener('change',event=>{
-  const personal=event.target.value==='personal';
-  workEl('workAssigneeLabel').hidden=!personal;
-  workEl('workAssignee').required=personal;
-});
+for(const a of workActions)workEl('workActionFilter').add(new Option(a,a));
+workEl('workTypeChoice').addEventListener('click',e=>{const b=e.target.closest('button');if(b){workEl('workCreateType').value=b.dataset.value;workSyncForm();}});
+workEl('workSectionChoice').addEventListener('click',e=>{const b=e.target.closest('button');if(b){workSection=b.dataset.value;workEl('workItemSearch').value='';workUpdateItems();workSyncForm();}});
+workEl('workActionType').addEventListener('change',workSyncForm);workEl('workItemSearch').addEventListener('input',workUpdateItems);workEl('workCreatePanel').addEventListener('input',workPreview);workEl('workItem').addEventListener('change',workPreview);workEl('workCreateClose').onclick=()=>workOpenPanel('workCreatePanel');
+workSyncForm();
 workEl('workCreatePanel').addEventListener('submit',async event=>{
   event.preventDefault();if(workBusy||accessState.mode!=='admin')return;
   const f=event.currentTarget;
   const amount=Number(f.elements.namedItem('reward_amount').value);
   if(!Number.isSafeInteger(amount)||amount<0)return showToast('Укажите целую неотрицательную награду.');
   const deadline=f.elements.namedItem('deadline').value;
-  const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_category:f.elements.namedItem('category').value,p_task_type:f.elements.namedItem('task_type').value,p_reward_amount:amount,p_assigned_to:f.elements.namedItem('assigned_to').value||null,p_deadline:deadline?new Date(deadline).toISOString():null};
+  const draft=workDraft();if(workResource()&&(!draft.item||!Number.isSafeInteger(Number(draft.qty))||Number(draft.qty)<1))return showToast('Выберите предмет и количество.');if(draft.title.length>150)return showToast('Название слишком длинное.');
+  const args={p_title:draft.title,p_description:f.elements.namedItem('description').value.trim(),p_category:draft.action,p_task_type:f.elements.namedItem('task_type').value,p_reward_amount:amount,p_assigned_to:f.elements.namedItem('assigned_to').value||null,p_deadline:deadline?new Date(deadline).toISOString():null};
   workBusy=true;
-  try{const {error}=await supabaseClient.rpc('work_create_task',args);if(error)throw error;f.reset();workEl('workAssigneeLabel').hidden=true;workEl('workAssignee').required=false;workOpenPanel('workCreatePanel');showToast('Поручение создано');await loadWork();}
+  try{const {error}=await supabaseClient.rpc('work_create_task',args);if(error)throw error;f.reset();workSection='materials';workUpdateItems();workSyncForm();workOpenPanel('workCreatePanel');showToast('Поручение создано');await loadWork();}
   catch(err){showToast('Ошибка: '+err.message);}finally{workBusy=false;}
 });
 workEl('workReportForm').addEventListener('submit',async event=>{

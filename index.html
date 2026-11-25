@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="theme/global.css?v=280">
 <link rel="stylesheet" href="theme/residence-final.css?v=281">
 <link rel="stylesheet" href="theme/market.css?v=2822">
-<link rel="stylesheet" href="theme/work.css?v=2831">
+<link rel="stylesheet" href="theme/work.css?v=2832">
 </head>
 <body>
   <div class="site-shell">
@@ -60,7 +60,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.3.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.3.2</div>
       </div>
     </aside>
 
@@ -591,18 +591,16 @@
           </div>
           <p id="workNotice" class="members-message" role="status" aria-live="polite">Загружаем поручения…</p>
           <form id="workCreatePanel" class="panel treasury-form work-panel" hidden>
-            <h2>Новое поручение</h2>
-            <label>Название<input name="title" minlength="3" maxlength="150" required placeholder="Например: добыть 200 железной руды"></label>
-            <label>Описание<textarea name="description" maxlength="5000" rows="2" placeholder="Что нужно сделать"></textarea></label>
-            <div class="work-form-grid">
-              <label>Категория<select name="category"><option>Добыча ресурсов</option><option>Лесозаготовка</option><option>Охота</option><option>Доставка</option><option>Ремесло</option><option>Торговля</option><option>Охрана</option><option>Прочее</option></select></label>
-              <label>Тип поручения<select name="task_type" id="workCreateType"><option value="public">Общее</option><option value="personal">Личное</option></select></label>
-              <label id="workAssigneeLabel" hidden>Исполнитель<select name="assigned_to" id="workAssignee"><option value="">Выберите участника</option></select></label>
-              <label>Награда, грошей<input name="reward_amount" type="number" min="0" step="1" value="0" required></label>
-              <label>Срок (необязательно)<input name="deadline" type="datetime-local"></label>
-            </div>
-            <p class="store-muted">Награда информационная: гроши из казны автоматически не списываются.</p>
-            <button type="submit" class="secondary-button">Опубликовать поручение</button>
+            <div class="work-new-head"><h2>Новое поручение</h2><button type="button" class="secondary-button" id="workCreateClose" aria-label="Закрыть">×</button></div>
+            <div class="work-choice" id="workTypeChoice"><button type="button" data-value="public" aria-pressed="true">Общее</button><button type="button" data-value="personal" aria-pressed="false">Личное</button></div><input type="hidden" name="task_type" id="workCreateType" value="public">
+            <label id="workAssigneeLabel" hidden>Исполнитель<select name="assigned_to" id="workAssignee"><option value="">Выберите участника</option></select></label>
+            <label>Что необходимо сделать?<select id="workActionType"><option>Добыть</option><option>Изготовить</option><option>Закупить</option><option>Доставить</option><option>Пополнить кладовую</option><option>Охранять</option><option>Сопроводить</option><option>Другое</option></select></label>
+            <div id="workResourceFields"><div class="work-choice" id="workSectionChoice"><button type="button" data-value="materials" aria-pressed="true">Материалы</button><button type="button" data-value="products" aria-pressed="false">Готовая продукция</button></div><label>Предмет<input id="workItemSearch" type="search" placeholder="Поиск предмета…"><select id="workItem" required><option value="">Выберите предмет</option></select></label></div>
+            <label id="workCustomLabel" hidden>Уточнение поручения<input id="workCustom" maxlength="120" placeholder="Например: караван до Сухдола"></label>
+            <div class="work-form-grid"><label id="workQtyLabel">Количество<input id="workQty" type="number" min="1" max="1000000000" step="1" value="1" required></label><label>Награда, грошей<input name="reward_amount" type="number" min="0" step="1" value="0" required></label></div>
+            <label>Описание (необязательно)<textarea name="description" maxlength="5000" rows="2" placeholder="Дополнительные условия…"></textarea></label>
+            <label>Срок (необязательно)<input name="deadline" type="datetime-local"></label>
+            <div id="workPreview" class="work-preview" aria-live="polite"></div><button type="submit" class="primary-button">Опубликовать поручение</button>
           </form>
           <article class="panel treasury-section work-panel" id="workMinePanel" hidden><h2>Мои задания</h2><div id="workMineList" class="work-list"></div></article>
           <article class="panel treasury-section work-panel" id="workReportsPanel" hidden><h2>Отчёты на проверке</h2><div id="workReportsList" class="work-list"></div></article>
@@ -610,7 +608,7 @@
           <article class="panel treasury-section work-panel" id="workReportPanel" hidden><h2 id="workReportTitle">Отчёт о выполнении</h2>
             <form id="workReportForm" class="treasury-form"><input type="hidden" name="task_id"><label>Результат работы<textarea name="report_text" minlength="3" maxlength="3000" rows="5" required placeholder="Что выполнено, где переданы ресурсы, подробности"></textarea></label><button type="submit" class="secondary-button">Отправить отчёт</button></form>
           </article>
-          <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div class="work283-filters"><input id="workSearch" type="search" placeholder="Поиск поручения или исполнителя" aria-label="Поиск поручения"><select id="workCategory" aria-label="Категория"><option value="">Все категории</option></select><select id="workStatusFilter" aria-label="Статус"><option value="">Все статусы</option><option value="open">Свободно</option><option value="assigned">В работе</option><option value="submitted">На проверке</option></select></div><div id="workTaskList" class="work-list"></div></article>
+          <article class="panel treasury-section" id="workBoardPanel"><div class="treasury-heading"><h2 id="workListTitle">Доска общих поручений</h2><span id="workCount" class="store-muted"></span></div><div class="work283-filters"><input id="workSearch" type="search" placeholder="Поиск поручения или исполнителя" aria-label="Поиск поручения"><select id="workActionFilter" aria-label="Действие"><option value="">Все действия</option></select><select id="workStatusFilter" aria-label="Статус"><option value="">Все статусы</option><option value="open">Свободно</option><option value="assigned">В работе</option><option value="submitted">На проверке</option></select></div><div id="workTaskList" class="work-list"></div></article>
           <dialog id="work283Detail" class="work283-dialog"><div id="work283DetailBody"></div></dialog>
         </section>
         <section class="page" id="page-management">
@@ -668,7 +666,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2831"></script>
+  <script src="app.js?v=2832"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

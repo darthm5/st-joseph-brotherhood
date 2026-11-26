@@ -1,1 +1,55 @@
 #page-ratusha .hall-hub{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}#page-ratusha .hall-tile{min-height:126px;padding:15px;background:#f5e8cb;color:#392b20;border:1px solid #a8864c;border-radius:5px;box-shadow:inset 0 0 0 2px #e9d8b4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}#page-ratusha .hall-tile-icon{font-size:30px;color:#96713f}#page-ratusha .hall-tile small{color:#826b49}#page-ratusha .hall-tile:hover{background:#efdcaf;border-color:#783831}#page-ratusha .ratusha-actions,#page-ratusha .ratusha-filters,#page-ratusha .hall-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}#page-ratusha .ratusha-intro{font-size:16px;padding:8px 0;margin:0;text-align:left}#page-ratusha .hall-filters input{flex:1;min-width:150px;width:auto}#page-ratusha .hall-filters select{width:auto}#page-ratusha .ratusha-filter-active,#page-ratusha .petition-selected,#page-ratusha :is(#pollCreateButton,#decreeCreate,#petitionCreate,#pollSaveButton,#decreeSave,#petitionSubmit,#petitionResolveSave,#pollVoteButton){background:#783831;color:#fff0d1;border-color:#a8864c}#page-ratusha .ratusha-list{display:grid;grid-template-columns:1fr;gap:10px}#page-ratusha .ratusha-card{padding:12px 15px;gap:7px;border:1px solid #a8864c;background:#f5e8cb;border-radius:5px}#page-ratusha .ratusha-card h2{font-size:18px}#page-ratusha .ratusha-card p{margin:0}#page-ratusha .ratusha-card .secondary-button{justify-self:stretch}#page-ratusha .decree-list{overflow-x:auto;display:block}#page-ratusha .hall-register{width:100%;border-collapse:collapse;background:#f5e8cb;border:1px solid #a8864c;font-size:14px}#page-ratusha .hall-register th{background:#dfcba4;color:#392b20;text-align:left;font-size:12px}#page-ratusha .hall-register td,#page-ratusha .hall-register th{padding:10px;border-bottom:1px solid #c8b18a;vertical-align:middle}#page-ratusha .hall-document-link{background:none;border:0;text-align:left;color:#392b20;display:grid;gap:3px;padding:0;cursor:pointer;font:inherit}#page-ratusha .hall-document-link small{color:#826b49;font-size:12px}#page-ratusha .hall-document-link:hover strong{text-decoration:underline}#page-ratusha :is(.ratusha-reader,.decree-reader,.treasury-form){max-width:760px;margin:12px auto;padding:18px}#page-ratusha .treasury-form{gap:10px}#page-ratusha .decree-text{white-space:pre-wrap;overflow-wrap:anywhere}#page-ratusha .ratusha-track{background:#d9c5a1}#page-ratusha .ratusha-fill{background:#96713f}#page-ratusha .petition-status-approved,#page-ratusha .decree-status-active{color:#46663c}#page-ratusha .petition-status-rejected,#page-ratusha .decree-status-repealed{color:#8d3e32}@media(max-width:650px){#page-ratusha .hall-hub{grid-template-columns:repeat(2,minmax(0,1fr))}#page-ratusha .hall-register td,#page-ratusha .hall-register th{padding:7px}#page-ratusha .hall-tile{min-height:110px}}
+
+/* 2.8.4.1 — compact chancery and rank tree */
+#page-ratusha .ratusha-list{gap:6px}
+#page-ratusha .ratusha-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:9px 14px;border-left:3px solid #96713f;box-shadow:none}
+#page-ratusha .hall-poll-info{display:grid;gap:3px;min-width:0}
+#page-ratusha .ratusha-card-top{justify-content:flex-start;gap:10px}
+#page-ratusha .ratusha-card h2{font-size:16px;overflow-wrap:anywhere;line-height:1.25}
+#page-ratusha .ratusha-card .secondary-button{justify-self:end;min-height:32px;padding:6px 10px;font-size:12px}
+#page-ratusha .ratusha-card :is(.ratusha-kicker,.ratusha-status,.ratusha-voted,.store-muted){font-size:11px;line-height:1.3}
+#page-ratusha :is(#decreeEditor,#decreeOfficersPanel,#petitionEditor,#petitionReader,#decreeReader,#awardTypeForm,#awardGrantForm,#councilProfile,#councilDescriptions,#pollEditor,#pollReader){width:min(100%,680px);box-sizing:border-box;margin:14px auto;padding:18px 20px;background:linear-gradient(145deg,#f8edd3,#efdfbc);border:1px solid #a8864c;border-radius:6px;box-shadow:inset 0 0 0 3px #e7d4ae,0 4px 12px #392b2015}
+#page-ratusha :is(#decreeEditor,#petitionEditor,#awardTypeForm,#awardGrantForm,#pollEditor,#petitionResolution){gap:9px}
+#page-ratusha :is(#decreeEditor,#petitionEditor,#awardTypeForm,#awardGrantForm,#pollEditor,#petitionReader,#decreeReader,#decreeOfficersPanel) h2{font-size:21px;margin:0 0 5px;padding-bottom:9px;border-bottom:1px solid #b99b65;color:#51351d}
+#page-ratusha :is(.treasury-form,.award-form) label{font-size:13px;gap:4px;color:#51351d}
+#page-ratusha :is(.treasury-form,.award-form,.council-description-form) :is(input:not([type=checkbox]),select,textarea){box-sizing:border-box;max-width:100%;min-width:0;background:#fbf1da;border:1px solid #b99b65;border-radius:4px;padding:8px 10px;font-size:14px;color:#392b20}
+#page-ratusha :is(.treasury-form,.award-form) textarea{resize:vertical;min-height:80px}
+#page-ratusha :is(.treasury-form,.award-form) .treasury-actions{border-top:1px solid #c8b18a;padding-top:10px;margin-top:3px;gap:8px}
+#page-ratusha :is(.treasury-form,.award-form) button[type=submit],#page-ratusha :is(#awardNewType,#awardNewGrant){background:#783831;color:#fff0d1;border-color:#a8864c}
+#page-ratusha .decree-officer-list{display:grid;gap:5px;margin-top:12px}
+#page-ratusha .decree-officer-row{padding:9px 12px;border:1px solid #c8b18a;border-radius:4px;background:#f9edd2;gap:10px}
+#page-ratusha .hall-officer-info{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere}
+#page-ratusha .hall-officer-active{color:#46663c;font-size:12px}
+#page-ratusha .decree-officer-row button{font-size:12px;padding:6px 10px}
+#page-ratusha :is(#petitionReaderBody,#decreeReaderBody){background:#fbf1da;border:1px solid #c8b18a;border-radius:4px;padding:14px;margin:12px 0;min-height:45px;line-height:1.6}
+#page-ratusha #petitionResolution{width:100%;box-sizing:border-box;margin:12px 0 0;padding:12px;background:#e9d8b4;border:1px solid #c8b18a;border-radius:4px}
+#page-ratusha .petition-official-response{padding:12px;background:#f4e7c9;border:1px solid #b99b65;border-left:3px solid #96713f;border-radius:4px}
+#page-ratusha .council-banner,#page-ratusha .award-banner{padding:15px;background:linear-gradient(135deg,#f5e8cb,#e0c69a);border:1px solid #a8864c;border-radius:5px}
+#page-ratusha :is(.council-banner,.award-banner) h2{font-size:23px;margin:6px 0}
+#page-ratusha .council-scroll{background:radial-gradient(ellipse at top,#f8edcf,#e6d1aa);border:1px solid #a8864c;border-radius:5px;margin-top:8px;padding:22px 12px}
+#page-ratusha .council-tree{min-width:0;width:100%}
+#page-ratusha .council-tier{padding-bottom:28px}
+#page-ratusha .council-tier-heading{background:#783831;border:3px double #c6a46b;color:#fff0d1;gap:3px;padding:8px 16px;margin-bottom:16px;max-width:min(90%,520px);box-shadow:0 2px 5px #392b2020}
+#page-ratusha .council-tier-heading h3{color:#fff0d1;font-size:18px}
+#page-ratusha .council-rank-number{background:#e5d5b3;color:#51351d;padding:2px 8px;font-size:10px}
+#page-ratusha .council-rank-description{color:#f3dfb9;font-size:12px;overflow-wrap:anywhere}
+#page-ratusha .council-people{width:fit-content;max-width:100%;box-sizing:border-box;gap:12px;padding:15px 10px 0;border-top:2px solid #a8864c}
+#page-ratusha .council-people::before{top:-16px;height:16px;width:2px;background:#a8864c}
+#page-ratusha .council-person{width:124px;min-width:0;max-width:100%;padding:9px 6px;gap:4px;border-radius:5px;border:1px solid #a8864c;box-shadow:inset 0 0 0 2px #e5d5b3,0 2px 5px #392b2015}
+#page-ratusha .council-person::before{top:-16px;height:16px;background:#a8864c}
+#page-ratusha .council-person .council-portrait{width:60px;height:60px;border:3px double #96713f}
+#page-ratusha .council-person strong{font-size:13px}
+#page-ratusha .council-person-rank{font-size:10px;color:#826b49;text-align:center;overflow-wrap:anywhere}
+#page-ratusha .council-tier:not(:last-child)::after{width:2px;height:28px;background:#a8864c}
+#page-ratusha .council-unranked{margin-top:12px;border-top:1px dashed #a8864c;padding-top:12px}
+#page-ratusha .award-tabs .active{background:#783831;color:#fff0d1}
+#page-ratusha .award-content,#page-ratusha .award-catalog{gap:8px}
+#page-ratusha :is(.award-type-card,.award-honoree,.award-record){padding:10px;border-radius:5px;background:#f5e8cb;box-shadow:none;border-color:#b99b65}
+#page-ratusha .award-type-card h3,#page-ratusha .award-record-body strong{font-size:16px}
+#page-ratusha .award-honoree-head h3{font-size:19px}
+#page-ratusha .award-honoree-head .council-portrait{width:48px;height:48px}
+#page-ratusha .award-medallion{width:48px;height:48px;font-size:24px;border-width:3px}
+#page-ratusha .award-record{flex-wrap:wrap;gap:8px}
+#page-ratusha .award-record-body{font-size:13px;min-width:100px}
+#page-ratusha .award-honoree-medals{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+@media(max-width:600px){#page-ratusha .ratusha-card{grid-template-columns:1fr;gap:6px}#page-ratusha .ratusha-card .secondary-button{justify-self:start}#page-ratusha :is(#decreeEditor,#decreeOfficersPanel,#petitionEditor,#petitionReader,#decreeReader,#awardTypeForm,#awardGrantForm,#councilProfile,#councilDescriptions,#pollEditor,#pollReader){padding:12px}#page-ratusha .council-person{width:105px}#page-ratusha .council-people{gap:8px}#page-ratusha .council-person::before{display:none}#page-ratusha .council-banner h2{font-size:19px}}

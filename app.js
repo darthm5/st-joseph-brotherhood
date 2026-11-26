@@ -1873,10 +1873,8 @@ function pollRender(){
   const top=pollText('div',null,'ratusha-card-top');
   top.append(pollText('span',p.visibility==='secret'?'🔒 Тайное':'⚖ Открытое','ratusha-kicker'));
   top.append(pollText('span',pollStatus(p),'ratusha-status '+(pollActive(p)?'ratusha-live':'')));
-  card.append(top,pollText('h2',p.title));
-  
-  card.append(pollText('p','До '+pollDate(p.closes_at)+' · '+p.options.reduce((sum,o)=>sum+o.votes,0)+' голосов','store-muted'));
-  if(p.myVoted)card.append(pollText('span','✓ Ваш голос учтён','ratusha-voted'));
+  const info=pollText('div',null,'hall-poll-info');info.append(top,pollText('h2',p.title),pollText('p','До '+pollDate(p.closes_at)+' · '+p.options.reduce((sum,o)=>sum+o.votes,0)+' голосов','store-muted'));
+  if(p.myVoted)info.append(pollText('span','✓ Ваш голос учтён','ratusha-voted'));card.append(info);
   const btn=pollText('button',pollActive(p)&&!p.myVoted?'Проголосовать':'Посмотреть голосование','secondary-button');btn.type='button';btn.addEventListener('click',()=>pollOpen(p.id));card.append(btn);list.append(card);
  }
 }
@@ -2089,8 +2087,7 @@ function decreeRenderOfficers(){
  if(!decreePeople.size){list.append(decreeNode('p','Нет принятых участников.'));return;}
  const appointed=new Set(decreeOfficersRows.map(o=>o.user_id));
  for(const [id,name] of [...decreePeople.entries()].sort((a,b)=>a[1].localeCompare(b[1],'ru'))){
-  const row=decreeNode('div',null,'decree-officer-row');row.append(decreeNode('span',name));
-  const isOfficer=appointed.has(id);
+  const row=decreeNode('div',null,'decree-officer-row');const isOfficer=appointed.has(id);const info=decreeNode('div',null,'hall-officer-info');info.append(decreeNode('strong',name),decreeNode('small',isOfficer?'Руководитель · полномочия действуют':'Участник братства',isOfficer?'hall-officer-active':'store-muted'));row.append(info);
   const btn=decreeNode('button',isOfficer?'Отозвать полномочия':'Назначить руководителем','secondary-button');btn.type='button';
   btn.addEventListener('click',async()=>{
    if(!confirm((isOfficer?'Отозвать полномочия у ':'Назначить руководителем ')+name+'?'))return;
@@ -2285,7 +2282,7 @@ function councilRender(){
   if(!members.length){row.append(councilNode('div','Место свободно','council-vacant'));}
   else for(const p of members){
    const card=councilNode('button',null,'council-person');card.type='button';card.title='Открыть анкету: '+characterName(p);
-   card.append(councilPortrait(p),councilNode('strong',characterName(p)));
+   card.append(councilPortrait(p),councilNode('strong',characterName(p)),councilNode('small',name,'council-person-rank'));
    card.addEventListener('click',()=>councilOpenProfile(p));row.append(card);
   }
   group.append(row);root.append(group);

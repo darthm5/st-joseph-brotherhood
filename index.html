@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="theme/market.css?v=2822">
 <link rel="stylesheet" href="theme/work.css?v=2833">
 <link rel="stylesheet" href="theme/workshops.css?v=2834">
-<link rel="stylesheet" href="theme/hall.css?v=284">
+<link rel="stylesheet" href="theme/hall.css?v=2841">
 </head>
 <body>
   <div class="site-shell">
@@ -62,7 +62,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.4</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.4.1</div>
       </div>
     </aside>
 
@@ -448,7 +448,7 @@
               </div>
               <label>Дата издания (игровая)<input name="issued_on" type="date" required></label>
               <label>Заголовок<input name="title" minlength="3" maxlength="180" required placeholder="О порядке деятельности ремесленников"></label>
-              <label>Текст указа<textarea name="body" rows="14" maxlength="30000" required placeholder="Во исполнение решений совета постановляется…"></textarea></label>
+              <label>Текст указа<textarea name="body" rows="7" maxlength="30000" required placeholder="Во исполнение решений совета постановляется…"></textarea></label>
               <p class="store-muted">Номер присваивается автоматически. Подписантом будет ваш персонаж.</p>
               <div class="treasury-actions"><button type="submit" class="secondary-button" id="decreeSave">Опубликовать</button><button type="button" class="secondary-button" id="decreeCancel">Отмена</button></div>
             </form>
@@ -469,7 +469,7 @@
             <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="councilRefresh">Обновить древо</button><button type="button" class="secondary-button" id="councilDescriptionsButton" hidden>✒ Описания рангов</button></div>
             <p class="members-message" id="councilNotice" role="status" aria-live="polite"></p>
             <div id="councilTreePanel">
-              <div class="council-banner"><span>⚜ ANNO DOMINI MCDIII ⚜</span><h2>Древо Братства Святого Иосифа Обручника</h2><p>Один брат — один ранг. Портрет открывает анкету персонажа.</p></div>
+              <div class="council-banner"><span>⚜ ANNO DOMINI MCDIII ⚜</span><h2>Древо Братства Святого Иосифа Обручника</h2><p>Древо рангов · нажмите на портрет, чтобы открыть анкету.</p></div>
               <div class="council-scroll"><div id="councilTree" class="council-tree"></div></div>
             </div>
             <article id="councilProfile" class="panel council-profile" hidden><button type="button" id="councilProfileBack" class="secondary-button">← К древу</button><div id="councilProfileBody"></div></article>
@@ -664,7 +664,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=284"></script>
+  <script src="app.js?v=2841"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

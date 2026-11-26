@@ -1,0 +1,16 @@
+#page-chronicle .chron-tabs,#page-chronicle .chron-filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px auto;max-width:820px;justify-content:center}
+#page-chronicle .chron-tabs button[aria-pressed=true]{background:#783831;color:#fff0d1;border-color:#b39150}
+#page-chronicle .chron-filters input{flex:1;min-width:160px}#page-chronicle .chron-filters select{width:auto}
+#page-chronicle .chron-intro{margin:16px 0;color:#51351d;font-size:21px}
+#page-chronicle .chron-timeline{border:0;margin:0 auto;padding:8px 0;max-width:820px;position:relative}
+#page-chronicle .chron-timeline:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:#a8864c;transform:translateX(-50%)}
+#page-chronicle .chron-year{margin:10px auto 16px;padding:5px 14px;font-size:15px;z-index:1}
+#page-chronicle .chron-entry{display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center;margin:0 0 9px;min-height:52px}
+#page-chronicle .chron-marker{left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border:2px solid #783831;z-index:1}
+#page-chronicle .chron-branch{position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;padding:9px 12px;background:#f5e8cb;border:1px solid #a8864c;border-radius:4px;color:#392b20;cursor:pointer;overflow-wrap:anywhere;font:inherit;min-width:0}
+#page-chronicle .chron-branch:hover,#page-chronicle .chron-branch:focus-visible{background:#ead5ac;outline:2px solid #783831}
+#page-chronicle .chron-left .chron-branch{grid-column:1;text-align:right;align-items:flex-end}#page-chronicle .chron-right .chron-branch{grid-column:3}
+#page-chronicle .chron-branch:after{content:'';position:absolute;top:50%;width:22px;height:1px;background:#a8864c}#page-chronicle .chron-left .chron-branch:after{left:100%}#page-chronicle .chron-right .chron-branch:after{right:100%}
+#page-chronicle .chron-date{font-size:12px}#page-chronicle .chron-empty{position:relative;background:#f5e8cb;color:#51351d;text-align:center}
+#page-chronicle .chron-reader,#page-chronicle #chronEditor{max-width:820px;margin:12px auto;padding:20px}#page-chronicle .chron-reader h2{font-size:26px;margin:8px 0 14px}#page-chronicle .chron-hero{max-height:380px;object-fit:contain}#page-chronicle .chron-lead{font-size:16px}#page-chronicle #chronEditor label{margin:6px 0}#page-chronicle #chronEditor textarea{min-height:0}
+@media(max-width:520px){#page-chronicle .chron-entry{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)}#page-chronicle .chron-branch{padding:7px;font-size:13px}#page-chronicle .chron-branch:after{width:12px}}

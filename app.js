@@ -1769,25 +1769,33 @@ function chronShow(mode){
  chronEl('chronCreate').hidden=mode!=='timeline'||accessState.mode!=='admin';
  chronEl('chronRefresh').hidden=mode!=='timeline';
 }
+let chronKind='brotherhood';
 function chronRender(){
  const root=chronEl('chronTimeline');root.replaceChildren();
- if(!chronRecords.length){root.append(libNode('p','Летопись пока пуста. Первое событие ещё ждёт своего летописца.','chron-empty'));return;}
- let lastYear=null;
- for(const rec of chronRecords){
-  const year=String(rec.event_date).slice(0,4);
-  if(year!==lastYear){const heading=libNode('div','Anno Domini '+year,'chron-year');root.append(heading);lastYear=year;}
-  const entry=libNode('article',null,'chron-entry');
-  const marker=libNode('div',null,'chron-marker');entry.append(marker);
-  const card=libNode('div',null,'chron-entry-card');
-  const img=libSafeImage(rec.image_url,'Иллюстрация: '+rec.title,'chron-entry-image');if(img)card.append(img);
-  const content=libNode('div',null,'chron-entry-content');
-  content.append(libNode('time',chronDate(rec.event_date),'chron-date'),libNode('h2',rec.title));
-  const excerpt=rec.summary||String(rec.body).replace(/!\[[^\]]*\]\([^)]+\)|[#*\[\]]/g,'').slice(0,260);
-  content.append(libNode('p',excerpt+(excerpt.length>=260?'…':''),'chron-summary'));
-  const button=libNode('button','Читать запись →','secondary-button');button.type='button';button.addEventListener('click',()=>chronRead(rec.id));content.append(button);
-  card.append(content);entry.append(card);root.append(entry);
+ const section=chronRecords.filter(r=>r.kind===chronKind);
+ const yearSelect=chronEl('chronYear'), previous=yearSelect.value;
+ yearSelect.replaceChildren(new Option('Все годы',''));
+ for(const year of [...new Set(section.map(r=>r.event_date.slice(0,4)))])yearSelect.add(new Option(year,year));
+ yearSelect.value=[...yearSelect.options].some(o=>o.value===previous)?previous:'';
+ const q=chronEl('chronSearch').value.trim().toLowerCase();
+ const rows=section.filter(r=>(!yearSelect.value||r.event_date.startsWith(yearSelect.value))&&[r.title,r.summary,r.body].join(' ').toLowerCase().includes(q));
+ if(!rows.length){root.append(libNode('p','Нет записей.','chron-empty'));return;}
+ let lastYear=null,i=0;
+ for(const rec of rows){
+  const year=rec.event_date.slice(0,4);
+  if(year!==lastYear){root.append(libNode('div','Anno Domini '+year,'chron-year'));lastYear=year;i=0;}
+  const entry=libNode('article',null,'chron-entry '+(i++%2?'chron-right':'chron-left'));
+  entry.append(libNode('span',null,'chron-marker'));
+  const button=libNode('button',null,'chron-branch');button.type='button';
+  button.append(libNode('time',chronDate(rec.event_date),'chron-date'),libNode('strong',rec.title));
+  button.addEventListener('click',()=>chronRead(rec.id));entry.append(button);root.append(entry);
  }
 }
+document.querySelectorAll('[data-chron-kind]').forEach(b=>b.addEventListener('click',()=>{
+ chronKind=b.dataset.chronKind;document.querySelectorAll('[data-chron-kind]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+ chronEl('chronHeading').textContent=b.textContent;chronEl('chronSearch').value='';chronEl('chronYear').value='';chronRender();
+}));
+chronEl('chronSearch').addEventListener('input',chronRender);chronEl('chronYear').addEventListener('change',chronRender);
 function chronRead(id){
  const rec=chronRecords.find(r=>r.id===id);if(!rec)return chronShow('timeline');chronSelected=id;
  chronEl('chronReaderDate').textContent=chronDate(rec.event_date);
@@ -1809,14 +1817,14 @@ function chronEdit(id=null){
  const rec=id?chronRecords.find(r=>r.id===id):null;chronEditing=rec?.id||null;
  const form=chronEl('chronEditor');form.reset();
  for(const name of ['title','event_date','summary','body','image_url'])form.elements.namedItem(name).value=rec?.[name]||'';
- chronEl('chronEditorTitle').textContent=rec?'Редактирование записи':'Новое событие летописи';chronShow('editor');
+ chronEl('chronEditorTitle').textContent=(rec?'Редактирование записи':'Новая запись')+' · '+(chronKind==='lore'?'Лор':'Летопись братства');chronShow('editor');
 }
 async function loadChronicle(){
  if(!supabaseClient||!currentSession?.user||!['admin','approved'].includes(accessState.mode))return;
  const token=++chronSeq;chronEl('chronNotice').textContent='Открываем летопись…';
  chronEl('chronCreate').hidden=accessState.mode!=='admin'||chronMode!=='timeline';
  try{
-  const {data,error}=await supabaseClient.from('guild_chronicle').select('id,title,event_date,summary,body,image_url,updated_at').order('event_date',{ascending:false}).order('created_at',{ascending:false}).limit(1000);
+  const {data,error}=await supabaseClient.from('guild_chronicle').select('id,title,event_date,summary,body,image_url,updated_at,kind').order('event_date',{ascending:false}).order('created_at',{ascending:false}).limit(1000);
   if(error)throw error;if(token!==chronSeq)return;
   chronRecords=data||[];chronRender();
   if(chronMode==='reader'&&chronSelected){if(chronRecords.some(r=>r.id===chronSelected))chronRead(chronSelected);else chronShow('timeline');}
@@ -1836,10 +1844,10 @@ chronEl('chronRefresh').addEventListener('click',loadChronicle);
 chronEl('chronEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(accessState.mode!=='admin'||chronSaving)return;
  const f=e.currentTarget;
- const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_event_date:f.elements.namedItem('event_date').value,p_summary:f.elements.namedItem('summary').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_image_url:f.elements.namedItem('image_url').value.trim()||null};
+ const args={p_kind:chronKind,p_title:f.elements.namedItem('title').value.trim(),p_event_date:f.elements.namedItem('event_date').value,p_summary:f.elements.namedItem('summary').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_image_url:f.elements.namedItem('image_url').value.trim()||null};
  if(!args.p_title||!args.p_event_date||!args.p_body){showToast('Укажите название, дату и историю.');return;}
  if(chronEditing)args.p_id=chronEditing;
- const ok=await chronRpc(chronEditing?'guild_chronicle_update':'guild_chronicle_create',args,chronEditing?'Запись обновлена':'Событие внесено в летопись');
+ const ok=await chronRpc(chronEditing?'guild_chronicle_update_v2852':'guild_chronicle_create_v2852',args,chronEditing?'Запись обновлена':'Событие внесено в летопись');
  if(ok){chronEditing=null;f.reset();chronShow('timeline');}
 });
 

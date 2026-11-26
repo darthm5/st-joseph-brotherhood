@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="theme/work.css?v=2833">
 <link rel="stylesheet" href="theme/workshops.css?v=2834">
 <link rel="stylesheet" href="theme/hall.css?v=2841">
+<link rel="stylesheet" href="theme/calendar.css?v=2842">
 </head>
 <body>
   <div class="site-shell">
@@ -62,7 +63,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.4.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.4.2</div>
       </div>
     </aside>
 
@@ -462,7 +463,7 @@
             <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="awardRefresh">Обновить</button><button type="button" class="secondary-button" id="awardNewType" hidden>⚜ Создать награду</button><button type="button" class="secondary-button" id="awardNewGrant" hidden>🏅 Наградить участника</button></div>
             <p class="members-message" id="awardNotice" role="status" aria-live="polite"></p>
             <div id="awardBoard"><div class="award-banner"><span>✥ HONOR ET FIDES ✥</span><h2>Зал славы братства</h2><p>Память о заслугах, доблести и верной службе</p></div><div class="award-tabs"><button type="button" class="secondary-button" id="awardTabPeople">Награждённые</button><button type="button" class="secondary-button" id="awardTabCatalog">Каталог наград</button><button type="button" class="secondary-button" id="awardTabHistory">Летопись награждений</button></div><div id="awardContent" class="award-content"></div></div>
-            <form id="awardTypeForm" class="panel award-form" hidden><h2 id="awardTypeTitle">Создание награды</h2><label>Название<input name="name" required minlength="3" maxlength="120"></label><label>Категория<select name="category"><option value="order">Орден</option><option value="medal">Медаль</option><option value="certificate">Почётная грамота</option><option value="honorary">Почётный знак</option><option value="other">Другая награда</option></select></label><label>Описание<textarea name="description" maxlength="1500" rows="4"></textarea></label><label>Изображение награды (прямая HTTPS-ссылка)<input name="image_url" type="url" maxlength="2000" placeholder="https://..."></label><label class="award-check"><input name="is_active" type="checkbox" checked> Доступна для награждения</label><div class="treasury-actions"><button type="submit" class="secondary-button">Сохранить награду</button><button type="button" class="secondary-button" id="awardTypeCancel">Отмена</button></div></form>
+            <form id="awardTypeForm" class="panel award-form" hidden><h2 id="awardTypeTitle">Создание награды</h2><label>Название<input name="name" required minlength="3" maxlength="120"></label><label hidden>Категория<select name="category"><option value="order">Орден</option><option value="medal">Медаль</option><option value="certificate">Почётная грамота</option><option value="honorary">Почётный знак</option><option value="other">Другая награда</option></select></label><label>Описание<textarea name="description" maxlength="1500" rows="4"></textarea></label><label>Изображение награды (прямая HTTPS-ссылка)<input name="image_url" type="url" maxlength="2000" placeholder="https://..."></label><label class="award-check"><input name="is_active" type="checkbox" checked> Доступна для награждения</label><div class="treasury-actions"><button type="submit" class="secondary-button">Сохранить награду</button><button type="button" class="secondary-button" id="awardTypeCancel">Отмена</button></div></form>
             <form id="awardGrantForm" class="panel award-form" hidden><h2>Награждение персонажа</h2><label>Награда<select name="award_type_id" required></select></label><label>Участник<select name="recipient_id" required></select></label><label>Дата вручения<input name="awarded_on" type="date" required></label><label>Основание награждения<textarea name="reason" required minlength="3" maxlength="3000" rows="5" placeholder="За преданную службу и усердный труд…"></textarea></label><div class="treasury-actions"><button type="submit" class="secondary-button">Вручить награду</button><button type="button" class="secondary-button" id="awardGrantCancel">Отмена</button></div></form>
           </div>
           <div id="hallCouncilSection" hidden>
@@ -532,27 +533,27 @@
           <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
           <div class="store-actions" role="group" aria-label="Календарь и мероприятия">
             <button type="button" class="secondary-button" data-calendar-panel="calendarCreatePanel" id="calendarCreateButton" hidden>+ Создать мероприятие</button>
-            <button type="button" class="secondary-button" data-calendar-panel="calendarListPanel">Список событий</button>
-            <button type="button" class="secondary-button" data-calendar-panel="calendarMyPanel">Мои записи</button>
+            <button type="button" class="secondary-button" id="calendarBoardButton">Календарь</button><button type="button" class="secondary-button" data-calendar-panel="calendarListPanel">Список событий</button>
+            
             <button type="button" class="secondary-button" id="calendarRefresh">Обновить</button>
           </div>
           <p class="members-message" id="calendarNotice" role="status" aria-live="polite"></p>
           <form id="calendarCreatePanel" class="panel treasury-form calendar-panel" hidden>
             <h2 id="calendarFormHeading">Новое мероприятие</h2>
             <label>Название<input name="title" required minlength="3" maxlength="150" placeholder="Собрание братства"></label>
-            <label>Категория<select name="category"><option value="meeting">Собрание</option><option value="work">Совместная работа</option><option value="expedition">Поход</option><option value="fair">Ярмарка</option><option value="holiday">Праздник</option><option value="other">Другое</option></select></label>
-            <label>Место<input name="location" maxlength="200" placeholder="Сухдол"></label>
+            <label hidden>Категория<select name="category"><option value="meeting">Собрание</option><option value="work">Совместная работа</option><option value="expedition">Поход</option><option value="fair">Ярмарка</option><option value="holiday">Праздник</option><option value="other">Другое</option></select></label>
+            <label>Место (необязательно)<input name="location" maxlength="200" placeholder="Сухдол"></label>
             <div class="calendar-date-fields"><label>Начало<input name="starts_at" type="datetime-local" required></label><label>Окончание (необязательно)<input name="ends_at" type="datetime-local"></label></div>
-            <label>Описание<textarea name="description" rows="3" maxlength="5000"></textarea></label>
-            <div class="treasury-actions"><button type="submit" class="secondary-button" id="calendarSave">Создать</button><button type="button" class="secondary-button" id="calendarCancelEdit">Отмена</button></div>
+            <label>Описание (необязательно)<textarea name="description" rows="2" maxlength="5000"></textarea></label>
+            <div class="treasury-actions"><button type="submit" class="primary-button" id="calendarSave">Создать</button><button type="button" class="secondary-button" id="calendarCancelEdit">Отмена</button></div>
           </form>
-          <article id="calendarListPanel" class="panel calendar-panel" hidden><h2>Ближайшие мероприятия</h2><div id="calendarList" class="work-list"></div></article>
+          <article id="calendarListPanel" class="panel calendar-panel" hidden><div class="cal-list-head"><h2>События</h2><select id="calendarFilter" aria-label="Фильтр событий"><option value="all">Все предстоящие</option><option value="mine">С моим участием</option><option value="archive">Архив</option></select></div><div id="calendarList" class="work-list"></div></article>
           <article id="calendarMyPanel" class="panel calendar-panel" hidden><h2>Мои записи</h2><div id="calendarMyList" class="work-list"></div></article>
           <article id="calendarBoardPanel" class="panel treasury-section">
             <div class="calendar-month-nav"><button type="button" class="secondary-button" id="calendarPrev" aria-label="Предыдущий месяц">←</button><h2 id="calendarMonthTitle"></h2><button type="button" class="secondary-button" id="calendarNext" aria-label="Следующий месяц">→</button></div>
             <div id="calendarGrid" class="calendar-grid"></div>
             <h3 id="calendarDayHeading">События выбранного дня</h3><div id="calendarDayEvents" class="work-list"></div>
-          </article>
+          </article><dialog id="calendarDetail" aria-label="Сведения о событии"></dialog>
         </section>
         <section class="page" id="page-market">
           <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
@@ -664,7 +665,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2841"></script>
+  <script src="app.js?v=2842"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="theme/market.css?v=2822">
 <link rel="stylesheet" href="theme/work.css?v=2833">
 <link rel="stylesheet" href="theme/workshops.css?v=2834">
+<link rel="stylesheet" href="theme/hall.css?v=284">
 </head>
 <body>
   <div class="site-shell">
@@ -61,7 +62,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.3.4</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.4</div>
       </div>
     </aside>
 
@@ -378,10 +379,10 @@
           <div class="page-title-block"><div class="eyebrow">Vox Fraternitatis · Глас братства</div><h1>Ратуша братства</h1><p>Совет, выборы и решения. Один участник — один голос.</p></div>
           <div id="hallHub" class="hall-hub">
             <button type="button" id="hallToPolls" class="hall-tile"><span class="hall-tile-icon">⚖</span><strong>Голосования</strong><small>Глас братства и решения совета</small></button>
-            <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы и распоряжения</strong><small>Официальные грамоты и решения</small></button>
+            <button type="button" id="hallToDecrees" class="hall-tile"><span class="hall-tile-icon">📜</span><strong>Указы</strong><small>Официальные грамоты и решения</small></button>
             <button type="button" id="hallToPetitions" class="hall-tile"><span class="hall-tile-icon">✉</span><strong>Прошения</strong><small>Личные обращения к руководству</small></button>
-            <button type="button" id="hallToCouncil" class="hall-tile"><span class="hall-tile-icon">♛</span><strong>Совет братства</strong><small>Древо гильдии и анкеты персонажей</small></button>
-            <button type="button" id="hallToAwards" class="hall-tile"><span class="hall-tile-icon">🏅</span><strong>Зал славы</strong><small>Награды, грамоты и заслуги братства</small></button>
+            <button type="button" id="hallToCouncil" class="hall-tile"><span class="hall-tile-icon">♛</span><strong>Иерархия</strong><small>Древо гильдии и анкеты персонажей</small></button>
+            <button type="button" id="hallToAwards" class="hall-tile"><span class="hall-tile-icon">🏅</span><strong>Награды</strong><small>Награды, грамоты и заслуги братства</small></button>
           </div>
           <div id="hallPollSection" hidden>
             <button type="button" class="secondary-button hall-home-button" data-hall-home>← К ратуше</button>
@@ -395,7 +396,7 @@
             <div class="ratusha-intro">✥ &nbsp; Решения, принятые общим гласом &nbsp; ✥</div>
             <div class="ratusha-filters" role="group" aria-label="Фильтр голосований">
               <button type="button" class="secondary-button" data-poll-filter="active">Действующие</button>
-              <button type="button" class="secondary-button" data-poll-filter="closed">Завершённые</button>
+              <button type="button" class="secondary-button" data-poll-filter="closed">Архив</button>
               <button type="button" class="secondary-button" data-poll-filter="all">Все</button>
             </div>
             <div id="pollList" class="ratusha-list"></div>
@@ -428,11 +429,7 @@
             <p id="decreeNotice" class="members-message" role="status" aria-live="polite"></p>
             <div id="decreeBoard">
               <div class="ratusha-intro">✥ &nbsp; Реестр указов и распоряжений &nbsp; ✥</div>
-              <div class="ratusha-filters" role="group" aria-label="Статус указов">
-                <button type="button" class="secondary-button" data-decree-filter="active">Действующие</button>
-                <button type="button" class="secondary-button" data-decree-filter="repealed">Отменённые</button>
-                <button type="button" class="secondary-button" data-decree-filter="all">Все</button>
-              </div>
+              <div class="hall-filters"><input id="decreeSearch" type="search" placeholder="Поиск документа…" aria-label="Поиск документа"><select id="decreeStatusFilter" aria-label="Статус указов"><option value="active">Действующие</option><option value="repealed">Отменённые</option><option value="all">Все</option></select></div>
               <div id="decreeList" class="decree-list"></div>
             </div>
             <article id="decreeReader" class="panel decree-reader" hidden>
@@ -505,7 +502,7 @@
               <form id="petitionResolution" class="treasury-form" hidden>
                 <h3>Официальное решение</h3>
                 <label>Решение<select name="status" required><option value="approved">Одобрить</option><option value="rejected">Отклонить</option></select></label>
-                <label>Ответ руководства<textarea name="response" required minlength="3" maxlength="10000" rows="6" placeholder="Официальный ответ на прошение"></textarea></label>
+                <label>Ответ руководства<textarea name="response" required minlength="3" maxlength="10000" rows="3" placeholder="Официальный ответ на прошение"></textarea></label>
                 <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionResolveSave">Вынести решение</button><button type="button" class="secondary-button" id="petitionResolveCancel">Отмена</button></div>
               </form>
             </article>
@@ -516,8 +513,8 @@
                 <option value="suggestion">Предложение</option><option value="resources">Запрос ресурсов</option>
                 <option value="other">Другое</option>
               </select></label>
-              <label>Заголовок<input name="title" required minlength="3" maxlength="180" placeholder="Прошение к совету братства"></label>
-              <label>Текст прошения<textarea name="body" required minlength="5" maxlength="10000" rows="11" placeholder="Изложите суть вашего обращения..."></textarea></label>
+              <label>Тема<input name="title" required minlength="3" maxlength="180" placeholder="Прошение к совету братства"></label>
+              <label>Текст прошения<textarea name="body" required minlength="5" maxlength="10000" rows="4" placeholder="Изложите суть вашего обращения..."></textarea></label>
               <p class="store-muted">После подачи обращение сохраняется в личном архиве. Изменить текст поданного прошения нельзя.</p>
               <div class="treasury-actions"><button type="submit" class="secondary-button" id="petitionSubmit">Отправить прошение</button><button type="button" class="secondary-button" id="petitionCancel">Отмена</button></div>
             </form>
@@ -667,7 +664,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2834"></script>
+  <script src="app.js?v=284"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

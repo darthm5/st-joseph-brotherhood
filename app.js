@@ -1865,6 +1865,7 @@ function pollOrganize(rows){
 function pollRender(){
  const list=pollEl('pollList');list.replaceChildren();
  for(const b of document.querySelectorAll('[data-poll-filter]')){b.classList.toggle('ratusha-filter-active',b.dataset.pollFilter===pollFilter);b.setAttribute('aria-pressed',String(b.dataset.pollFilter===pollFilter));}
+ document.querySelector('[data-poll-filter=active]').textContent='Активные · '+pollData.filter(pollActive).length;
  const visible=pollData.filter(p=>pollFilter==='all'||(pollFilter==='active'?pollActive(p):!pollActive(p)));
  if(!visible.length){list.append(pollText('p',pollFilter==='active'?'Действующих голосований пока нет.':'Голосования не найдены.','ratusha-empty'));return;}
  for(const p of visible){
@@ -1873,10 +1874,10 @@ function pollRender(){
   top.append(pollText('span',p.visibility==='secret'?'🔒 Тайное':'⚖ Открытое','ratusha-kicker'));
   top.append(pollText('span',pollStatus(p),'ratusha-status '+(pollActive(p)?'ratusha-live':'')));
   card.append(top,pollText('h2',p.title));
-  if(p.description)card.append(pollText('p',p.description.length>250?p.description.slice(0,250)+'…':p.description,'ratusha-excerpt'));
+  
   card.append(pollText('p','До '+pollDate(p.closes_at)+' · '+p.options.reduce((sum,o)=>sum+o.votes,0)+' голосов','store-muted'));
   if(p.myVoted)card.append(pollText('span','✓ Ваш голос учтён','ratusha-voted'));
-  const btn=pollText('button',pollActive(p)?'Открыть голосование →':'Посмотреть итоги →','secondary-button');btn.type='button';btn.addEventListener('click',()=>pollOpen(p.id));card.append(btn);list.append(card);
+  const btn=pollText('button',pollActive(p)&&!p.myVoted?'Проголосовать':'Посмотреть голосование','secondary-button');btn.type='button';btn.addEventListener('click',()=>pollOpen(p.id));card.append(btn);list.append(card);
  }
 }
 function pollOpen(id){
@@ -1961,7 +1962,7 @@ pollEl('pollEditor').addEventListener('submit',async e=>{
  const f=e.currentTarget,values=[...pollEl('pollEditorOptions').querySelectorAll('input')].map(i=>i.value.trim());
  if(values.length<2||values.length>12||values.some(x=>!x)){showToast('Заполните от 2 до 12 вариантов');return;}
  const date=new Date(f.elements.namedItem('closes_at').value);if(!Number.isFinite(date.getTime())||date<=new Date()){showToast('Укажите будущую дату завершения');return;}
- const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_description:f.elements.namedItem('description').value.trim(),p_visibility:f.elements.namedItem('visibility').value,p_closes_at:date.toISOString(),p_options:values};
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_description:f.elements.namedItem('description').value.trim(),p_visibility:f.elements.namedItem('visibility').value,p_closes_at:date.toISOString(),p_options:values};
  const ok=await pollRpc('guild_poll_create',args,'Голосование опубликовано');if(ok){pollFilter='active';pollShow('board');pollRender();}
 });
 pollEl('pollVoteForm').addEventListener('submit',async e=>{
@@ -2009,23 +2010,19 @@ function decreeShow(mode){
  decreeEl('decreeCreate').hidden=mode!=='board'||!decreeCanIssue;
  decreeEl('decreeOfficers').hidden=mode!=='board'||accessState.mode!=='admin';
 }
+function hallTable(list,headers){const table=decreeNode('table',null,'hall-register');const head=table.createTHead().insertRow();for(const h of headers){const th=decreeNode('th',h);th.scope='col';head.append(th);}const body=table.createTBody();list.append(table);return body;}
+function hallCell(row,value,cls){const td=row.insertCell();if(cls)td.className=cls;if(value instanceof Node)td.append(value);else td.textContent=value;return td;}
+function hallLink(title,subtitle,fn){const b=decreeNode('button',null,'hall-document-link');b.type='button';b.append(decreeNode('strong',title),decreeNode('small',subtitle));b.addEventListener('click',fn);return b;}
 function decreeRender(){
  const list=decreeEl('decreeList');list.replaceChildren();
- for(const b of document.querySelectorAll('[data-decree-filter]'))b.classList.toggle('ratusha-filter-active',b.dataset.decreeFilter===decreeFilter);
- const rows=decreeRows.filter(d=>decreeFilter==='all'||(decreeFilter==='active'?!d.repealed_at:!!d.repealed_at));
- if(!rows.length){list.append(decreeNode('p','В этом разделе пока нет указов.','store-muted'));return;}
- for(const d of rows){
-  const card=decreeNode('article',null,'panel decree-card');
-  const kicker=decreeNode('div',`${decreeKinds[d.kind]||'Документ'} ${decreeNumber(d)} · ${decreeDate(d.issued_on)}`,'ratusha-kicker');
-  card.append(kicker,decreeNode('h2',d.title));
-  card.append(decreeNode('p',d.body.slice(0,240)+(d.body.length>240?'…':''),'decree-excerpt'));
-  const footer=decreeNode('div',null,'decree-footer');
-  footer.append(decreeNode('small','Подписал: '+decreeName(d.signed_by)));
-  footer.append(decreeNode('span',d.repealed_at?'Утратил силу':'Действует',d.repealed_at?'decree-status-repealed':'decree-status-active'));
-  card.append(footer);
-  const read=decreeNode('button','Читать грамоту','secondary-button');read.type='button';read.addEventListener('click',()=>decreeRead(d.id));card.append(read);list.append(card);
- }
+ for(const b of document.querySelectorAll('[data-decree-filter]')){b.classList.toggle('ratusha-filter-active',b.dataset.decreeFilter===decreeFilter);b.setAttribute('aria-pressed',String(b.dataset.decreeFilter===decreeFilter));}
+ const q=decreeEl('decreeSearch').value.trim().toLocaleLowerCase('ru');
+ const rows=decreeRows.filter(d=>(decreeFilter==='all'||(decreeFilter==='active'?!d.repealed_at:!!d.repealed_at))&&[d.title,d.body,decreeNumber(d),decreeName(d.signed_by)].join(' ').toLocaleLowerCase('ru').includes(q));
+ if(!rows.length){list.append(decreeNode('p','Документы не найдены.','store-muted'));return;}
+ const body=hallTable(list,['Документ','Дата','Статус']);
+ for(const d of rows){const row=body.insertRow();hallCell(row,hallLink('📜 '+d.title,`${decreeKinds[d.kind]||'Документ'} ${decreeNumber(d)}`,()=>decreeRead(d.id)));hallCell(row,decreeDate(d.issued_on));hallCell(row,d.repealed_at?'Отменён':'Действует',d.repealed_at?'decree-status-repealed':'decree-status-active');}
 }
+
 function decreeRead(id){
  const d=decreeRows.find(x=>x.id===id);if(!d)return decreeShow('board');decreeSelected=id;
  decreeEl('decreeReaderKicker').textContent=`${decreeKinds[d.kind]||'Документ'} ${decreeNumber(d)}`;
@@ -2111,7 +2108,7 @@ for(const b of document.querySelectorAll('[data-decree-filter]'))b.addEventListe
 decreeEl('decreeEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(!decreeCanIssue||decreeBusy)return;
  const f=e.currentTarget,year=Number(f.elements.namedItem('decree_year').value);
- const args={p_decree_year:year,p_kind:f.elements.namedItem('kind').value,p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_body:f.elements.namedItem('body').value.trim(),p_issued_on:f.elements.namedItem('issued_on').value};
+ const args={p_decree_year:year,p_kind:f.elements.namedItem('kind').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim(),p_issued_on:f.elements.namedItem('issued_on').value};
  if(!Number.isInteger(year)||year<1300||year>2200||!args.p_title||!args.p_body)return showToast('Проверьте поля указа.');
  if(args.p_issued_on.slice(0,4)!==String(year))return showToast('Игровой год должен совпадать с годом даты издания.');
  if(decreeEditing)args.p_decree_id=decreeEditing;
@@ -2140,22 +2137,15 @@ function petitionAuthor(p){
  return decreeName(p.author_id);
 }
 function petitionRender(){
- const list=petitionEl('petitionList');list.replaceChildren();
- const uid=currentSession?.user?.id;
- const items=petitionRows.filter(p=>petitionFilter==='all'||p.author_id===uid);
+ const list=petitionEl('petitionList');list.replaceChildren();const uid=currentSession?.user?.id;
+ const pending=petitionRows.filter(p=>['submitted','reviewing'].includes(p.status)).length;
+ petitionEl('petitionLeadership').textContent='На рассмотрении · '+pending;
+ const items=petitionRows.filter(p=>petitionFilter==='all'&&petitionCanReview?['submitted','reviewing'].includes(p.status):p.author_id===uid);
  if(!items.length){list.append(petitionNode('p','В этом разделе пока нет прошений.','store-muted'));return;}
- for(const p of items){
-  const card=petitionNode('article',null,'panel decree-card');
-  const heading=petitionNode('div',null,'treasury-heading');
-  heading.append(petitionNode('h2',p.title),petitionNode('span',petitionStatuses[p.status]||p.status,'petition-status petition-status-'+p.status));
-  card.append(heading);
-  card.append(petitionNode('p',(petitionCategories[p.category]||p.category)+' · '+new Date(p.created_at).toLocaleDateString('ru-RU')+' · '+petitionAuthor(p),'store-muted'));
-  const excerpt=String(p.body).slice(0,260);
-  card.append(petitionNode('p',excerpt+(p.body.length>260?'…':''),'decree-excerpt'));
-  const button=petitionNode('button','Открыть прошение','secondary-button');button.type='button';
-  button.addEventListener('click',()=>petitionRead(p.id));card.append(button);list.append(card);
- }
+ const body=hallTable(list,petitionFilter==='all'?['Прошение','Автор','Дата','Статус']:['Прошение','Дата','Статус']);
+ for(const p of items){const row=body.insertRow();hallCell(row,hallLink(p.title,petitionCategories[p.category]||p.category,()=>petitionRead(p.id)));if(petitionFilter==='all')hallCell(row,petitionAuthor(p));hallCell(row,new Date(p.created_at).toLocaleDateString('ru-RU'));hallCell(row,petitionStatuses[p.status]||p.status,'petition-status petition-status-'+p.status);}
 }
+
 function petitionRead(id){
  const p=petitionRows.find(r=>r.id===id);if(!p){petitionShow('board');return;}
  petitionSelected=id;
@@ -2230,7 +2220,7 @@ petitionEl('petitionResolveCancel').addEventListener('click',()=>{petitionEl('pe
 petitionEl('petitionEditor').addEventListener('submit',async e=>{
  e.preventDefault();if(petitionBusy)return;
  const f=e.currentTarget;
- const args={p_category:f.elements.namedItem('category').value,p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_body:f.elements.namedItem('body').value.trim()};
+ const args={p_category:f.elements.namedItem('category').value,p_title:f.elements.namedItem('title').value.trim(),p_body:f.elements.namedItem('body').value.trim()};
  if(args.p_title.length<3||args.p_body.length<5)return showToast('Заполните заголовок и текст.');
  if(await petitionRpc('guild_petition_submit',args,'Прошение подано')){petitionFilter='mine';petitionShow('board');loadPetitions();}
 });
@@ -2614,3 +2604,6 @@ function trFilter(){
 document.querySelectorAll('[data-tr-tab]').forEach(b=>b.addEventListener('click',()=>trSelect(b.dataset.trTab)));
 document.getElementById('trSearch').addEventListener('input',trFilter);
 document.getElementById('trDirection').addEventListener('change',trFilter);
+
+ document.getElementById('decreeSearch').addEventListener('input',decreeRender);
+ document.getElementById('decreeStatusFilter').addEventListener('change',e=>{decreeFilter=e.target.value;decreeRender();});

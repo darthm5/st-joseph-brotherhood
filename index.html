@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="theme/calendar.css?v=2842">
 <link rel="stylesheet" href="theme/library.css?v=28512">
 <link rel="stylesheet" href="theme/chronicle.css?v=2852">
+<link rel="stylesheet" href="theme/uploads.css?v=28521">
 </head>
 <body>
   <div class="site-shell">
@@ -65,7 +66,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.5.2</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.5.2.1</div>
       </div>
     </aside>
 
@@ -138,7 +139,7 @@
               <div class="full skills-section"><h3>Работы <small>(не более двух, уровни 1–10)</small></h3><div id="jobsList" class="skill-list"></div><button type="button" class="secondary-button" id="addJob">+ Добавить работу</button></div>
               <div class="full skills-section"><h3>Мастерства <small>(любое количество из списка, уровни 1–10)</small></h3><div id="masteriesList" class="skill-list"></div><button type="button" class="secondary-button" id="addMastery">+ Добавить мастерство</button></div>
               <label class="full">О персонаже <textarea name="about" rows="5" maxlength="3000" placeholder="Краткая история, занятия и интересы персонажа"></textarea></label>
-              <label class="full">Ссылка на изображение персонажа (HTTPS) <input name="character_photo_url" type="url" maxlength="1000" placeholder="https://..."></label>
+              <label class="full">Изображение<input name="character_photo_url" type="hidden"></label>
             </div>
             <p class="form-hint">Пока изображение добавляется по прямой HTTPS-ссылке. Загрузку файла с компьютера подключим отдельно.</p>
             <img id="characterPhotoPreview" class="profile-preview" alt="Изображение персонажа" hidden>
@@ -350,7 +351,7 @@
 <button type="button" class="library-category-tile" data-library-category="rules"><span class="library-tile-icon">⚖</span><strong>Устав, законы и правила</strong><small>Основные положения братства</small></button>
 <button type="button" class="library-category-tile" data-library-category="announcements"><span class="library-tile-icon">📜</span><strong>Объявления и изменения</strong><small>Новости и патчноуты</small></button>
 <button type="button" class="library-category-tile" data-library-category="guides"><span class="library-tile-icon">📖</span><strong>Руководства</strong><small>Инструкции и механики</small></button>
-<button type="button" class="library-category-tile" id="galleryOpen"><span class="library-tile-icon">▧</span><strong>Галерея</strong><small>Фотографии и скриншоты</small></button>
+<button type="button" class="library-category-tile" id="galleryOpen" hidden style="display:none"><span class="library-tile-icon">▧</span><strong>Галерея</strong><small>Фотографии и скриншоты</small></button>
           </div>
           <div id="librarySection" hidden>
             <div class="library-section-top"><button type="button" class="secondary-button" id="libraryBackButton">← К разделам</button><h2 id="librarySectionTitle"></h2><button type="button" class="secondary-button" id="libraryCreateButton" hidden>+ Создать документ</button><button type="button" class="secondary-button" id="libraryRefreshButton">Обновить</button></div>
@@ -374,7 +375,7 @@
             
             <div id="libFormat" class="lib-format"></div><label>Содержание<textarea name="body" required maxlength="30000" rows="7" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
             <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
-            <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются по прямым HTTPS-ссылкам.</p>
+            <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются кнопкой «Изображение» с устройства.</p>
             <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
           </form>
           <section id="galleryPanel" hidden><div class="library-section-top"><button id="galleryBack" class="secondary-button">← К разделам</button><h2>Галерея</h2><button id="galleryAdd" class="primary-button">+ Добавить фото</button></div><div class="panel gallery-filters"><label>Поиск<input id="gallerySearch" type="search" placeholder="Описание, автор или хештег"></label><label>Автор<select id="galleryAuthor"><option value="">Все авторы</option></select></label></div><p class="store-muted">Популярные хештеги</p><div id="galleryTags" class="gallery-tags"></div><p id="galleryNotice" role="status"></p><div id="galleryGrid" class="gallery-grid"></div></section>
@@ -467,7 +468,7 @@
             <div class="ratusha-actions"><button type="button" class="secondary-button" data-hall-home>← К ратуше</button><button type="button" class="secondary-button" id="awardRefresh">Обновить</button><button type="button" class="secondary-button" id="awardNewType" hidden>⚜ Создать награду</button><button type="button" class="secondary-button" id="awardNewGrant" hidden>🏅 Наградить участника</button></div>
             <p class="members-message" id="awardNotice" role="status" aria-live="polite"></p>
             <div id="awardBoard"><div class="award-banner"><span>✥ HONOR ET FIDES ✥</span><h2>Зал славы братства</h2><p>Память о заслугах, доблести и верной службе</p></div><div class="award-tabs"><button type="button" class="secondary-button" id="awardTabPeople">Награждённые</button><button type="button" class="secondary-button" id="awardTabCatalog">Каталог наград</button><button type="button" class="secondary-button" id="awardTabHistory">Летопись награждений</button></div><div id="awardContent" class="award-content"></div></div>
-            <form id="awardTypeForm" class="panel award-form" hidden><h2 id="awardTypeTitle">Создание награды</h2><label>Название<input name="name" required minlength="3" maxlength="120"></label><label hidden>Категория<select name="category"><option value="order">Орден</option><option value="medal">Медаль</option><option value="certificate">Почётная грамота</option><option value="honorary">Почётный знак</option><option value="other">Другая награда</option></select></label><label>Описание<textarea name="description" maxlength="1500" rows="4"></textarea></label><label>Изображение награды (прямая HTTPS-ссылка)<input name="image_url" type="url" maxlength="2000" placeholder="https://..."></label><label class="award-check"><input name="is_active" type="checkbox" checked> Доступна для награждения</label><div class="treasury-actions"><button type="submit" class="secondary-button">Сохранить награду</button><button type="button" class="secondary-button" id="awardTypeCancel">Отмена</button></div></form>
+            <form id="awardTypeForm" class="panel award-form" hidden><h2 id="awardTypeTitle">Создание награды</h2><label>Название<input name="name" required minlength="3" maxlength="120"></label><label hidden>Категория<select name="category"><option value="order">Орден</option><option value="medal">Медаль</option><option value="certificate">Почётная грамота</option><option value="honorary">Почётный знак</option><option value="other">Другая награда</option></select></label><label>Описание<textarea name="description" maxlength="1500" rows="4"></textarea></label><label>Изображение<input name="image_url" type="hidden"></label><label class="award-check"><input name="is_active" type="checkbox" checked> Доступна для награждения</label><div class="treasury-actions"><button type="submit" class="secondary-button">Сохранить награду</button><button type="button" class="secondary-button" id="awardTypeCancel">Отмена</button></div></form>
             <form id="awardGrantForm" class="panel award-form" hidden><h2>Награждение персонажа</h2><label>Награда<select name="award_type_id" required></select></label><label>Участник<select name="recipient_id" required></select></label><label>Дата вручения<input name="awarded_on" type="date" required></label><label>Основание награждения<textarea name="reason" required minlength="3" maxlength="3000" rows="5" placeholder="За преданную службу и усердный труд…"></textarea></label><div class="treasury-actions"><button type="submit" class="secondary-button">Вручить награду</button><button type="button" class="secondary-button" id="awardGrantCancel">Отмена</button></div></form>
           </div>
           <div id="hallCouncilSection" hidden>
@@ -531,7 +532,7 @@
           <p id="chronNotice" class="members-message" role="status" aria-live="polite"></p>
           <div id="chronTimelineView"><div class="chron-tabs"><button type="button" class="secondary-button" data-chron-kind="brotherhood" aria-pressed="true">Летопись братства</button><button type="button" class="secondary-button" data-chron-kind="lore" aria-pressed="false">Лор</button></div><h2 id="chronHeading" class="chron-intro">Летопись братства</h2><div class="chron-filters"><input id="chronSearch" type="search" placeholder="Поиск по событиям" aria-label="Поиск по событиям"><select id="chronYear" aria-label="Год"><option value="">Все годы</option></select></div><div id="chronTimeline" class="chron-timeline"></div></div>
           <article id="chronReader" class="panel chron-reader" hidden><p id="chronReaderDate" class="chron-date"></p><h2 id="chronReaderTitle"></h2><img id="chronReaderImage" class="chron-hero" alt="Иллюстрация летописи" hidden><p id="chronReaderSummary" class="chron-lead"></p><div id="chronReaderBody" class="library-body"></div><div id="chronReaderActions" class="treasury-actions"></div></article>
-          <form id="chronEditor" class="panel treasury-form" hidden><h2 id="chronEditorTitle">Новое событие</h2><label>Название события<input name="title" required minlength="3" maxlength="160" placeholder="Основание братства"></label><label>Дата события<input name="event_date" type="date" required></label><label>Краткое описание<textarea name="summary" rows="2" maxlength="600" placeholder="Краткая запись для временной линии"></textarea></label><label>Полная история<textarea name="body" rows="6" required maxlength="30000" placeholder="Расскажите о памятном событии..."></textarea></label><label>Ссылка на иллюстрацию (HTTPS)<input name="image_url" type="url" maxlength="2000" placeholder="https://example.com/illustration.jpg"></label><p class="store-muted">Изображения внутри текста: ![Описание](https://example.com/image.jpg). Заголовки: #, жирный текст: **слово**.</p><div class="treasury-actions"><button type="submit" class="secondary-button" id="chronSave">Сохранить запись</button><button type="button" class="secondary-button" id="chronCancel">Отмена</button></div></form>
+          <form id="chronEditor" class="panel treasury-form" hidden><h2 id="chronEditorTitle">Новое событие</h2><label>Название события<input name="title" required minlength="3" maxlength="160" placeholder="Основание братства"></label><label>Дата события<input name="event_date" type="date" required></label><label>Краткое описание<textarea name="summary" rows="2" maxlength="600" placeholder="Краткая запись для временной линии"></textarea></label><label>Полная история<textarea name="body" rows="6" required maxlength="30000" placeholder="Расскажите о памятном событии..."></textarea></label><label>Изображение<input name="image_url" type="hidden"></label><p class="store-muted">Изображения внутри текста добавляются кнопкой загрузки. Заголовки: #, жирный текст: **слово**.</p><div class="treasury-actions"><button type="submit" class="secondary-button" id="chronSave">Сохранить запись</button><button type="button" class="secondary-button" id="chronCancel">Отмена</button></div></form>
         </section>
         <section class="page" id="page-calendar">
           <div class="page-title-block"><div class="eyebrow">Жизнь братства</div><h1>Календарь событий</h1><p>Собрания, походы, совместные работы и праздники.</p></div>
@@ -669,7 +670,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2852"></script>
+  <script src="app.js?v=28521"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

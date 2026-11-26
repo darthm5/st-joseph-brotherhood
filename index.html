@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="theme/workshops.css?v=2834">
 <link rel="stylesheet" href="theme/hall.css?v=2841">
 <link rel="stylesheet" href="theme/calendar.css?v=2842">
-<link rel="stylesheet" href="theme/library.css?v=28511">
+<link rel="stylesheet" href="theme/library.css?v=28512">
 </head>
 <body>
   <div class="site-shell">
@@ -64,7 +64,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.5.1.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.5.1.2</div>
       </div>
     </aside>
 
@@ -348,7 +348,7 @@
           <div id="libraryCategories" class="library-category-grid" aria-label="Разделы библиотеки">
 <button type="button" class="library-category-tile" data-library-category="rules"><span class="library-tile-icon">⚖</span><strong>Устав, законы и правила</strong><small>Основные положения братства</small></button>
 <button type="button" class="library-category-tile" data-library-category="announcements"><span class="library-tile-icon">📜</span><strong>Объявления и изменения</strong><small>Новости и патчноуты</small></button>
-<button type="button" class="library-category-tile" data-library-category="guides"><span class="library-tile-icon">📖</span><strong>Руководства и изменения</strong><small>Инструкции и механики</small></button>
+<button type="button" class="library-category-tile" data-library-category="guides"><span class="library-tile-icon">📖</span><strong>Руководства</strong><small>Инструкции и механики</small></button>
 <button type="button" class="library-category-tile" id="galleryOpen"><span class="library-tile-icon">▧</span><strong>Галерея</strong><small>Фотографии и скриншоты</small></button>
           </div>
           <div id="librarySection" hidden>
@@ -368,15 +368,15 @@
           <form id="libraryEditor" class="panel treasury-form" hidden>
             <h2 id="libraryEditorHeading">Новый документ</h2>
             <label>Название<input name="title" required minlength="3" maxlength="160"></label>
-            <label>Раздел<select name="category" required><option value="rules">Устав, законы и правила</option><option value="announcements">Объявления и изменения</option><option value="guides">Руководства и изменения</option></select></label>
+            <label>Раздел<select name="category" required><option value="rules">Устав, законы и правила</option><option value="announcements">Объявления и изменения</option><option value="guides">Руководства</option></select></label>
             <label>Краткое содержание (для ленты)<textarea name="summary" maxlength="600" rows="3" placeholder="Короткая аннотация статьи"></textarea></label>
-            <label>Ссылка на обложку статьи<input type="url" name="cover_image_url" maxlength="2000" placeholder="https://example.com/cover.jpg"></label>
+            
             <div id="libFormat" class="lib-format"></div><label>Содержание<textarea name="body" required maxlength="30000" rows="7" placeholder="Текст документа. Можно использовать # Заголовок, **жирный текст**, - список, [название](https://ссылка)"></textarea></label>
             <label class="library-pin"><input type="checkbox" name="is_pinned"> Закрепить документ наверху</label>
             <p class="store-muted">Поддерживается: # заголовок, **жирный**, - список, [ссылка](https://адрес), ![Описание изображения](https://адрес/фото.jpg). Изображения добавляются по прямым HTTPS-ссылкам.</p>
             <div class="treasury-actions"><button class="secondary-button" type="submit" id="librarySaveButton">Опубликовать</button><button class="secondary-button" type="button" id="libraryCancelButton">Отмена</button></div>
           </form>
-          <section id="galleryPanel" hidden><div class="library-section-top"><button id="galleryBack" class="secondary-button">← К разделам</button><h2>Галерея братства</h2><button id="galleryAdd" class="primary-button">+ Добавить фото</button></div><input id="gallerySearch" type="search" placeholder="Поиск по описанию и хештегам"><p class="store-muted">Популярные хештеги</p><div id="galleryTags" class="gallery-tags"></div><p id="galleryNotice" role="status"></p><div id="galleryGrid" class="gallery-grid"></div></section>
+          <section id="galleryPanel" hidden><div class="library-section-top"><button id="galleryBack" class="secondary-button">← К разделам</button><h2>Галерея</h2><button id="galleryAdd" class="primary-button">+ Добавить фото</button></div><div class="panel gallery-filters"><label>Поиск<input id="gallerySearch" type="search" placeholder="Описание, автор или хештег"></label><label>Автор<select id="galleryAuthor"><option value="">Все авторы</option></select></label></div><p class="store-muted">Популярные хештеги</p><div id="galleryTags" class="gallery-tags"></div><p id="galleryNotice" role="status"></p><div id="galleryGrid" class="gallery-grid"></div></section>
           <dialog id="galleryDialog"></dialog>
         </section>
         <section class="page" id="page-ratusha">
@@ -668,7 +668,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=28511"></script>
+  <script src="app.js?v=28512"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

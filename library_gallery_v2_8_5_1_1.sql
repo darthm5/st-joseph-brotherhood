@@ -1,0 +1,32 @@
+begin;
+create or replace function public.gallery_member_v2851() returns boolean language sql stable security definer set search_path='' as $$ select auth.uid() is not null and (public.is_site_admin() or exists(select 1 from public.profiles where id=auth.uid() and membership_status='approved')) $$;
+revoke all on function public.gallery_member_v2851() from public;
+grant execute on function public.gallery_member_v2851() to authenticated;
+create table if not exists public.guild_gallery (
+ id uuid primary key default gen_random_uuid(), author_id uuid not null references auth.users(id), title text not null default '' check(length(title)<=160), description text not null default '' check(length(description)<=1000), tags text[] not null default '{}' check(cardinality(tags)<=20 and length(array_to_string(tags,','))<=820), image_path text not null unique, thumb_path text not null unique, created_at timestamptz not null default now(), check(image_path=author_id::text||'/'||id::text||'.webp'), check(thumb_path=author_id::text||'/'||id::text||'-thumb.webp')
+);
+alter table public.guild_gallery enable row level security;
+revoke all on public.guild_gallery from anon,authenticated;
+grant select,insert,delete on public.guild_gallery to authenticated;
+grant update(title,description,tags) on public.guild_gallery to authenticated;
+drop policy if exists gallery_read on public.guild_gallery;
+create policy gallery_read on public.guild_gallery for select to authenticated using(public.gallery_member_v2851());
+drop policy if exists gallery_insert on public.guild_gallery;
+create policy gallery_insert on public.guild_gallery for insert to authenticated with check(public.gallery_member_v2851() and author_id=auth.uid());
+drop policy if exists gallery_update on public.guild_gallery;
+create policy gallery_update on public.guild_gallery for update to authenticated using(public.gallery_member_v2851() and (author_id=auth.uid() or public.is_site_admin())) with check(public.gallery_member_v2851() and (author_id=auth.uid() or public.is_site_admin()));
+drop policy if exists gallery_delete on public.guild_gallery;
+create policy gallery_delete on public.guild_gallery for delete to authenticated using(public.gallery_member_v2851() and (author_id=auth.uid() or public.is_site_admin()));
+drop policy if exists gallery_storage_read on storage.objects;
+create policy gallery_storage_read on storage.objects for select to authenticated using(bucket_id='brotherhood-gallery' and public.gallery_member_v2851());
+drop policy if exists gallery_storage_insert on storage.objects;
+drop policy if exists gallery_storage_delete on storage.objects;
+create policy gallery_storage_delete on storage.objects for delete to authenticated using(bucket_id='brotherhood-gallery' and public.gallery_member_v2851() and ((storage.foldername(name))[1]=auth.uid()::text or public.is_site_admin()));
+alter table public.guild_gallery add column if not exists image_url text;
+alter table public.guild_gallery alter column image_path drop not null, alter column thumb_path drop not null;
+alter table public.guild_gallery drop constraint if exists gallery_link_v28511;
+alter table public.guild_gallery add constraint gallery_link_v28511 check ((image_url is not null and length(image_url)<=2048 and image_url ~ '^https://[^[:space:]]+$') or (image_url is null and image_path is not null and thumb_path is not null));
+grant update(image_url) on public.guild_gallery to authenticated;
+drop policy if exists gallery_insert on public.guild_gallery;
+create policy gallery_insert on public.guild_gallery for insert to authenticated with check(public.gallery_member_v2851() and author_id=auth.uid() and image_url is not null and image_path is null and thumb_path is null);
+commit;

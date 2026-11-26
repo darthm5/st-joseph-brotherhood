@@ -1586,7 +1586,7 @@ calEl('calendarCreatePanel').addEventListener('submit',async e=>{
 
 
 // Library v1.5 — all writes use admin-only Supabase RPCs.
-const libCategories={charter:'Устав братства',rules:'Законы и правила',announcements:'Объявления',guides:'Руководства'};
+const libCategories={charter:'Устав, законы и правила',rules:'Устав, законы и правила',announcements:'Объявления и изменения',guides:'Руководства и изменения'};
 const libEl=id=>document.getElementById(id);
 let libDocuments=[],libMode='home',libCategory=null,libEditing=null,libSelected=null,libToken=0,libBusy=false;
 function libNode(tag,value,cls){
@@ -1610,8 +1610,9 @@ function libOpenCategory(category){
 function libShow(mode){
  if(mode==='editor'&&accessState.mode!=='admin')return;
  libMode=mode;
+ libEl('galleryPanel').hidden=mode!=='gallery';
  libEl('libraryCategories').hidden=mode!=='home';
- libEl('librarySection').hidden=mode==='home';
+ libEl('librarySection').hidden=mode==='home'||mode==='gallery';
  libEl('libraryBoard').hidden=mode!=='board';
  libEl('libraryReader').hidden=mode!=='reader';
  libEl('libraryEditor').hidden=mode!=='editor';
@@ -1662,7 +1663,7 @@ function libSafeImage(url,alt,cls){
 function libRender(){
  const search=libEl('librarySearch').value.trim().toLocaleLowerCase('ru');
  const cat=libCategory;
- const items=libDocuments.filter(d=>(d.category===cat)&&(!search||(d.title+' '+(d.summary||'')+' '+d.body).toLocaleLowerCase('ru').includes(search)));
+ const items=libDocuments.filter(d=>((d.category===cat)||(cat==='rules'&&d.category==='charter'))&&(!search||(d.title+' '+(d.summary||'')+' '+d.body).toLocaleLowerCase('ru').includes(search)));
  const list=libEl('libraryList');list.replaceChildren();
  if(!items.length){list.append(libNode('p','В этом разделе пока нет статей.','store-muted'));return;}
  for(const d of items){
@@ -1706,7 +1707,7 @@ function libEdit(id=null){
  libEditing=d?.id||null;
  const f=libEl('libraryEditor');f.reset();
  f.elements.namedItem('title').value=d?.title||'';
- f.elements.namedItem('category').value=d?.category||libCategory;
+ f.elements.namedItem('category').value=d?.category==='charter'?'rules':(d?.category||libCategory);
  f.elements.namedItem('summary').value=d?.summary||'';
  f.elements.namedItem('cover_image_url').value=d?.cover_image_url||'';
  f.elements.namedItem('body').value=d?.body||'';
@@ -1745,12 +1746,12 @@ libEl('librarySearch').addEventListener('input',libRender);
 libEl('libraryEditor').addEventListener('submit',async event=>{
  event.preventDefault();if(accessState.mode!=='admin'||libBusy)return;
  const f=event.currentTarget;
- const args={p_title:f.elements.namedItem('title').value.trim()||((f.elements.namedItem('ad_type').value==='buy'?'Куплю: ':'Продам: ')+items.map(i=>marketCatalog.find(c=>c.id===i.item_id)?.name||'').join(', ')).slice(0,140),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_summary:f.elements.namedItem('summary').value.trim(),p_cover_image_url:f.elements.namedItem('cover_image_url').value.trim()||null,p_is_pinned:f.elements.namedItem('is_pinned').checked};
+ const args={p_title:f.elements.namedItem('title').value.trim(),p_category:f.elements.namedItem('category').value,p_body:f.elements.namedItem('body').value.trim(),p_summary:f.elements.namedItem('summary').value.trim(),p_cover_image_url:f.elements.namedItem('cover_image_url').value.trim()||null,p_is_pinned:f.elements.namedItem('is_pinned').checked};
  if(!args.p_title||!args.p_body)return showToast('Заполните название и содержание.');
  if(libEditing)args.p_document_id=libEditing;
- else args.p_category=libCategory;
+
  const ok=await libRpc(libEditing?'guild_article_update':'guild_article_create',args,libEditing?'Документ обновлён':'Документ опубликован');
- if(ok){libEditing=null;f.reset();libShow('board');}
+ if(ok){libEditing=null;f.reset();libOpenCategory(args.p_category);}
 });
 
 
@@ -2608,3 +2609,18 @@ document.getElementById('trDirection').addEventListener('change',trFilter);
 
  document.getElementById('decreeSearch').addEventListener('input',decreeRender);
  document.getElementById('decreeStatusFilter').addEventListener('change',e=>{decreeFilter=e.target.value;decreeRender();});
+
+// Gallery v2.8.5.1 — private Storage, signed image URLs.
+const galSafeUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<=2048?u.href:'';}catch{return '';}};
+const galBucket='brotherhood-gallery';let galRows=[],galSelected=new Set(),galUrls=new Map(),galSeq=0,galBusy=false;
+const galEl=id=>document.getElementById(id);
+const galButton=(label,fn,cls='secondary-button')=>{const b=libNode('button',label,cls);b.type='button';b.addEventListener('click',fn);return b;};
+const galTags=value=>[...new Set(String(value||'').toLocaleLowerCase('ru').split(/[\s,;]+/).map(t=>t.replace(/^#+/,'')).filter(t=>/^[\p{L}\p{N}_-]{1,40}$/u.test(t)))].slice(0,20);
+function galCounts(){const m=new Map();for(const r of galRows)for(const t of r.tags||[])m.set(t,(m.get(t)||0)+1);return [...m].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ru'));}
+function galRender(){const tags=galEl('galleryTags');tags.replaceChildren();const all=galButton('Все · '+galRows.length,()=>{galSelected.clear();galRender();});all.classList.toggle('active',!galSelected.size);tags.append(all);for(const [t,n] of galCounts()){const b=galButton('#'+t+' · '+n,()=>{galSelected.has(t)?galSelected.delete(t):galSelected.add(t);galRender();});b.classList.toggle('active',galSelected.has(t));tags.append(b);}const q=galEl('gallerySearch').value.toLocaleLowerCase('ru').trim();const root=galEl('galleryGrid');root.replaceChildren();for(const r of galRows.filter(r=>[...galSelected].every(t=>r.tags.includes(t))&&[r.title,r.description,...r.tags].join(' ').toLocaleLowerCase('ru').includes(q.replace(/^#/,'')))){const b=galButton('',()=>galRead(r),'gallery-card');const img=libNode('img');img.alt=r.title||'Снимок';img.loading='lazy';img.referrerPolicy='no-referrer';img.src=galSafeUrl(r.image_url)||galUrls.get(r.thumb_path)||'';img.onerror=()=>{img.removeAttribute('src');img.alt='Изображение недоступно';};const d=libNode('div');d.append(libNode('strong',r.title||'Без названия'),libNode('small',r.tags.map(t=>'#'+t).join(' ')));b.append(img,d);root.append(b);}if(!root.children.length)root.append(libNode('p','Снимки не найдены.','store-muted'));}
+async function galLoad(){const seq=++galSeq,uid=currentSession?.user?.id;galEl('galleryNotice').textContent='Загрузка…';try{const rows=await storeAllRows('guild_gallery','id,author_id,title,description,tags,image_url,image_path,thumb_path,created_at');const urls=new Map();for(let i=0;i<rows.length;i+=100){const paths=rows.slice(i,i+100).map(r=>r.thumb_path).filter(Boolean);if(!paths.length)continue;const {data,error}=await supabaseClient.storage.from(galBucket).createSignedUrls(paths,3600);if(error)throw error;for(const u of data||[])if(u.signedUrl)urls.set(u.path,u.signedUrl);}if(seq!==galSeq||uid!==currentSession?.user?.id)return;galRows=rows;galUrls=urls;galSelected=new Set([...galSelected].filter(t=>galCounts().some(x=>x[0]===t)));galRender();galEl('galleryNotice').textContent='';}catch(e){if(seq===galSeq)galEl('galleryNotice').textContent='Ошибка галереи: '+e.message;}}
+function galDialog(title){const d=galEl('galleryDialog');d.replaceChildren();const head=libNode('div',null,'treasury-heading');head.append(libNode('h2',title),galButton('×',()=>d.close()));d.append(head);if(!d.open)d.showModal();return d;}
+async function galRead(r){const d=galDialog(r.title||'Снимок');const img=libNode('img');img.alt=r.title||'Снимок';d.append(img,libNode('p',r.description||'Без описания'));const author=typeof membersCache!=='undefined'&&Array.isArray(membersCache)?membersCache.find(p=>p.id===r.author_id):null;d.append(libNode('small',(author?characterName(author):'Участник братства')+' · '+new Date(r.created_at).toLocaleDateString('ru-RU')));const tags=libNode('div',null,'gallery-tags');for(const t of r.tags)tags.append(galButton('#'+t,()=>{galSelected=new Set([t]);galRender();d.close();}));d.append(tags);const actions=libNode('div',null,'treasury-actions');d.append(actions);if(r.author_id===currentSession?.user?.id||accessState.mode==='admin'){actions.append(galButton('Редактировать',()=>galEdit(r)),galButton('Удалить',async()=>{if(galBusy||!confirm('Удалить снимок?'))return;galBusy=true;try{const {error}=await supabaseClient.from('guild_gallery').delete().eq('id',r.id);if(error)throw error;if(r.image_path){const result=await supabaseClient.storage.from(galBucket).remove([r.image_path,r.thumb_path]);if(result.error)showToast('Запись удалена, файл требует очистки: '+result.error.message);}d.close();await galLoad();}catch(e){showToast(e.message);}finally{galBusy=false;}}));}let url=galSafeUrl(r.image_url);if(!url&&r.image_path){const {data,error}=await supabaseClient.storage.from(galBucket).createSignedUrl(r.image_path,3600);if(!error)url=data.signedUrl;}if(!url){d.append(libNode('p','Не удалось открыть изображение'));return;}img.referrerPolicy='no-referrer';img.src=url;img.onerror=()=>{img.removeAttribute('src');img.alt='Изображение недоступно';};const link=libNode('a','Открыть изображение','secondary-button');link.href=url;link.target='_blank';link.rel='noopener noreferrer';actions.prepend(link);}
+function galEdit(r=null){const d=galDialog(r?'Редактировать снимок':'Добавить в галерею');const f=libNode('form');d.append(f);const field=(name,el)=>{const l=libNode('label',name);l.append(el);f.append(l);return el;};const url=field('Прямая HTTPS-ссылка на изображение',libNode('input'));url.type='url';url.maxLength=2048;url.placeholder='https://…/image.png';url.value=r?.image_url||'';url.required=!r||!!r.image_url;const hint=libNode('small','Вставьте прямую ссылку на JPG, PNG или WEBP, а не страницу фотохостинга.','store-muted');f.append(hint);const preview=libNode('img');preview.hidden=true;preview.referrerPolicy='no-referrer';preview.alt='Предпросмотр';f.append(preview);const check=galButton('Проверить изображение',()=>{const v=galSafeUrl(url.value.trim());if(!v){hint.textContent='Нужна действительная HTTPS-ссылка.';return;}preview.hidden=false;preview.onload=()=>{hint.textContent='Изображение доступно.';};preview.onerror=()=>{preview.hidden=true;hint.textContent='Изображение недоступно. Проверьте прямую ссылку.';};preview.src=v;});f.append(check);const title=field('Название (необязательно)',libNode('input'));title.maxLength=160;title.value=r?.title||'';const desc=field('Описание (необязательно)',libNode('textarea'));desc.rows=3;desc.maxLength=1000;desc.value=r?.description||'';const tags=field('Хештеги (через пробел или запятую)',libNode('input'));tags.value=(r?.tags||[]).map(t=>'#'+t).join(' ');tags.maxLength=900;const suggestions=libNode('div',null,'gallery-tags');for(const [t,n] of galCounts().slice(0,30))suggestions.append(galButton('#'+t+' · '+n,()=>{tags.value=galTags(tags.value+' '+t).map(x=>'#'+x).join(' ');}));f.append(suggestions);const submit=libNode('button',r?'Сохранить':'Опубликовать','primary-button');submit.type='submit';f.append(submit);f.addEventListener('submit',async e=>{e.preventDefault();if(galBusy)return;galBusy=true;submit.disabled=true;try{const uid=currentSession.user.id;const raw=url.value.trim(),v=galSafeUrl(raw);if((raw&&!v)||(!r&&!v))throw Error('Укажите действительную HTTPS-ссылку');const payload={title:title.value.trim(),description:desc.value.trim(),tags:galTags(tags.value)};if(v)payload.image_url=v;if(r){const {error}=await supabaseClient.from('guild_gallery').update(payload).eq('id',r.id);if(error)throw error;}else{const {error}=await supabaseClient.from('guild_gallery').insert({...payload,author_id:uid});if(error)throw error;}d.close();await galLoad();}catch(e){showToast('Ошибка: '+e.message);}finally{galBusy=false;submit.disabled=false;}});}
+galEl('galleryOpen').addEventListener('click',()=>{galRows=[];galUrls.clear();galSelected.clear();galEl('gallerySearch').value='';libShow('gallery');galRender();galLoad();});galEl('galleryBack').addEventListener('click',()=>{++galSeq;libHome();});galEl('galleryAdd').addEventListener('click',()=>galEdit());galEl('gallerySearch').addEventListener('input',galRender);
+for(const [label,pre,post] of [['Жирный','**','**'],['Заголовок','## ',''],['Список','- ',''],['Ссылка','[','](https://)'],['Изображение','![','](https://)']])libEl('libFormat').append(galButton(label,()=>{const t=libEl('libraryEditor').elements.namedItem('body');const a=t.selectionStart,b=t.selectionEnd;t.setRangeText(pre+(t.value.slice(a,b)||'текст')+post,a,b,'end');t.focus();}));

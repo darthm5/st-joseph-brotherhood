@@ -774,6 +774,7 @@ function renderDirectory() {
   document.getElementById("directoryMasteries").classList.toggle("directory-selected",directoryKind === "masteries");
   document.getElementById("directoryBack").hidden = !directoryCategory;
   directoryGrid.replaceChildren();
+  directoryGrid.classList.toggle("workshop-list", !!directoryCategory);
   const term = directorySearch.value.trim().toLocaleLowerCase();
   const min = Number(directoryLevel.value);
   if (!directoryCategory) {
@@ -782,13 +783,13 @@ function renderDirectory() {
       const matches = directoryEntry(name).filter(x=>x.level>=min);
       if (!name.toLocaleLowerCase().includes(term) && !matches.some(x=>characterName(x.p).toLocaleLowerCase().includes(term))) continue;
       const button=element("button","directory-category"); button.type="button";
-      button.append(element("span","directory-category-icon",directoryKind==="jobs"?"⚒":"♜"));
+      button.append(element("span","directory-category-icon",directoryKind==="jobs"?"⚒":(["⚒","🛡","✂","🏹","💎","🪚","⚗","🍲","🍺"][MASTERY_NAMES.indexOf(name)]||"⚒")));
       button.append(element("strong","",name));
-      button.append(element("small","",matches.length+" специалистов · высший уровень "+(matches.length?Math.max(...matches.map(x=>x.level)):"—")));
+      button.append(element("small","","Мастеров: "+matches.length));
       button.addEventListener("click",()=>{directoryCategory=name;directorySearch.value="";renderDirectory();});
       directoryGrid.append(button);
     }
-    directoryMessage.textContent = "Категории: " + directoryGrid.children.length;
+    directoryMessage.textContent = "Направлений: " + directoryGrid.children.length;
   } else {
     const heading=element("h2","directory-heading",directoryCategory);
     directoryGrid.append(heading);
@@ -801,6 +802,7 @@ function renderDirectory() {
       const body=element("div","directory-person-info");body.append(element("strong","",characterName(p)));body.append(element("small","",p.game_rank||"Член братства"));
       const progress=element("div","directory-progress");const fill=element("div","directory-progress-fill");fill.style.width=(level*10)+"%";progress.append(fill);body.append(progress);card.append(body);
       card.append(element("strong","directory-person-level",level+"/10"));
+      card.append(element("span","workshop-profile-link","Анкета →"));
       card.addEventListener("click",()=>directoryMemberDetails(p));directoryGrid.append(card);
     }
     if (!matches.length) directoryGrid.append(element("p","members-message","Специалисты не найдены."));

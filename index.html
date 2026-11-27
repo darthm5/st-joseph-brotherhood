@@ -70,7 +70,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.8-access</div>
+        <div class="sidebar-version">Резиденция · версия 2.9.1.1</div>
       </div>
     </aside>
 
@@ -170,7 +170,7 @@
           <div class="page-title-block"><div class="eyebrow">Ремесленная книга братства</div><h1>Ремесленные мастерские</h1><p>Работы и мастерства принятых членов братства. Выберите специализацию, чтобы увидеть мастеров и их уровни.</p></div>
           <div class="craft-switch" role="group" aria-label="Раздел ремёсел"><button class="secondary-button craft-switch-active" id="craftShowDirectory" type="button">Мастера братства</button><button class="secondary-button" id="craftShowCalculator" type="button">⚒ Калькулятор ремёсел</button></div>
           <section id="craftCalculator" hidden>
-<div id="craftEmbedded" class="craft-embedded"><div id="craftLegacyData" hidden aria-hidden="true"><button id="dsave" type="button"></button><input id="dload" type="file"><span id="datanote"></span></div><header class="craft-compact"><div class="craft-compact-top"><span class="craft-compact-label">⚒ Счётная книга</span><div class="seg" id="secs" role="group" aria-label="Ремесло"></div><nav class="views" role="tablist" aria-label="Раздел книги"><button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button><button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button><button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button><button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button></nav></div><div class="toolrow" id="toolrow"><a class="craft-order-jump" href="#zakaz" aria-label="Перейти к заказу">Заказ ↓</a><input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета"><button type="button" id="craftFavoritesOnly" class="btn craft-fav-filter" aria-pressed="false">☆ Избранное</button><div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div><div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> ▾</button><div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div><div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> ▾</button><div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка"></div></div></div><button class="btn" id="fold" type="button" aria-expanded="true">Свернуть чертежи</button></div></header><div class="app">
+<div id="craftLazyStatus" class="panel" role="status" hidden><span>Загрузка счётной книги…</span> <button id="craftLazyRetry" type="button" class="secondary-button" hidden>Повторить</button></div><div id="craftEmbedded" class="craft-embedded" hidden><div id="craftLegacyData" hidden aria-hidden="true"><button id="dsave" type="button"></button><input id="dload" type="file"><span id="datanote"></span></div><header class="craft-compact"><div class="craft-compact-top"><span class="craft-compact-label">⚒ Счётная книга</span><div class="seg" id="secs" role="group" aria-label="Ремесло"></div><nav class="views" role="tablist" aria-label="Раздел книги"><button type="button" role="tab" data-view="book" aria-selected="true">Рецепты</button><button type="button" role="tab" data-view="prices" aria-selected="false">Цены сырья</button><button type="button" role="tab" data-view="calc" aria-selected="false">Расчёт заказа</button><button type="button" role="tab" data-view="journal" aria-selected="false">Журнал</button></nav></div><div class="toolrow" id="toolrow"><a class="craft-order-jump" href="#zakaz" aria-label="Перейти к заказу">Заказ ↓</a><input class="search" id="q" type="search" placeholder="Поиск по названию" aria-label="Поиск предмета"><button type="button" id="craftFavoritesOnly" class="btn craft-fav-filter" aria-pressed="false">☆ Избранное</button><div class="tabs lvls" id="tabs" role="group" aria-label="Уровень"></div><div class="dd" id="ddcats"><button class="btn ddb" type="button" aria-expanded="false">Вид: <b class="ddv">все</b> ▾</button><div class="ddp" hidden><div class="cats" id="cats" role="group" aria-label="Раздел"></div></div></div><div class="dd" id="ddsort"><button class="btn ddb" type="button" aria-expanded="false">Сортировка: <b class="ddv">как на верстаке</b> ▾</button><div class="ddp" hidden><div class="tabs sortbar" id="dsort" role="group" aria-label="Сортировка"></div></div></div><button class="btn" id="fold" type="button" aria-expanded="true">Свернуть чертежи</button></div></header><div class="app">
   <div class="left" id="left">
     <section class="view" data-v="book" id="catbook">
       <div class="dtip" id="dtip" hidden></div>
@@ -681,13 +681,11 @@
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
   <script src="app.js?v=288access"></script>
-  <script src="crafting/embedded.js?v=288access"></script>
-  <script src="crafting/workshop-layout.js?v=288access"></script>
-  <script src="crafting/account-sync.js?v=260"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{writeRoute('crafts','directory');area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
   c.addEventListener('click',()=>{writeRoute('crafts','calculator');area.hidden=true;calc.hidden=false;document.querySelector('#page-crafts .page-title-block').hidden=true;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
   </script>
+  <script src="crafting/lazy-loader.js?v=2911"></script>
 </body>
 </html>

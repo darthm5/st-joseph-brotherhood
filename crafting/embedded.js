@@ -1905,19 +1905,21 @@ window.CRAFT_BRIDGE={ALLK,NAME,MAT,stockKeys:()=>showAll ? ALLK : secKeys(),tree
  }
  function setGuildStock(){window.FAC_STOCK=Object.fromEntries(ALLK.map(k=>[k,getQty(k)]))}
  async function load(){
-   if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode)){label('Войди в аккаунт участника братства.');return}
+   if(!householdAllowed()||!supabaseClient||!currentSession?.user){label('Войди в аккаунт участника братства.');return}
    refresh.disabled=true;label('Загружаю остатки кладовой…');
    try{
      const [items,tx]=await Promise.all([storeAllRows('storage_items','id,name,section,category,unit','name'),storeAllRows('storage_transactions','id,item_id,quantity,created_at')]);
+     if(!householdAllowed())return;
      catalog=items;balance=new Map(items.map(i=>[i.id,0]));for(const t of tx)balance.set(t.item_id,(balance.get(t.item_id)||0)+Number(t.quantity));
      loaded=true;setGuildStock();renderGuild();if(window.SRC_FAC)renderOrder();label('Остатки обновлены из кладовой. Данные доступны только для просмотра.');
    }catch(e){label('Не удалось загрузить кладовую: '+e.message)}finally{refresh.disabled=false}
  }
+ document.addEventListener('household-access-change',()=>{if(!householdAllowed()){catalog=[];balance.clear();loaded=false;window.FAC_STOCK={};window.SRC_FAC=false;list.replaceChildren();const r=document.querySelector('input[name=craftStockSource][value=personal]');if(r){r.checked=true;r.dispatchEvent(new Event('change'));}}});
  refresh.addEventListener('click',load);
  document.addEventListener('craft-stock-layout-update',()=>{if(loaded)renderGuild()});
  document.getElementById('craftShowCalculator')?.addEventListener('click',()=>{if(!loaded)load()});
  document.querySelectorAll('input[name="craftStockSource"]').forEach(r=>r.addEventListener('change',()=>{
-   window.SRC_FAC=r.value==='guild';
+   window.SRC_FAC=r.value==='guild'&&householdAllowed();
    document.getElementById('craftPersonalStock').hidden=window.SRC_FAC;
    document.getElementById('craftGuildStock').hidden=!window.SRC_FAC;
    if(window.SRC_FAC&&!loaded)load();
@@ -1927,6 +1929,7 @@ window.CRAFT_BRIDGE={ALLK,NAME,MAT,stockKeys:()=>showAll ? ALLK : secKeys(),tree
  const btn=document.getElementById('odone');
  btn.addEventListener('click',async e=>{
    const o=O();if(!window.SRC_FAC&&!o.guildReq)return;
+   if(!householdAllowed()){e.preventDefault();e.stopImmediatePropagation();return label('Доступ к складу братства закрыт.');}
    e.preventDefault();e.stopImmediatePropagation();if(busy||o.done)return;
    if(!loaded){await load();if(!loaded)return}
    if(!supabaseClient||!currentSession?.user)return label('Нужна авторизация.');

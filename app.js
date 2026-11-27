@@ -59,16 +59,21 @@ function restoreRoute() {
 }
 window.addEventListener('popstate',()=>{if(['approved','admin'].includes(accessState.mode))restoreRoute();});
 window.addEventListener('hashchange',()=>{if(['approved','admin'].includes(accessState.mode)&&location.hash.startsWith('#/'))restoreRoute();});
+const householdPages = new Set(['treasury','storehouse','market','property','map']);
+function householdAllowed(){return ['approved','admin'].includes(accessState.mode)&&['Глава гильдии','Старейшина гильдии','Казначей','Писарь','Купец','Десятник','Гильдмастер','Мастер','Подмастерье','Возница','Охрана','Последователь'].includes(accessState.rank);}
 function canVisit(page) {
+  if(householdPages.has(page)&&!householdAllowed())return false;
   return page === "management" ? accessState.mode === "admin" : accessState.mode === "approved" || accessState.mode === "admin" || publicPages.has(page);
 }
 function updateNavigationAccess() {
+  document.dispatchEvent(new Event("household-access-change"));
+  for(const id of ["homeBalance","pcContribution"]){const el=document.getElementById(id);if(el){el.textContent="—";el.closest("article").hidden=!householdAllowed();}}
   const restricted = accessState.mode !== "approved" && accessState.mode !== "admin";
   for (const button of navButtons) {
-    button.hidden = restricted && button.dataset.page !== "profile";
+    button.hidden = !canVisit(button.dataset.page);
   }
   document.querySelectorAll("[data-goto]").forEach(button => {
-    button.hidden = restricted && button.dataset.goto !== "profile";
+    button.hidden = !canVisit(button.dataset.goto);
   });
   document.querySelector(".management-caption").hidden = accessState.mode !== "admin";
   const adminNav = document.querySelector('[data-page="management"]');
@@ -108,7 +113,7 @@ async function refreshAccess() {
   try {
     const [adminResult, profileResult] = await Promise.all([
       supabaseClient.rpc("is_site_admin"),
-      supabaseClient.from("profiles").select("character_first_name,character_last_name,membership_status").eq("id",userId).maybeSingle()
+      supabaseClient.from("profiles").select("character_first_name,character_last_name,membership_status,game_rank").eq("id",userId).maybeSingle()
     ]);
     if (sequence !== accessSequence || currentSession?.user?.id !== userId) return;
     if (adminResult.error) throw adminResult.error;
@@ -116,7 +121,7 @@ async function refreshAccess() {
     const p = profileResult.data;
     const complete = !!(p?.character_first_name?.trim() && p?.character_last_name?.trim());
     const mode = adminResult.data === true ? "admin" : !complete ? "register" : p.membership_status === "approved" ? "approved" : p.membership_status === "rejected" ? "rejected" : "pending";
-    accessState = {mode,status:p?.membership_status || null,complete};
+    accessState = {mode,status:p?.membership_status || null,complete,rank:p?.game_rank};
     updateNavigationAccess();
     if (mode === "admin" || mode === "approved") restoreRoute(); else navigate("waiting");
   } catch(error) {
@@ -452,7 +457,7 @@ function pcRecords(root,rows,empty){root.replaceChildren();if(!rows.length)root.
 async function pcRender(p,uid,sequence){const allowed=['approved','admin'].includes(accessState.mode);const complete=!!(p.character_first_name?.trim()&&p.character_last_name?.trim());pc('pcCancel').hidden=true;pc('personalCabinet').hidden=!complete;profileForm.hidden=complete;if(!complete)return;
  pc('pcName').textContent=characterName(p);pc('pcRank').textContent=p.game_rank||'Кандидат';pc('pcProfession').textContent=[...(p.masteries||[]),...(p.jobs||[])].map(x=>x.name).join(' · ')||p.profession||'Занятие не указано';pc('pcMembership').textContent=pc('profileMembership').textContent;pc('pcAge').textContent=p.character_age?String(p.character_age):'Не указан';pc('pcDiscord').textContent=p.discord_username||'Discord';pc('pcBio').textContent=p.about||'История персонажа ещё не написана.';const photo=safePhoto(p.character_photo_url);pc('pcPortrait').hidden=!photo;pc('pcPortraitFallback').hidden=!!photo;if(photo)pc('pcPortrait').src=photo;else pc('pcPortrait').removeAttribute('src');pcSkills(pc('pcSkills'),p);pcSkills(pc('pcCraftSkills'),p);pcTab('about');pc('pcStats').hidden=!allowed;for(const b of document.querySelectorAll('[data-pc-tab]:not([data-pc-tab="about"])'))b.hidden=!allowed;pc('pcContribution').textContent='—';pc('pcCompleted').textContent='—';pc('pcDays').textContent=p.created_at&&Number.isFinite(Date.parse(p.created_at))?Math.max(0,Math.floor((Date.now()-Date.parse(p.created_at))/86400000)):'—';pcRecords(pc('pcWork'),[],'Загрузка…');pcRecords(pc('pcHistory'),[],'Загрузка…');if(!allowed)return;
  const date=x=>x?new Date(x).toLocaleDateString('ru-RU'):'';
- const results=await Promise.allSettled([supabaseClient.from('treasury_transactions').select('amount,description,created_at').eq('member_id',uid).order('created_at',{ascending:false}).limit(1000),supabaseClient.from('work_tasks').select('title,status,created_at').eq('assigned_to',uid).order('created_at',{ascending:false}).limit(1000),supabaseClient.from('storage_requests').select('comment,status,request_type,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100),supabaseClient.from('storage_craft_batches').select('order_name,status,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100)]);
+ const results=await Promise.allSettled([(householdAllowed()?supabaseClient.from('treasury_transactions').select('amount,description,created_at').eq('member_id',uid).order('created_at',{ascending:false}).limit(1000):Promise.resolve({data:[]})),supabaseClient.from('work_tasks').select('title,status,created_at').eq('assigned_to',uid).order('created_at',{ascending:false}).limit(1000),(householdAllowed()?supabaseClient.from('storage_requests').select('comment,status,request_type,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]})),(householdAllowed()?supabaseClient.from('storage_craft_batches').select('order_name,status,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(100):Promise.resolve({data:[]}))]);
  if(sequence!==profileLoadSequence||currentSession?.user?.id!==uid)return;const ok=i=>results[i].status==='fulfilled'&&!results[i].value.error;const rows=i=>ok(i)?results[i].value.data||[]:[];const tx=rows(0),tasks=rows(1),requests=rows(2),batches=rows(3);if(ok(0))pc('pcContribution').textContent=new Intl.NumberFormat('ru-RU').format(tx.reduce((a,t)=>a+Math.max(0,Number(t.amount)||0),0))+(tx.length===1000?'+':'');if(ok(1))pc('pcCompleted').textContent=tasks.filter(t=>t.status==='completed').length+(tasks.length===1000?'+':'');const work=tasks.filter(t=>['assigned','submitted'].includes(t.status)).map(t=>({title:t.title,meta:workStatusNames[t.status]}));for(const r of requests.filter(r=>r.status==='pending'))work.push({title:r.comment||'Заявка в кладовую',meta:'Кладовая · Ожидает'});for(const r of batches.filter(r=>r.status==='pending'))work.push({title:r.order_name||'Ремесленный заказ',meta:'Ресурсы · Ожидает'});pcRecords(pc('pcWork'),work,'Активных дел нет.');const history=[...tx.map(t=>({title:t.description||'Операция казны',meta:date(t.created_at)+' · '+t.amount+' грошей',at:t.created_at})),...tasks.filter(t=>t.status==='completed').map(t=>({title:t.title,meta:'Завершённое поручение',at:t.created_at})),...batches.map(t=>({title:t.order_name||'Ремесленная заявка',meta:date(t.created_at)+' · '+storeStatus(t.status),at:t.created_at}))].sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,20);pcRecords(pc('pcHistory'),history,'Записей пока нет.');if(results.some((_,i)=>!ok(i))){for(const id of ['pcWork','pcHistory'])pc(id).prepend(element('p','pc-muted','Часть сведений недоступна. Повторите вход в кабинет позже.'));}}
 
 // Member registry: read-only, loaded from Supabase using the logged-in session.
@@ -2617,11 +2622,11 @@ async function loadHome272(){
  const jobs=[
  supabaseClient.from('profiles').select('character_first_name').eq('id',uid).maybeSingle(),
  count('profiles','membership_status','approved'),
- workFetchAll('treasury_transactions','amount'),
+ (householdAllowed()?workFetchAll('treasury_transactions','amount'):Promise.resolve([])),
  supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('status','open').eq('task_type','public'),
  supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('assigned_to',uid).in('status',['assigned','submitted']),
- supabaseClient.from('storage_requests').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'),
- supabaseClient.from('storage_craft_batches').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'),
+ (householdAllowed()?supabaseClient.from('storage_requests').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'):Promise.resolve({count:0})),
+ (householdAllowed()?supabaseClient.from('storage_craft_batches').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'):Promise.resolve({count:0})),
  supabaseClient.from('guild_documents').select('title,summary,is_pinned,updated_at').eq('category','announcements').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(4),
  ];
  const results=await Promise.allSettled(jobs);if(!active())return;const ok=i=>results[i]?.status==='fulfilled'&&!results[i].value?.error;const val=i=>ok(i)?results[i].value:null;const rows=i=>val(i)?.data||[];const num=i=>val(i)?.count;const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—';const set=(id,n)=>home272(id).textContent=fmt(n);

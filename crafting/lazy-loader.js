@@ -5,7 +5,7 @@
  const status=document.getElementById('craftLazyStatus');
  const retry=document.getElementById('craftLazyRetry');
  let pending=null, next=0, ready=false;
- const scripts=['crafting/embedded.js?v=288access','crafting/workshop-layout.js?v=288access','crafting/account-sync.js?v=260'];
+ const scripts=['crafting/embedded.js?v=2913','crafting/workshop-layout.js?v=288access','crafting/account-sync.js?v=260'];
  function append(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>{s.remove();reject(new Error(src));};document.head.append(s);});}
  function open(){
   if(!canVisit('crafts')||ready||pending)return;

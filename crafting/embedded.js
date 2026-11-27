@@ -1908,9 +1908,9 @@ window.CRAFT_BRIDGE={ALLK,NAME,MAT,stockKeys:()=>showAll ? ALLK : secKeys(),tree
    if(!householdAllowed()||!supabaseClient||!currentSession?.user){label('Войди в аккаунт участника братства.');return}
    refresh.disabled=true;label('Загружаю остатки кладовой…');
    try{
-     const [items,tx]=await Promise.all([storeAllRows('storage_items','id,name,section,category,unit','name'),storeAllRows('storage_transactions','id,item_id,quantity,created_at')]);
-     if(!householdAllowed())return;
-     catalog=items;balance=new Map(items.map(i=>[i.id,0]));for(const t of tx)balance.set(t.item_id,(balance.get(t.item_id)||0)+Number(t.quantity));
+     const uid=currentSession.user.id;const [items,totals]=await Promise.all([storeAllRows('storage_items','id,name,section,category,unit','name'),loadStorageTotals2913()]);
+     if(!householdAllowed()||currentSession?.user?.id!==uid)return;
+     catalog=items;balance=new Map(items.map(i=>[i.id,totals.get(i.id)||0]));
      loaded=true;setGuildStock();renderGuild();if(window.SRC_FAC)renderOrder();label('Остатки обновлены из кладовой. Данные доступны только для просмотра.');
    }catch(e){label('Не удалось загрузить кладовую: '+e.message)}finally{refresh.disabled=false}
  }

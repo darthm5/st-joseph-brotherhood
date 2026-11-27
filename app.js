@@ -888,19 +888,22 @@ async function loadTreasury() {
   document.querySelector('[data-tr-tab="admin"]').hidden = !isAdmin;
   if (!isAdmin && document.querySelector('[data-tr-tab="admin"]').getAttribute('aria-pressed') === 'true') trSelect('journal');
   try {
-    const [txResult, reqResult, profilesResult] = await Promise.all([
+    const [txResult, reqResult, profilesResult, totalsResult] = await Promise.all([
+
       supabaseClient.from("treasury_transactions").select("id,member_id,amount,description,created_at,recorded_by").order("created_at",{ascending:false}).limit(500),
       supabaseClient.from("treasury_requests").select("id,user_id,amount,comment,status,created_at,reviewed_at").order("created_at",{ascending:false}).limit(500),
-      supabaseClient.from("profiles").select("id,character_first_name,character_last_name").limit(1000)
+      supabaseClient.from("profiles").select("id,character_first_name,character_last_name").limit(1000),
+      supabaseClient.rpc("treasury_totals_v2913")
     ]);
-    for (const result of [txResult,reqResult,profilesResult]) if(result.error) throw result.error;
+    for (const result of [txResult,reqResult,profilesResult,totalsResult]) if(result.error) throw result.error;
     if (currentSession?.user?.id !== userId || !treasuryPage.classList.contains("active-page")) return;
     const tx = txResult.data || [], requests = reqResult.data || [], profiles = profilesResult.data || [];
     const names = new Map(profiles.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(" ") || "Участник"]));
-    const sum = tx.reduce((n,t)=>n+Number(t.amount),0);
+    const totals = totalsResult.data;
+    const sum = BigInt(totals.balance);
     document.getElementById("treasuryBalance").textContent = moneyFormat.format(sum);
-    document.getElementById("treasuryIncome").textContent = moneyFormat.format(tx.reduce((n,t)=>n+Math.max(0,Number(t.amount)),0));
-    document.getElementById("treasuryExpenses").textContent = moneyFormat.format(tx.reduce((n,t)=>n+Math.max(0,-Number(t.amount)),0));
+    document.getElementById("treasuryIncome").textContent = moneyFormat.format(BigInt(totals.income));
+    document.getElementById("treasuryExpenses").textContent = moneyFormat.format(BigInt(totals.expenses));
     ownBox.replaceChildren(); pendingBox.replaceChildren(); historyBox.replaceChildren();
     const mine = requests.filter(r=>r.user_id===userId);
     if(!mine.length) treasuryText(ownBox,"p","Вы ещё не подавали заявок.");
@@ -928,7 +931,7 @@ async function loadTreasury() {
     if(!tx.length) treasuryText(historyBox,"p","Подтверждённых операций пока нет.");
     for(const t of tx) { const row=treasuryRow(historyBox,t.description,`${treasuryDate(t.created_at)} · ${names.get(t.member_id)||"Общая операция"}`,Number(t.amount)); row.dataset.trDirection=Number(t.amount)<0?'expense':'income'; }
     trFilter();
-    treasuryNotice.textContent = tx.length===500 ? "Показаны последние 500 операций; баланс и итоги рассчитаны только по ним." : "Данные обновлены.";
+    treasuryNotice.textContent = tx.length===500 ? "Показаны последние 500 операций; баланс и итоги учитывают всю историю." : "Данные обновлены.";
   } catch(e) {treasuryNotice.textContent="Ошибка загрузки казны: "+e.message;}
 }
 document.getElementById("treasuryRefresh").addEventListener("click",loadTreasury);
@@ -1109,19 +1112,20 @@ async function loadStorehouse() {
   storeOpenPanel(storeActivePanel,false);
   storeEl("storeNotice").textContent="Сверяем амбарные книги…";
   try {
-    const [items,transactions,requests,profiles,batches] = await Promise.all([
+    const [items,transactions,requests,profiles,batches,totals] = await Promise.all([
       storeAllRows("storage_items","id,name,category,unit,description,section","name"),
-      storeAllRows("storage_transactions","id,item_id,member_id,quantity,description,recorded_by,created_at"),
+      supabaseClient.from("storage_transactions").select("id,item_id,member_id,quantity,description,recorded_by,created_at").order("created_at",{ascending:false}).order("id",{ascending:false}).limit(101).then(r=>{if(r.error)throw r.error;return r.data||[];}),
       storeAllRows("storage_requests","id,item_id,user_id,request_type,quantity,comment,status,created_at,reviewed_at"),
       storeAllRows("profiles","id,character_first_name,character_last_name","created_at"),
-      storeAllRows("storage_craft_batches","token,user_id,order_name,items,status,created_at,request_type")
+      storeAllRows("storage_craft_batches","token,user_id,order_name,items,status,created_at,request_type"),
+      loadStorageTotals2913()
     ]);
     if (token!==storeLoadToken || currentSession?.user?.id!==userId || !storehousePage.classList.contains("active-page")) return;
     storeItems=items.sort((a,b)=>a.name.localeCompare(b.name,"ru"));
     storeCategories=[...new Set(items.map(i=>i.category))].sort((a,b)=>a.localeCompare(b,"ru"));
     storeProfiles=new Map(profiles.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(" ")||"Участник"]));
     storeBalances=new Map(items.map(item=>[item.id,0]));
-    for (const t of transactions) storeBalances.set(t.item_id,(storeBalances.get(t.item_id)||0)+Number(t.quantity));
+    for (const [id,quantity] of totals) storeBalances.set(id,quantity);
     storeEl("storeItemCount").textContent=storeNumber.format(items.length);
     storeEl("storeInStock").textContent=storeNumber.format(items.filter(item=>(storeBalances.get(item.id)||0)>0).length);
     storeEl("storePendingCount").textContent=storeNumber.format(requests.filter(r=>r.status==="pending").length+batches.filter(r=>r.status==="pending").length);
@@ -1183,7 +1187,7 @@ async function loadStorehouse() {
       const row=storeRecord(history,storeItemName(t.item_id),`${storeDate(t.created_at)} · ${t.description} · ${storeProfiles.get(t.member_id)||"Общая операция"}`,null);
       storeText(row,"b",`${Number(t.quantity)>0?"+":""}${storeNumber.format(Number(t.quantity))} ${unit}`,Number(t.quantity)<0?"treasury-negative":"treasury-positive");
     }
-    storeEl("storeHistoryHint").textContent=transactions.length>100?`Показаны последние 100 из ${transactions.length} операций. Все операции учтены в остатках.`:"";
+    storeEl("storeHistoryHint").textContent=transactions.length>100?"Показаны последние 100 операций. Все операции учтены в остатках.":"";
     storeEl("storeNotice").textContent="Данные обновлены. Остатки рассчитаны по всей доступной истории операций.";
   } catch(err) {storeEl("storeNotice").textContent="Ошибка загрузки кладовой: "+err.message;}
 }
@@ -2637,7 +2641,7 @@ async function loadHome272(){
  const jobs=[
  supabaseClient.from('profiles').select('character_first_name').eq('id',uid).maybeSingle(),
  count('profiles','membership_status','approved'),
- (householdAllowed()?workFetchAll('treasury_transactions','amount'):Promise.resolve([])),
+ (householdAllowed()?supabaseClient.rpc('treasury_totals_v2913'):Promise.resolve({data:null})),
  supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('status','open').eq('task_type','public'),
  supabaseClient.from('work_tasks').select('id',{count:'exact',head:true}).eq('assigned_to',uid).in('status',['assigned','submitted']),
  (householdAllowed()?supabaseClient.from('storage_requests').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('status','pending'):Promise.resolve({count:0})),
@@ -2645,7 +2649,7 @@ async function loadHome272(){
  supabaseClient.from('guild_documents').select('title,summary,is_pinned,updated_at').eq('category','announcements').order('is_pinned',{ascending:false}).order('updated_at',{ascending:false}).limit(4),
  ];
  const results=await Promise.allSettled(jobs);if(!active())return;const ok=i=>results[i]?.status==='fulfilled'&&!results[i].value?.error;const val=i=>ok(i)?results[i].value:null;const rows=i=>val(i)?.data||[];const num=i=>val(i)?.count;const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat('ru-RU').format(n):'—';const set=(id,n)=>home272(id).textContent=fmt(n);
- if(val(0)?.data?.character_first_name)home272('homeGreeting').textContent='Доброго дня, '+val(0).data.character_first_name+'!';set('homeMembers',num(1));set('homeBalance',ok(2)?val(2).reduce((n,t)=>n+Number(t.amount),0):NaN);set('homeTasks',num(3));set('homeMine',[4,5,6].every(i=>Number.isFinite(num(i)))?num(4)+num(5)+num(6):NaN);
+ if(val(0)?.data?.character_first_name)home272('homeGreeting').textContent='Доброго дня, '+val(0).data.character_first_name+'!';set('homeMembers',num(1));home272('homeBalance').textContent=ok(2)&&val(2)?.data?moneyFormat.format(BigInt(val(2).data.balance)):'—';set('homeTasks',num(3));set('homeMine',[4,5,6].every(i=>Number.isFinite(num(i)))?num(4)+num(5)+num(6):NaN);
  home272List('homeNotices',rows(7).map(t=>({title:t.title,body:t.summary,meta:(t.is_pinned?'Закреплено · ':'')+home272Date(t.updated_at),pinned:t.is_pinned})),ok(7)?'Объявлений пока нет.':'Объявления недоступны.');home272('homeStatus').textContent=results.every((_,i)=>ok(i))?'Обновлено: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Часть сведений недоступна. Попробуйте обновить.';
 }
 home272('homeRefresh').onclick=loadHome272;
@@ -2767,3 +2771,5 @@ shopEl('shopAdd').onclick=()=>{if(!shopAdmin())return;shopDraft.clear();shopEl('
 shopEl('shopPickSearch').oninput=shopPick;shopEl('shopPickCraft').onchange=()=>{shopEl('shopPickSearch').value='';shopPick();};shopEl('shopPickItem').onchange=()=>{shopEl('shopPickAdd').disabled=!shopEl('shopPickItem').value;};shopEl('shopPickAdd').onclick=()=>{const x=shopProducts().find(x=>x.id===shopEl('shopPickItem').value);if(x&&shopDraft.size<200){shopDraft.set(x.id,{name:x.name,price:''});shopDraftRender();}};
 shopEl('shopCancel').onclick=()=>{if(!shopBusy)shopEl('shopDialog').close();};shopEl('shopForm').onsubmit=async e=>{e.preventDefault();if(!shopDraft.size)return;if(await shopSave([...shopDraft].map(([id,x])=>({id,price:Number(x.price)}))))shopEl('shopDialog').close();};
 shopEl('shopSearch').oninput=shopRender;shopEl('shopCraft').onchange=shopRender;shopEl('shopSort').onchange=shopRender;shopEl('shopHistory').onclick=()=>{const el=shopEl('shopHistoryList');el.hidden=!el.hidden;shopEl('shopList').hidden=!el.hidden;if(!el.hidden)shopShowHistory();};
+
+async function loadStorageTotals2913(){const {data,error}=await supabaseClient.rpc("storage_totals_v2913");if(error)throw error;return new Map(Object.entries(data||{}).map(([id,v])=>{const n=Number(v);if(!Number.isSafeInteger(n))throw new Error("Остаток вне безопасного диапазона");return [id,n];}));}

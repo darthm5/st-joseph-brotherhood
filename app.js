@@ -41,8 +41,26 @@ let accessState = { mode: "loading", status: null, complete: false };
 let accessSequence = 0;
 let accessInitialized = false;
 const publicPages = new Set(["profile", "waiting"]);
+function readRoute() {
+  const match = location.hash.match(/^#\/([a-z]+)(?:\/([a-z]+))?$/);
+  if (!match) return {page:'home',sub:''};
+  const page = ({storage:'storehouse',library:'info',hall:'ratusha'})[match[1]] || match[1];
+  return Object.hasOwn(pageInfo,page) ? {page,sub:match[2]||''} : {page:'home',sub:''};
+}
+function writeRoute(page,sub='',replace=false) {
+  if(page==='waiting') return;
+  const name=({storehouse:'storage',info:'library',ratusha:'hall'})[page]||page;
+  const hash='#/'+name+(sub?'/'+sub:'');
+  if(location.hash!==hash) history[replace?'replaceState':'pushState'](null,'',hash);
+}
+function restoreRoute() {
+  const {page,sub}=readRoute();
+  navigate(page,sub,true);
+}
+window.addEventListener('popstate',()=>{if(['approved','admin'].includes(accessState.mode))restoreRoute();});
+window.addEventListener('hashchange',()=>{if(['approved','admin'].includes(accessState.mode)&&location.hash.startsWith('#/'))restoreRoute();});
 function canVisit(page) {
-  return accessState.mode === "approved" || accessState.mode === "admin" || publicPages.has(page);
+  return page === "management" ? accessState.mode === "admin" : accessState.mode === "approved" || accessState.mode === "admin" || publicPages.has(page);
 }
 function updateNavigationAccess() {
   const restricted = accessState.mode !== "approved" && accessState.mode !== "admin";
@@ -100,7 +118,7 @@ async function refreshAccess() {
     const mode = adminResult.data === true ? "admin" : !complete ? "register" : p.membership_status === "approved" ? "approved" : p.membership_status === "rejected" ? "rejected" : "pending";
     accessState = {mode,status:p?.membership_status || null,complete};
     updateNavigationAccess();
-    navigate(mode === "admin" || mode === "approved" ? "home" : "waiting");
+    if (mode === "admin" || mode === "approved") restoreRoute(); else navigate("waiting");
   } catch(error) {
     if (sequence !== accessSequence) return;
     accessState = {mode:"error",status:null,complete:false};
@@ -131,8 +149,12 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("show"), 4200);
 }
 
-function navigate(page) {
-  if (!canVisit(page)) page = "waiting";
+function navigate(page,sub='',replace=false) {
+  if (!canVisit(page)) page = ['approved','admin'].includes(accessState.mode) ? 'home' : 'waiting';
+  if(page==='market') sub=sub==='shop'?'shop':'trade';
+  else if(page==='crafts') sub=sub==='calculator'?'calculator':'directory';
+  else sub='';
+  writeRoute(page,sub,replace);
   const info = pageInfo[page] || pageInfo.home;
   navButtons.forEach(button => { const active = button.dataset.page === page; button.classList.toggle("active", active); if (active) { button.setAttribute("aria-current", "page"); const group = button.closest("details"); if (group) group.open = true; } else button.removeAttribute("aria-current"); });
   profilePage.classList.toggle("active-page", page === "profile");
@@ -155,11 +177,11 @@ function navigate(page) {
   if (page === "waiting") showWaiting();
   if (page === "management") loadAdminPanel();
   if (page === "members") loadMembers();
-  if (page === "crafts") loadDirectory();
+  if (page === "crafts") { loadDirectory(); document.getElementById(sub==='calculator'?'craftShowCalculator':'craftShowDirectory').click(); }
   if (page === "treasury") loadTreasury();
   if (page === "storehouse") loadStorehouse();
   if (page === "work") loadWork();
-  if (page === "market") loadMarket();
+  if (page === "market") { marketOpenPanel(sub==='shop'?'shopPanel':null,true); if(sub!=='shop')loadMarket(); }
   if (page === "property") propertyLoad();
   if (page === "calendar") loadCalendar();
   if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
@@ -1499,7 +1521,7 @@ async function marketRpc(name,args,success,confirmText){
 }
 for(const b of document.querySelectorAll('[data-market-panel]'))b.addEventListener('click',()=>{if(b.dataset.marketPanel==='marketCreatePanel'&&marketPanel!=='marketCreatePanel')marketResetForm();marketOpenPanel(b.dataset.marketPanel);});
 marketEl('marketAddItem').addEventListener('click',()=>{if(marketEl('marketItemRows').children.length>=30)return showToast('Не более 30 позиций.');marketAddRow();});
-marketEl('marketTradeMode').onclick=()=>{if(marketPanel==='shopPanel'){marketOpenPanel(null,true);loadMarket();}};marketEl('marketShopMode').onclick=()=>{if(marketPanel!=='shopPanel')marketOpenPanel('shopPanel',true);};
+marketEl('marketTradeMode').onclick=()=>{writeRoute('market','trade');if(marketPanel==='shopPanel'){marketOpenPanel(null,true);loadMarket();}};marketEl('marketShopMode').onclick=()=>{writeRoute('market','shop');if(marketPanel!=='shopPanel')marketOpenPanel('shopPanel',true);};
 marketEl('marketAll').onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value='all';marketRender();};for(const b of document.querySelectorAll('[data-market-type]'))b.onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value=b.dataset.marketType;marketRender();};
 marketEl('marketRefresh').addEventListener('click',loadMarket);
 for(const id of ['marketFilterType','marketFilterCategory','marketCraft','marketSort'])marketEl(id).addEventListener('change',marketRender);

@@ -70,7 +70,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.7.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.8-nav</div>
       </div>
     </aside>
 
@@ -680,14 +680,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2871"></script>
+  <script src="app.js?v=288nav"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
-  d.addEventListener('click',()=>{area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
-  c.addEventListener('click',()=>{area.hidden=true;calc.hidden=false;document.querySelector('#page-crafts .page-title-block').hidden=true;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
+  d.addEventListener('click',()=>{writeRoute('crafts','directory');area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
+  c.addEventListener('click',()=>{writeRoute('crafts','calculator');area.hidden=true;calc.hidden=false;document.querySelector('#page-crafts .page-title-block').hidden=true;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
   </script>
 </body>
 </html>

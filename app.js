@@ -2774,6 +2774,32 @@ shopEl('shopSearch').oninput=shopRender;shopEl('shopCraft').onchange=shopRender;
 
 async function loadStorageTotals2913(){const {data,error}=await supabaseClient.rpc("storage_totals_v2913");if(error)throw error;return new Map(Object.entries(data||{}).map(([id,v])=>{const n=Number(v);if(!Number.isSafeInteger(n))throw new Error("Остаток вне безопасного диапазона");return [id,n];}));}
 
+// v2.9.2.1 — revalidate membership before background requests.
+// Reload on actual permission changes to discard privileged DOM, dialogs and caches.
+async function revalidateAccess2921(){
+  const uid=currentSession?.user?.id, generation=accessSequence;
+  if(!uid||!supabaseClient||accessState.mode==='loading')return false;
+  const [admin,profile]=await Promise.all([
+    supabaseClient.rpc('is_site_admin'),
+    supabaseClient.from('profiles').select('character_first_name,character_last_name,membership_status,game_rank').eq('id',uid).maybeSingle()
+  ]);
+  if(uid!==currentSession?.user?.id||generation!==accessSequence)return false;
+  if(admin.error||profile.error)return false;
+  const p=profile.data;
+  const complete=!!(p?.character_first_name?.trim()&&p?.character_last_name?.trim());
+  const mode=admin.data===true?'admin':!complete?'register':p.membership_status==='approved'?'approved':p.membership_status==='rejected'?'rejected':'pending';
+  if(mode!==accessState.mode||(p?.membership_status||null)!==accessState.status||p?.game_rank!==accessState.rank||complete!==accessState.complete){
+    ++accessSequence;
+    accessState={mode:'loading',status:null,complete:false};
+    document.querySelectorAll('dialog[open]').forEach(d=>d.close());
+    updateNavigationAccess();
+    navigate('waiting');
+    location.reload();
+    return false;
+  }
+  return true;
+}
+
 // v2.9.1.4 — visibility-aware background refresh; explicit saves remain independent.
 (() => {
   let timer=null, running=false, lastStart=0;
@@ -2786,6 +2812,7 @@ async function loadStorageTotals2913(){const {data,error}=await supabaseClient.r
     running=true;lastStart=Date.now();
     try{
       if(!supabaseClient||!currentSession?.user)return;
+      if(!await revalidateAccess2921()||document.hidden||!navigator.onLine)return;
       const jobs=[];
       if(householdAllowed()){
         if(storehousePage.classList.contains('active-page'))jobs.push(storePollBadges());
@@ -2797,7 +2824,8 @@ async function loadStorageTotals2913(){const {data,error}=await supabaseClient.r
       }
       if(canVisit('work')&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)jobs.push(loadWork());
       await Promise.allSettled(jobs);
-    }finally{running=false;schedule();}
+    }catch(error){console.warn("Фоновая проверка доступа:",error);}
+    finally{running=false;schedule();}
   }
   function resume(){if(document.hidden||!navigator.onLine){stop();return;}if(!running)schedule(Math.max(0,interval-(Date.now()-lastStart)));}
   document.addEventListener('visibilitychange',resume);

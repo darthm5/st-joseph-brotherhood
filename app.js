@@ -1023,6 +1023,21 @@ async function storeAllRows(table, columns, sortColumn = "created_at") {
   }
   return all;
 }
+// v2.9.1.2: short-lived reference data, scoped to the access generation.
+const referenceCache = new Map();
+let referenceScope = '';
+function referenceRows(table, columns, sortColumn='id', force=false) {
+  const scope = JSON.stringify([currentSession?.user?.id,accessSequence,accessState.mode,accessState.rank]);
+  if(referenceScope!==scope){referenceCache.clear();referenceScope=scope;}
+  const key=JSON.stringify([table,columns,sortColumn]);
+  const old=referenceCache.get(key);
+  if(!force && old && (old.pending || old.expires>Date.now()))return old.promise;
+  const entry={pending:true,expires:0};
+  entry.promise=storeAllRows(table,columns,sortColumn).then(rows=>{
+    entry.pending=false;entry.expires=Date.now()+60000;return rows;
+  }).catch(error=>{if(referenceCache.get(key)===entry)referenceCache.delete(key);throw error;});
+  referenceCache.set(key,entry);return entry.promise;
+}
 // Каскадные фильтры: раздел → категория → предмет с текущим остатком.
 function storeCascade(form) {
   const search=form.querySelector('[data-store-search]'), item=form.elements.namedItem('item'), hint=form.querySelector('[data-store-balance]');
@@ -1498,18 +1513,18 @@ function marketRender(){marketTabState();const uid=currentSession?.user?.id,type
 function marketBadge(){const uid=currentSession?.user?.id;if(!uid)return;const ids=new Set(marketEntries().filter(e=>e.ad.author_id===uid).map(e=>e.it.id));let seen=[];try{seen=JSON.parse(localStorage.getItem('marketSeen2822:'+uid)||'[]');}catch{}const keys=marketReactions.filter(r=>ids.has(r.position_id)).map(r=>r.position_id+':'+r.user_id+':'+r.created_at);if(marketPanel==='marketMinePanel'){try{localStorage.setItem('marketSeen2822:'+uid,JSON.stringify(keys));}catch{}seen=keys;}const n=keys.filter(k=>!seen.includes(k)).length;marketEl('marketMineBadge').textContent=n?String(n):'';}
 marketEl('marketOwnActive').onclick=()=>{marketMineClosed=false;marketRender();};marketEl('marketOwnClosed').onclick=()=>{marketMineClosed=true;marketRender();};marketEl('marketDetail').addEventListener('close',()=>{marketSelected=null;});marketEl('marketDetail').addEventListener('click',e=>{if(e.target===marketEl('marketDetail'))marketCloseDetail();});
 setInterval(()=>{if(document.getElementById('page-market')?.classList.contains('active-page')&&!marketBusy&&!marketEl('marketDetail').open&&marketPanel!=='marketCreatePanel'&&marketPanel!=='shopPanel')loadMarket();},30000);
-async function loadMarket(){
-  if(!supabaseClient||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;
-  const uid=currentSession.user.id,token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
+async function loadMarket(force=false){
+  if(!supabaseClient||!currentSession?.user||!householdAllowed())return;
+  const generation=accessSequence,uid=currentSession.user.id,token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
   try{
     const [ads,people,catalog,reactions,deals]=await Promise.all([
       storeAllRows('market_ads','id,author_id,deal_with,deal_at,completed_at,ad_type,category,title,description,quantity,price,contact,status,created_at,market_ad_items(id,item_id,item_name,category,unit,quantity,price,price_max,closed_v2822)','id').then(data=>({data})),
-      supabaseClient.from('profiles').select('id,character_first_name,character_last_name').limit(1000),
-      storeAllRows('storage_items','id,name,category,unit,section','id').then(data=>({data})),
+      referenceRows('profiles','id,character_first_name,character_last_name','id',force===true).then(data=>({data})),
+      referenceRows('storage_items','id,name,category,unit,section','id',force===true).then(data=>({data})),
       storeAllRows('market_reactions_v2822','position_id,user_id,created_at','position_id'),
       storeAllRows('market_deals_v2823','id,item_name,unit,buyer_id,seller_id,quantity,price,created_at','id')
     ]);
-    if(ads.error)throw ads.error;if(people.error)throw people.error;if(catalog.error)throw catalog.error;if(token!==marketLoadToken||currentSession?.user?.id!==uid)return;
+    if(ads.error)throw ads.error;if(people.error)throw people.error;if(catalog.error)throw catalog.error;if(token!==marketLoadToken||currentSession?.user?.id!==uid||generation!==accessSequence||!householdAllowed())return;
     marketRows=ads.data||[];marketCatalog=catalog.data||[];marketReactions=reactions||[];marketDeals=deals||[];
     marketNames=new Map((people.data||[]).map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));
     const cf=marketEl('marketCraft'),old=cf.value;cf.replaceChildren(new Option('Все ремёсла','all'));for(const c of [...new Set(marketCatalog.flatMap(storeProductCrafts))].sort())cf.add(new Option(c,c));if([...cf.options].some(o=>o.value===old))cf.value=old;
@@ -1525,7 +1540,7 @@ for(const b of document.querySelectorAll('[data-market-panel]'))b.addEventListen
 marketEl('marketAddItem').addEventListener('click',()=>{if(marketEl('marketItemRows').children.length>=30)return showToast('Не более 30 позиций.');marketAddRow();});
 marketEl('marketTradeMode').onclick=()=>{writeRoute('market','trade');if(marketPanel==='shopPanel'){marketOpenPanel(null,true);loadMarket();}};marketEl('marketShopMode').onclick=()=>{writeRoute('market','shop');if(marketPanel!=='shopPanel')marketOpenPanel('shopPanel',true);};
 marketEl('marketAll').onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value='all';marketRender();};for(const b of document.querySelectorAll('[data-market-type]'))b.onclick=()=>{marketOpenPanel(null,true);marketEl('marketFilterType').value=b.dataset.marketType;marketRender();};
-marketEl('marketRefresh').addEventListener('click',loadMarket);
+marketEl('marketRefresh').addEventListener('click',()=>loadMarket(true));
 for(const id of ['marketFilterType','marketFilterCategory','marketCraft','marketSort'])marketEl(id).addEventListener('change',marketRender);
 marketEl('marketSearch').addEventListener('input',marketRender);
 marketEl('marketCancelEdit').addEventListener('click',()=>{marketResetForm();marketOpenPanel(null,true);});
@@ -2743,7 +2758,7 @@ let shopPriceTarget=null;
 function shopEditPrice(x){if(!shopAdmin())return;shopPriceTarget=x.item_id;shopEl('shopPriceName').textContent=x.item_name;shopEl('shopPriceValue').value=x.price;shopEl('shopPriceDialog').showModal();shopEl('shopPriceValue').select();}
 function shopRender(){shopEl('shopAdd').hidden=!shopAdmin();shopOptions(shopEl('shopCraft'),[...new Set([...shopProducts(),...shopRows].flatMap(shopCategories))].sort());const q=shopEl('shopSearch').value.toLowerCase().trim(),c=shopEl('shopCraft').value,s=shopEl('shopSort').value;const rows=shopRows.filter(x=>x.item_name.toLowerCase().includes(q)&&(c==='all'||shopCategories(x).includes(c))).sort((a,b)=>s==='low'?a.price-b.price:s==='high'?b.price-a.price:a.item_name.localeCompare(b.item_name,'ru'));const body=shopTable(shopEl('shopList'),['Товар','Ремесло','Цена за ед.']);for(const x of rows){const r=body.insertRow(),p=marketNode('div',null,'shop-product');p.append(marketIcon(x),marketNode('span',x.item_name));shopCell(r,p);shopCell(r,shopCategories(x).join(', '));const price=marketNode('div',null,'shop-price-cell');price.append(marketNode('strong',`${x.price} гр. / ${x.unit}`));if(shopAdmin()){const a=marketNode('div',null,'shop-actions');marketAction(a,'Изменить цену',()=>shopEditPrice(x));marketAction(a,'Удалить',()=>{if(confirm('Убрать товар из лавки?'))shopSave([{id:x.item_id,price:null}]);});price.append(a);}shopCell(r,price);}if(!rows.length)shopEl('shopList').append(marketNode('p','Товаров не найдено.','store-muted'));}
 shopEl('shopPriceCancel').onclick=()=>{if(!shopBusy)shopEl('shopPriceDialog').close();};shopEl('shopPriceForm').onsubmit=async e=>{e.preventDefault();if(shopPriceTarget&&await shopSave([{id:shopPriceTarget,price:Number(shopEl('shopPriceValue').value)}]))shopEl('shopPriceDialog').close();};
-async function shopLoad(){const uid=currentSession?.user?.id;if(!uid||!['approved','admin'].includes(accessState.mode))return;const seq=++shopSeq;if(shopUid!==uid){shopRows=[];shopLog=[];shopUid=uid;shopEl('shopHistoryList').hidden=true;}shopEl('shopNotice').textContent='Загрузка…';try{const [rows,catalog]=await Promise.all([storeAllRows('guild_shop','*','item_id'),storeAllRows('storage_items','id,name,category,unit,section','id')]);if(seq!==shopSeq||currentSession?.user?.id!==uid)return;shopRows=rows;marketCatalog=catalog;shopRender();shopEl('shopNotice').textContent='Товаров в лавке: '+rows.length;}catch(e){if(seq===shopSeq)shopEl('shopNotice').textContent='Ошибка: '+e.message;}}
+async function shopLoad(){const uid=currentSession?.user?.id;if(!uid||!householdAllowed())return;const generation=accessSequence,seq=++shopSeq;if(shopUid!==uid){shopRows=[];shopLog=[];shopUid=uid;shopEl('shopHistoryList').hidden=true;}shopEl('shopNotice').textContent='Загрузка…';try{const [rows,catalog,people]=await Promise.all([storeAllRows('guild_shop','*','item_id'),referenceRows('storage_items','id,name,category,unit,section','id'),referenceRows('profiles','id,character_first_name,character_last_name','id')]);if(seq!==shopSeq||currentSession?.user?.id!==uid||generation!==accessSequence||!householdAllowed())return;shopRows=rows;marketCatalog=catalog;marketNames=new Map(people.map(p=>[p.id,[p.character_first_name,p.character_last_name].filter(Boolean).join(' ')||'Участник']));shopRender();shopEl('shopNotice').textContent='Товаров в лавке: '+rows.length;}catch(e){if(seq===shopSeq)shopEl('shopNotice').textContent='Ошибка: '+e.message;}}
 async function shopSave(items){if(shopBusy||!shopAdmin())return false;shopBusy=true;try{const {error}=await supabaseClient.rpc('shop_save',{p_items:items});if(error)throw error;await shopLoad();if(!shopEl('shopHistoryList').hidden)await shopShowHistory();showToast('Лавка обновлена');return true;}catch(e){showToast('Ошибка: '+e.message);return false;}finally{shopBusy=false;}}
 function shopPick(){const q=shopEl('shopPickSearch').value.toLowerCase().trim(),c=shopEl('shopPickCraft').value;shopEl('shopPickSearch').disabled=!c;shopEl('shopPickItem').disabled=!c;shopEl('shopPickAdd').disabled=true;const list=shopProducts().filter(x=>c&&!shopRows.some(r=>r.item_id===x.id)&&!shopDraft.has(x.id)&&x.name.toLowerCase().includes(q)&&(c==='all'||shopCategories(x).includes(c))).sort((a,b)=>a.name.localeCompare(b.name,'ru'));shopEl('shopPickItem').replaceChildren(new Option('Выберите товар',''),...list.map(x=>new Option(x.name+' · '+x.category,x.id)));}
 function shopDraftRender(){const el=shopEl('shopDraft');el.replaceChildren();for(const [id,x] of shopDraft){const r=marketNode('div',null,'shop-draft-row'),i=marketNode('input');i.type='number';i.required=true;i.min='1';i.max='1000000000';i.step='1';i.value=x.price;i.placeholder='Цена';i.setAttribute('aria-label','Цена '+x.name);i.oninput=()=>x.price=i.value;r.append(marketNode('span',x.name),i);marketAction(r,'Убрать',()=>{shopDraft.delete(id);shopDraftRender();});el.append(r);}shopPick();shopEl('shopDraftNotice').textContent='Выбрано: '+shopDraft.size;shopEl('shopSubmit').disabled=!shopDraft.size;}

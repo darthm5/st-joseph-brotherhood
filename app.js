@@ -611,7 +611,7 @@ const adminFilter = document.getElementById("adminFilter");
 const adminCount = document.getElementById("adminCount");
 let adminProfiles = [];
 let adminTab = 'members';
-const adminRanks = ["Глава гильдии", "Старейшина гильдии", "Казначей", "Писарь", "Купец", "Гильдмастер", "Мастер", "Подмастерье", "Возница", "Последователь", "Послушник"];
+const adminRanks = ["Глава гильдии", "Старейшина гильдии", "Казначей", "Писарь", "Купец", "Десятник", "Гильдмастер", "Мастер", "Подмастерье", "Возница", "Охрана", "Последователь", "Послушник", "Союзник"];
 const adminSearch = document.getElementById('adminSearch');
 function adminShowTab(tab){
  adminTab=tab;
@@ -703,10 +703,7 @@ function renderAdminList() {
     rankGroup.append(element("span", "", "Игровое звание"));
     const rankInput = element("select");
     rankInput.setAttribute("aria-label", "Выберите ранг гильдии");
-    const rankOptions = [
-      "Глава гильдии", "Старейшина гильдии", "Казначей", "Писарь", "Купец",
-      "Гильдмастер", "Мастер", "Подмастерье", "Возница", "Последователь", "Послушник"
-    ];
+    const rankOptions = adminRanks;
     const currentRank = (p.game_rank || "").trim();
     const placeholder = element("option", "", "— Выберите ранг —");
     placeholder.value = ""; placeholder.disabled = true;
@@ -2277,9 +2274,7 @@ petitionEl('petitionResolution').addEventListener('submit',async e=>{
 
 // v2.0 — the hierarchy is a view of existing profiles.game_rank, NOT a second assignment system.
 const councilEl=id=>document.getElementById(id);
-const councilRanks=[
- [11,'Глава гильдии'],[10,'Старейшина гильдии'],[9,'Казначей'],[8,'Писарь'],[7,'Купец'],[6,'Гильдмастер'],[5,'Мастер'],[4,'Подмастерье'],[3,'Возница'],[2,'Последователь'],[1,'Послушник']
-];
+const councilRanks=adminRanks.map((rank,i)=>[14-i,rank]);
 const councilNode=(tag,txt,cls)=>{const e=document.createElement(tag);if(txt!==undefined&&txt!==null)e.textContent=String(txt);if(cls)e.className=cls;return e;};
 let councilPeople=[],councilDescriptions=new Map(),councilSeq=0,councilMode='tree',councilBusy=false;
 function councilShow(mode){
@@ -2336,7 +2331,7 @@ function councilRender(){
  if(unranked.length){
   const group=councilNode('section',null,'council-tier council-unranked');
   const heading=councilNode('div',null,'council-tier-heading');heading.append(councilNode('h3','Без назначенного ранга'));
-  heading.append(councilNode('p','Персонажи с нераспознанным званием. Администратор может назначить один из 11 существующих рангов в управлении участниками.','council-rank-description'));
+  heading.append(councilNode('p','Персонажи с нераспознанным званием. Администратор может назначить один из 14 существующих рангов в управлении участниками.','council-rank-description'));
   group.append(heading);const row=councilNode('div',null,'council-people');
   for(const p of unranked){const b=councilNode('button',null,'council-person');b.type='button';b.append(councilPortrait(p),councilNode('strong',characterName(p)));b.addEventListener('click',()=>councilOpenProfile(p));row.append(b);}group.append(row);root.append(group);
  }

@@ -19,6 +19,8 @@
 <link rel="stylesheet" href="theme/library.css?v=28512">
 <link rel="stylesheet" href="theme/chronicle.css?v=2852">
 <link rel="stylesheet" href="theme/uploads.css?v=28521">
+<link rel="stylesheet" href="theme/map.css?v=2853">
+<link rel="stylesheet" href="theme/property.css?v=286">
 </head>
 <body>
   <div class="site-shell">
@@ -49,6 +51,7 @@
 <details class="guild-nav-group" open><summary class="nav-caption ">Хозяйство</summary><div class="main-nav"><button class="nav-item" data-page="treasury"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c0-2 18-2 18 0s-18 3-18 0ZM3 7v5c0 3 18 3 18 0V7M3 12v5c0 3 18 3 18 0v-5"/></svg></span>Казна</button>
 <button class="nav-item" data-page="storehouse"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v11H3ZM7 21V11h10v10M7 15h10M7 18h10"/></svg></span>Кладовая</button>
 <button class="nav-item" data-page="market"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 21h14M3 7h18M6 7l-4 8h8L6 7ZM18 7l-4 8h8l-4-8Z"/></svg></span>Рынок</button>
+<button class="nav-item" data-page="property"><span class="nav-icon">⌂</span>Имущество <span id="propertyBadge" hidden></span></button>
 </div></details>
 <details class="guild-nav-group" open><summary class="nav-caption ">Ремесленная деятельность</summary><div class="main-nav"><button class="nav-item" data-page="crafts"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l10-10M11 8l4 4 6-6-4-4-6 6ZM3 20l2 2 10-10"/></svg></span>Ремёсла</button>
 <button class="nav-item" data-page="work"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5ZM8 8h8M8 12h8M8 16h5"/></svg></span>Работа</button>
@@ -66,7 +69,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.8.5.2.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.8.6</div>
       </div>
     </aside>
 
@@ -560,6 +563,7 @@
             <h3 id="calendarDayHeading">События выбранного дня</h3><div id="calendarDayEvents" class="work-list"></div>
           </article><dialog id="calendarDetail" aria-label="Сведения о событии"></dialog>
         </section>
+        <section class="page" id="page-property"><div class="page-title-block"><h1>Имущество братства</h1><p>Реестр владений и транспортных средств</p></div><div class="panel"><div id="propertyStats" class="property-stats"></div><div id="propertyTabs" class="property-actions"></div><div class="property-actions"><input id="propertySearch" placeholder="Поиск по названию, владельцу, месту"><select id="propertyFilter"><option value="all">Все</option><option value="mine">Мои</option><option value="free">Свободные</option></select><button class="primary-button" id="propertyAdd">+ Добавить</button><button class="secondary-button" id="propertyRefresh">Обновить</button></div><p id="propertyMessage" role="status"></p><div id="propertyList"></div></div><dialog id="propertyDialog" class="property-dialog"></dialog></section>
         <section class="page" id="page-market">
           <div class="page-title-block"><div class="eyebrow">Торговая площадь</div><h1>Рынок братства</h1><p>Покупка и продажа ресурсов и изделий. Сделки совершаются в игре.</p></div>
           <div class="market-toolbar"><div class="market-tabs" role="group" aria-label="Разделы рынка">
@@ -638,14 +642,14 @@
               <label>Режим <select id="guildMapMode"><option value="view">Просмотр</option><option value="marker">Поставить метку</option><option value="route">Нарисовать маршрут</option></select></label>
               <button type="button" class="secondary-button" id="guildMapRefresh">Обновить</button>
               <button type="button" class="secondary-button" id="guildMapZoomIn">＋</button><button type="button" class="secondary-button" id="guildMapZoomOut">−</button>
-              <button type="button" class="secondary-button" id="guildMapZoomReset">Сброс масштаба</button>
+              <button type="button" class="secondary-button" id="guildMapZoomReset">100%</button>
             </div>
             <p class="members-message" id="guildMapStatus">Загрузка карты…</p>
             <div class="map-layout"><div class="map-viewport" id="guildMapViewport"><div class="map-stage" id="guildMapStage"><div class="map-paper"><div class="map-paper-title">TABULA BOHEMIAE</div><div class="map-paper-sub">Для точной привязки меток добавьте разрешённое изображение карты в файл <code>map-kuttenberg.jpg</code> или <code>map-trosky.jpg</code>.</div></div><svg id="guildMapSvg" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-label="Метки и маршруты"></svg></div></div>
             <aside class="map-side"><div class="map-filter"><h3>Слои карты</h3><label><input type="checkbox" id="guildMapShowMarkers" checked> Метки</label><label><input type="checkbox" id="guildMapShowRoutes" checked> Маршруты</label><label><input type="checkbox" id="guildMapShowMineOnly"> Только мои</label></div>
-            <div id="guildMapEditor" hidden><h3 id="guildMapEditorTitle">Новая запись</h3><label>Название<input id="guildMapTitle" maxlength="120" placeholder="Например, залежи железа"></label><label>Описание<textarea id="guildMapDescription" maxlength="3000" rows="3"></textarea></label><label>Категория<select id="guildMapCategory"></select></label><label>Видимость<select id="guildMapVisibility"><option value="guild">Всем участникам</option><option value="personal">Только мне</option><option value="leadership">Мне и администрации</option></select></label><label id="guildMapColorWrap" hidden>Цвет маршрута<input type="color" id="guildMapColor" value="#b88a4a"></label><div class="map-editor-buttons"><button type="button" class="primary-button" id="guildMapSave">Сохранить</button><button type="button" class="secondary-button" id="guildMapCancel">Отмена</button></div><p class="map-hint" id="guildMapEditorHint"></p></div>
+            <div id="guildMapEditor" class="map-editor" hidden><h3 id="guildMapEditorTitle">Новая запись</h3><label>Название<input id="guildMapTitle" maxlength="120" placeholder="Например, залежи железа"></label><label>Описание<textarea id="guildMapDescription" maxlength="3000" rows="3"></textarea></label><label>Категория<select id="guildMapCategory"></select></label><label>Видимость<select id="guildMapVisibility"><option value="guild">Всем участникам</option><option value="personal">Только мне</option><option value="leadership">Мне и администрации</option></select></label><label id="guildMapColorWrap" hidden>Цвет маршрута<input type="color" id="guildMapColor" value="#b88a4a"></label><div class="map-editor-buttons"><button type="button" class="primary-button" id="guildMapSave">Сохранить</button><button type="button" class="secondary-button" id="guildMapCancel">Отмена</button></div><p class="map-hint" id="guildMapEditorHint"></p></div>
             <div id="guildMapDraftActions" hidden><p id="guildMapDraftCount"></p><button type="button" class="secondary-button" id="guildMapUndo">Убрать точку</button><button type="button" class="primary-button" id="guildMapRouteDone">Завершить маршрут</button></div>
-            <h3>Записи братства</h3><div id="guildMapList" class="map-records"></div></aside></div>
+            <h3>Записи братства <span id="guildMapCount"></span></h3><input id="guildMapSearch" type="search" placeholder="Поиск по карте…" aria-label="Поиск записей"><select id="guildMapFilter" aria-label="Категория"><option value="">Все категории</option></select><div id="guildMapList" class="map-records"></div></aside></div>
           </div>
         </section>
         <section class="page" id="page-placeholder">
@@ -670,7 +674,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=28521"></script>
+  <script src="app.js?v=286"></script>
   <script src="crafting/embedded.js?v=260"></script>
   <script src="crafting/workshop-layout.js?v=257"></script>
   <script src="crafting/account-sync.js?v=260"></script>

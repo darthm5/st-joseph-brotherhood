@@ -3,6 +3,7 @@ const SUPABASE_URL = "https://codmkmlbezxjccccswjp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_34fKSc_yV9KPaujxo0bWUA_PwgkxHyT";
 
 const pageInfo = {
+  property: ["Имущество", "Реестр домов и телег."],
   profile: ["Мой кабинет", "Личная анкета персонажа."],
   home: ["Главная", "Новости, объявления и основные сведения резиденции."],
   members: ["Участники", "Реестр членов братства, их анкеты, звания и достижения."],
@@ -141,6 +142,8 @@ function navigate(page) {
   if (page !== "storehouse" && storehousePage.classList.contains("active-page")) storeClearHighlights();
   storehousePage.classList.toggle("active-page", page === "storehouse");
   workPage.classList.toggle("active-page", page === "work");
+  document.getElementById("page-property").classList.toggle("active-page",page === "property");
+  if(page!=="property") document.getElementById("propertyDialog").close();
   marketPage.classList.toggle("active-page", page === "market");
   calendarPage.classList.toggle("active-page", page === "calendar");
   libraryPage.classList.toggle("active-page", page === "info");
@@ -157,6 +160,7 @@ function navigate(page) {
   if (page === "storehouse") loadStorehouse();
   if (page === "work") loadWork();
   if (page === "market") loadMarket();
+  if (page === "property") propertyLoad();
   if (page === "calendar") loadCalendar();
   if (page === "chronicle") { chronShow("timeline"); loadChronicle(); }
   if (page === "ratusha") { hallShow("home"); }
@@ -175,7 +179,7 @@ function navigate(page) {
   } else if (page === "crafts") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
-  } else if (page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle" || page === "ratusha" || page === "map") {
+  } else if (page === "property" || page === "treasury" || page === "storehouse" || page === "work" || page === "market" || page === "calendar" || page === "info" || page === "chronicle" || page === "ratusha" || page === "map") {
     homePage.classList.remove("active-page");
     placeholderPage.classList.remove("active-page");
   } else if (page === "management") {
@@ -2475,29 +2479,31 @@ function gmEdit(kind,record=null){
 }
 function gmClose(){gm('guildMapEditor').hidden=true;guildMapState.editing=null;guildMapState.point=null;guildMapState.draft=[];gm('guildMapDraftActions').hidden=true;gm('guildMapMode').value='view';gmRender();}
 function gmXY(event){const r=gm('guildMapSvg').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))};}
+function gmMatches(r,kind){const q=gm('guildMapSearch').value.trim().toLowerCase(),cat=gm('guildMapFilter').value;return gm('guildMapShow'+(kind==='marker'?'Markers':'Routes')).checked&&(!gm('guildMapShowMineOnly').checked||r.created_by===currentSession?.user?.id)&&(!cat||cat===r.category)&&(!q||[r.title,r.description].join(' ').toLowerCase().includes(q));}
 function gmDraw(){
  const s=gm('guildMapSvg');s.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;const mine=r=>!only||r.created_by===currentSession?.user?.id;
- if(gm('guildMapShowRoutes').checked){for(const r of st.routes.filter(mine)){
+ if(gm('guildMapShowRoutes').checked){for(const r of st.routes.filter(r=>gmMatches(r,'route'))){
  const line=gmSvg('polyline',{points:r.points.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:r.color||'#b88a4a','stroke-width':2,'stroke-linecap':'round','stroke-linejoin':'round',class:'gm-route'});
- line.addEventListener('click',e=>{e.stopPropagation();gmSelect('route',r.id)});s.append(line);
+ line.addEventListener('click',e=>{if(gmMode()==='view'){e.stopPropagation();gmSelect('route',r.id)}});s.append(line);
  }}
  if(st.draft.length){s.append(gmSvg('polyline',{points:st.draft.map(p=>`${p.x*1000},${p.y*700}`).join(' '),fill:'none',stroke:'#f7e8b0','stroke-width':2,'stroke-dasharray':'7 5'}));for(const p of st.draft)s.append(gmSvg('circle',{cx:p.x*1000,cy:p.y*700,r:3,fill:'#f7e8b0'}));}
- if(gm('guildMapShowMarkers').checked){for(const r of st.markers.filter(mine)){
+ if(gm('guildMapShowMarkers').checked){for(const r of st.markers.filter(r=>gmMatches(r,'marker'))){
  const g=gmSvg('g',{class:'gm-pin'});
  g.append(gmSvg('circle',{cx:r.x*1000,cy:r.y*700,r:5,fill:'#712f2e',stroke:'#ffe0a5','stroke-width':1}));
  const icon=gmSvg('text',{x:r.x*1000,y:r.y*700+2.3,'text-anchor':'middle',fill:'#fff2d5','font-size':7,'font-weight':'bold'});
  icon.textContent=gmMarkerIcons[r.category]||gmMarkerIcons.other;g.append(icon);
  const title=gmSvg('title',{});title.textContent=r.title;g.append(title);
- g.addEventListener('click',e=>{e.stopPropagation();gmSelect('marker',r.id)});s.append(g);
+ g.addEventListener('click',e=>{if(gmMode()==='view'){e.stopPropagation();gmSelect('marker',r.id)}});s.append(g);
  }}
  if(st.point)s.append(gmSvg('circle',{cx:st.point.x*1000,cy:st.point.y*700,r:5,fill:'#e6b95d',stroke:'#4b2a21','stroke-width':3}));
 }
-function gmSelect(kind,id){const r=guildMapState[kind==='marker'?'markers':'routes'].find(x=>x.id===id);if(!r)return;gmStatus(`${kind==='marker'?'Метка':'Маршрут'}: ${r.title}${r.description?' — '+r.description:''}`);}
+function gmSelect(kind,id){const r=guildMapState[kind==='marker'?'markers':'routes'].find(x=>x.id===id);if(!r)return;gmStatus(`${kind==='marker'?'Метка':'Маршрут'}: ${r.title}${r.description?' — '+r.description:''}`);const p=kind==='marker'?r:r.points[Math.floor(r.points.length/2)];if(p){const v=gm('guildMapViewport'),s=gm('guildMapStage');v.scrollTo({left:p.x*s.offsetWidth-v.clientWidth/2,top:p.y*s.offsetHeight-v.clientHeight/2,behavior:'smooth'});}for(const el of gm('guildMapList').children)el.classList.toggle('map-selected',el.dataset.id===id);}
 function gmRender(){gmDraw();const list=gm('guildMapList');list.replaceChildren();const st=guildMapState;const only=gm('guildMapShowMineOnly').checked;
- const entries=[...st.markers.map(r=>({...r,kind:'marker'})),...st.routes.map(r=>({...r,kind:'route'}))].filter(r=>!only||r.created_by===currentSession?.user?.id);
+ const entries=[...st.markers.map(r=>({...r,kind:'marker'})),...st.routes.map(r=>({...r,kind:'route'}))].filter(r=>gmMatches(r,r.kind));
+ gm('guildMapCount').textContent=`(${entries.length})`;
  entries.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
- for(const r of entries){const item=document.createElement('div');item.className='map-record';const heading=document.createElement('strong');heading.textContent=(r.kind==='marker'?'⌖ ':'↝ ')+r.title;item.append(heading);
- const meta=document.createElement('small');meta.textContent= r.visibility==='guild'?'Общая':r.visibility==='personal'?'Личная':'Руководству';item.append(meta);
+ for(const r of entries){const item=document.createElement('div');item.className='map-record';item.dataset.id=r.id;const heading=document.createElement('strong');heading.textContent=(r.kind==='marker'?'⌖ ':'↝ ')+r.title;item.append(heading);
+ const meta=document.createElement('small');meta.textContent=(guildMapCategories[r.kind].find(c=>c[0]===r.category)?.[1]||r.category)+' · '+(r.visibility==='guild'?'Общая':r.visibility==='personal'?'Личная':'Руководству');item.append(meta);
  if(r.description){const desc=document.createElement('p');desc.textContent=r.description;item.append(desc);}
  const buttons=document.createElement('div');buttons.className='map-record-buttons';const focus=document.createElement('button');focus.type='button';focus.className='secondary-button';focus.textContent='Показать';focus.onclick=()=>gmSelect(r.kind,r.id);buttons.append(focus);
  if(gmAllowed(r)){const edit=document.createElement('button');edit.type='button';edit.className='secondary-button';edit.textContent='Изменить';edit.onclick=()=>{gm('guildMapMode').value='view';gmEdit(r.kind,r);};buttons.append(edit);
@@ -2506,9 +2512,10 @@ function gmRender(){gmDraw();const list=gm('guildMapList');list.replaceChildren(
  }
  if(!entries.length)list.textContent='Пока нет записей для выбранного слоя.';
 }
-async function guildMapLoad(){if(!supabaseClient||!currentSession?.user)return;gmStatus('Загружаем метки и маршруты…');const region=guildMapState.region;
+let gmLoadSequence=0;
+async function guildMapLoad(){if(!supabaseClient||!currentSession?.user)return;gmStatus('Загружаем метки и маршруты…');const region=guildMapState.region,uid=currentSession.user.id,seq=++gmLoadSequence;
  const [a,b]=await Promise.all([supabaseClient.from('guild_map_markers').select('*').eq('map_key',region).order('created_at',{ascending:false}),supabaseClient.from('guild_map_routes').select('*').eq('map_key',region).order('created_at',{ascending:false})]);
- if(region!==guildMapState.region)return;if(a.error||b.error){gmStatus('Ошибка загрузки: '+(a.error||b.error).message);return;}
+ if(region!==guildMapState.region||uid!==currentSession?.user?.id||seq!==gmLoadSequence)return;if(a.error||b.error){gmStatus('Ошибка загрузки: '+(a.error||b.error).message);return;}
  guildMapState.markers=a.data||[];guildMapState.routes=b.data||[];gmStatus(`Метки: ${a.data.length} · Маршруты: ${b.data.length}`);gmRender();
 }
 async function gmSave(){const kind=gm('guildMapSave').dataset.kind;const title=gm('guildMapTitle').value.trim();if(!title){showToast('Укажите название');return;}
@@ -2525,12 +2532,12 @@ function gmBase(){const st=guildMapState;const paper=gm('guildMapStage');const f
  paper.style.backgroundImage=`url("${file}")`;gm('guildMapViewport').classList.toggle('map-with-image',false);
  const test=new Image();test.onload=()=>{if(st.region===(file.includes('kuttenberg')?'kuttenberg':'trosky'))gm('guildMapViewport').classList.add('map-with-image');};test.src=file;
 }
-gm('guildMapRegion').addEventListener('change',()=>{guildMapState.region=gm('guildMapRegion').value;gmClose();gmBase();guildMapLoad();});
+gm('guildMapRegion').addEventListener('change',()=>{guildMapState.region=gm('guildMapRegion').value;guildMapState.markers=[];guildMapState.routes=[];gmClose();gmBase();guildMapLoad();});
 gm('guildMapMode').addEventListener('change',(event)=>{const value=event.target.value;gmClose();gm('guildMapMode').value=value;gmStatus(gmMode()==='marker'?'Нажмите на карту, чтобы поставить метку.':gmMode()==='route'?'Нажимайте на карту, чтобы отметить точки маршрута.':'Режим просмотра');});
 gm('guildMapSvg').addEventListener('click',e=>{const mode=gmMode();if(mode==='view')return;const p=gmXY(e);if(mode==='marker'){guildMapState.point=p;gmEdit('marker');gmRender();}else{guildMapState.draft.push(p);gm('guildMapDraftActions').hidden=false;gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();}});
 gm('guildMapRouteDone').onclick=()=>{if(guildMapState.draft.length<2){showToast('Нужно минимум две точки');return;}gmEdit('route');};
 gm('guildMapUndo').onclick=()=>{guildMapState.draft.pop();gm('guildMapDraftCount').textContent=`Точек: ${guildMapState.draft.length}`;gmDraw();};
-gm('guildMapSave').onclick=gmSave;gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
+gm('guildMapSave').onclick=async()=>{const b=gm('guildMapSave');if(b.disabled)return;b.disabled=true;try{await gmSave()}finally{b.disabled=false}};gm('guildMapCancel').onclick=gmClose;gm('guildMapRefresh').onclick=guildMapLoad;
 for(const id of ['guildMapShowMarkers','guildMapShowRoutes','guildMapShowMineOnly'])gm(id).onchange=gmRender;
 // Zoom is measured against the viewport's actual width, not percentage CSS widths.
 // Keep a stable coordinate system so saved pins and routes never move.
@@ -2554,7 +2561,7 @@ function gmZoom(factor,clientX,clientY){
  const y=clientY===undefined?viewport.clientHeight/2:clientY-rect.top-viewport.clientTop;
  const oldW=stage.offsetWidth,oldH=stage.offsetHeight;
  const imageX=(viewport.scrollLeft+x)/oldW,imageY=(viewport.scrollTop+y)/oldH;
- guildMapState.scale=after;
+ guildMapState.scale=after;gm('guildMapZoomReset').textContent=Math.round(after*100)+'%';
  gmSizeStage();
  viewport.scrollLeft=imageX*stage.offsetWidth-x;
  viewport.scrollTop=imageY*stage.offsetHeight-y;
@@ -2566,6 +2573,8 @@ gm('guildMapViewport').addEventListener('wheel',e=>{
  if(e.ctrlKey||e.metaKey)return;
  e.preventDefault();gmZoom(e.deltaY<0?1.18:1/1.18,e.clientX,e.clientY);
 },{passive:false});
+for(const [value,label] of new Map([...guildMapCategories.route,...guildMapCategories.marker])){const o=document.createElement('option');o.value=value;o.textContent=label;gm('guildMapFilter').append(o);}
+gm('guildMapSearch').oninput=gmRender;gm('guildMapFilter').onchange=gmRender;
 gmBase();
 // The map column changes width with browser zoom, window resizing and side panel stacking.
 const gmResizeObserver=new ResizeObserver(()=>gmSizeStage(true));
@@ -2656,3 +2665,28 @@ function mediaField(form,name,avatar=false){
 mediaField(profileForm,'character_photo_url',true);mediaField(chronEl('chronEditor'),'image_url');mediaField(awardEl('awardTypeForm'),'image_url');
 function mediaInline(form,host){const t=form.elements.namedItem('body');const pick=document.createElement('input');pick.type='file';pick.accept='image/jpeg,image/png,image/webp';pick.hidden=true;const button=galButton('Загрузить изображение',()=>pick.click());host.append(button,pick);pick.addEventListener('change',async()=>{const file=pick.files[0];if(!file)return;const a=t.selectionStart,b=t.selectionEnd;button.disabled=true;const buttons=[...form.querySelectorAll('button[type=submit]')].filter(x=>!x.disabled);buttons.forEach(x=>x.disabled=true);try{const url=await mediaUpload(file);t.setRangeText('\n![Иллюстрация]('+url+')\n',a,b,'end');showToast('Изображение загружено. Сохраните запись.');}catch(e){showToast('Ошибка: '+e.message);}finally{button.disabled=false;buttons.forEach(x=>x.disabled=false);pick.value='';}});}
 mediaInline(libEl('libraryEditor'),libEl('libFormat'));const chronBody=chronEl('chronEditor').elements.namedItem('body');const chronTools=document.createElement('div');chronBody.after(chronTools);mediaInline(chronEl('chronEditor'),chronTools);
+
+// Property registry v2.8.6
+var propertyRows=[],propertyLoans=[],propertyNames=new Map(),propertyTab='cart',propertySeq=0,propertyBusy=false,propertyPolling=false;
+function pr(id){return document.getElementById(id)}
+function prNode(tag,text,cls){const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n}
+function prButton(host,label,fn,primary=false){const b=prNode('button',label,primary?'primary-button':'secondary-button');b.type='button';b.onclick=fn;host.append(b);return b}
+function prUid(){return currentSession?.user?.id}
+function prManager(r){return accessState.mode==='admin'||r.owner_id===prUid()}
+function prName(id){return id?propertyNames.get(id)||'Участник':'Братство'}
+function prActive(r){return propertyLoans.find(l=>l.property_id===r.id&&['active','returning'].includes(l.status))}
+function prFree(r){return r.available&&!prActive(r)}
+function prStatus(l){return ({pending:'Ожидает решения',active:'В пользовании',returning:'Ожидает подтверждения возврата',returned:'Возвращена',rejected:'Отклонено',cancelled:'Отозвано'})[l.status]}
+function prDate(x){return x?new Date(x).toLocaleString('ru-RU'):'—'}
+async function propertyLoad(){const uid=prUid(),seq=++propertySeq;if(!uid||!canVisit('property'))return;pr('propertyMessage').textContent='Загрузка…';try{const [r,l,p]=await Promise.all([storeAllRows('guild_property','*'),storeAllRows('guild_cart_loans','*'),supabaseClient.from('profiles').select('id,character_first_name,character_last_name,membership_status')]);if(p.error)throw p.error;if(seq!==propertySeq||uid!==prUid()||!pr('page-property').classList.contains('active-page'))return;propertyRows=r;propertyLoans=l;propertyNames=new Map(p.data.map(x=>[x.id,[x.character_first_name,x.character_last_name].filter(Boolean).join(' ')||'Участник']));pr('propertyMessage').textContent='';propertyRender();}catch(e){if(seq===propertySeq&&uid===prUid())pr('propertyMessage').textContent='Ошибка: '+e.message;}}
+function propertyRender(){const rows=propertyRows.filter(r=>!r.archived),uid=prUid(),q=pr('propertySearch').value.toLowerCase(),f=pr('propertyFilter').value;const stats=pr('propertyStats');stats.replaceChildren();for(const [n,v] of [['Домов',rows.filter(r=>r.kind==='house').length],['Телег',rows.filter(r=>r.kind==='cart').length],['Свободных телег',rows.filter(r=>r.kind==='cart'&&prFree(r)).length]]){const d=prNode('div',null,'stat-card');d.append(prNode('strong',v),prNode('small',n));stats.append(d)}const tabs=pr('propertyTabs');tabs.replaceChildren();for(const [k,n] of [['house','Дома'],['cart','Телеги'],['requests','Заявки'],['journal','Журнал']])prButton(tabs,n,()=>{propertyTab=k;pr('propertyFilter').value='all';propertyRender()},propertyTab===k);const pending=propertyLoans.filter(l=>['pending','returning'].includes(l.status)&&prManager(l)).length;pr('propertyBadge').textContent=pending;pr('propertyBadge').hidden=!pending;pr('propertyAdd').hidden=!['house','cart'].includes(propertyTab);pr('propertyFilter').options[2].hidden=propertyTab!=='cart';const list=pr('propertyList');list.replaceChildren();list.className=['house','cart'].includes(propertyTab)?'property-grid':'property-records';if(['house','cart'].includes(propertyTab)){for(const r of rows.filter(r=>r.kind===propertyTab&&(!q||[r.title,r.location,r.description,prName(r.owner_id)].join(' ').toLowerCase().includes(q))&&(f!=='mine'||r.owner_id===uid)&&(f!=='free'||prFree(r)))){const d=prNode('article',null,'property-card');if(safePhoto(r.image_url)){const img=prNode('img');img.src=safePhoto(r.image_url);img.alt=r.title;img.loading='lazy';d.append(img)}d.append(prNode('h3',r.title),prNode('p','Владелец: '+prName(r.owner_id)),prNode('small',r.location),prNode('p',r.description));if(r.kind==='cart'){const loan=prActive(r);d.append(prNode('strong',loan?'Занята · '+prName(loan.borrower_id):r.available?'Свободна':'Недоступна',prFree(r)?'property-free':'property-taken'));if(prFree(r)&&r.owner_id!==uid&&!propertyLoans.some(l=>l.property_id===r.id&&l.borrower_id===uid&&l.status==='pending'))prButton(d,'Запросить телегу',()=>prRequest(r),true)}if(prManager(r)){prButton(d,'Изменить',()=>prEdit(r));prButton(d,'Удалить',()=>{if(confirm('Убрать из реестра? История сохранится.'))prSave(r,true)})}list.append(d)}}else{for(const l of propertyLoans.filter(l=>(propertyTab==='journal'||(['pending','active','returning'].includes(l.status)&&(l.borrower_id===uid||prManager(l))))&&(f!=='mine'||l.borrower_id===uid||l.owner_id===uid)&&(!q||[l.cart_name,prName(l.borrower_id),prName(l.owner_id),l.purpose,prStatus(l)].join(' ').toLowerCase().includes(q)))){const d=prNode('article',null,'property-card');d.append(prNode('h3',l.cart_name),prNode('strong',prStatus(l)),prNode('p','Владелец: '+prName(l.owner_id)+' · Участник: '+prName(l.borrower_id)),prNode('p',l.purpose),prNode('small','Запрос: '+prDate(l.created_at)+' · Решение / выдача: '+prDate(l.decided_at)),prNode('small','Срок: '+prDate(l.due_at)+' · Возврат: '+prDate(l.returned_at)));if(l.due_at&&new Date(l.due_at)<new Date()&&['active','returning'].includes(l.status))d.append(prNode('strong','Просрочена','property-taken'));if(propertyTab==='requests'){const act=(n,a)=>prButton(d,n,()=>prLoan(l.property_id,l.id,a));if(l.status==='pending'){if(prManager(l)){act('Одобрить','approve');act('Отклонить','reject')}if(l.borrower_id===uid)act('Отозвать','cancel')}if(l.status==='active'&&l.borrower_id===uid)act('Вернуть','return');if(l.status==='returning'&&prManager(l))act('Подтвердить возврат','confirm')}list.append(d)}}if(!list.children.length)list.append(prNode('p','Записей пока нет.'))}
+async function prRpc(name,args){if(propertyBusy)return;propertyBusy=true;const uid=prUid();try{const {error}=await supabaseClient.rpc(name,args);if(error)throw error;if(uid!==prUid())return;pr('propertyDialog').close();showToast('Сохранено');await propertyLoad()}catch(e){showToast('Ошибка: '+e.message)}finally{propertyBusy=false}}
+function prSave(r,archive=false){return prRpc('property_save',{p_id:r.id||null,p_kind:r.kind,p_owner:r.owner_id,p_title:r.title,p_location:r.location||'',p_description:r.description||'',p_image:r.image_url||'',p_available:r.available!==false,p_archive:archive})}
+function prLoan(id,loan,action,purpose='',due=null){return prRpc('property_loan',{p_property:id,p_loan:loan,p_action:action,p_purpose:purpose,p_due:due})}
+function prForm(title){const d=pr('propertyDialog');d.replaceChildren(prNode('h2',title));const f=prNode('form');d.append(f);prButton(d,'Закрыть',()=>{if(!propertyBusy)d.close()});if(!d.open)d.showModal();return f}
+function prField(f,label,type,value='',max=0){const l=prNode('label',label),i=prNode(type==='textarea'?'textarea':'input');if(type!=='textarea')i.type=type;i.value=value;if(max)i.maxLength=max;l.append(i);f.append(l);return i}
+function prEdit(r){const f=prForm(r?'Редактировать имущество':'Добавить имущество'),uid=prUid(),kind=r?.kind||propertyTab;const title=prField(f,'Название','text',r?.title||'',120);title.required=true;const loc=prField(f,'Местоположение','text',r?.location||'',200),desc=prField(f,'Описание','textarea',r?.description||'',4000);let owner=r?r.owner_id:uid;if(!r&&accessState.mode==='admin'){const l=prNode('label','Владелец'),s=prNode('select');for(const [id,n] of [[null,'Братство'],...propertyNames]){const o=prNode('option',n);o.value=id||'';s.append(o)}s.value=uid;s.onchange=()=>owner=s.value||null;l.append(s);f.append(l)}else f.append(prNode('p','Владелец: '+prName(owner)));const file=prField(f,'Фото (необязательно)','file');file.accept='image/jpeg,image/png,image/webp';const remove=prField(f,'Убрать прежнее фото','checkbox');remove.parentNode.hidden=!r?.image_url;const avail=prField(f,'Доступна для выдачи','checkbox');avail.checked=r?.available!==false;avail.parentNode.hidden=kind!=='cart';const b=prButton(f,'Сохранить',()=>{},true);b.type='submit';f.onsubmit=async e=>{e.preventDefault();if(propertyBusy||b.disabled)return;b.disabled=true;try{let image=remove.checked?'':r?.image_url||'';if(file.files[0])image=await mediaUpload(file.files[0]);if(uid!==prUid())return;await prSave({id:r?.id,kind,owner_id:owner,title:title.value.trim(),location:loc.value,description:desc.value,image_url:image,available:avail.checked})}catch(e){showToast('Ошибка: '+e.message)}finally{b.disabled=false}}}
+function prRequest(r){const f=prForm('Запросить: '+r.title),purpose=prField(f,'Цель (необязательно)','textarea','',1000),due=prField(f,'Предполагаемый возврат (необязательно)','datetime-local');const b=prButton(f,'Отправить заявку',()=>{},true);b.type='submit';f.onsubmit=e=>{e.preventDefault();prLoan(r.id,null,'request',purpose.value,due.value?new Date(due.value).toISOString():null)}}
+pr('propertyAdd').onclick=()=>prEdit();pr('propertyRefresh').onclick=propertyLoad;pr('propertySearch').oninput=propertyRender;pr('propertyFilter').onchange=propertyRender;
+async function prPoll(){if(propertyPolling||propertyBusy||document.hidden||!prUid()||!canVisit('property'))return;propertyPolling=true;const uid=prUid();try{const {count,error}=await supabaseClient.from('guild_cart_loans').select('id',{count:'exact',head:true}).in('status',['pending','returning']).or(accessState.mode==='admin'?'owner_id.is.null,owner_id.not.is.null':'owner_id.eq.'+uid);if(!error&&uid===prUid()){pr('propertyBadge').textContent=count;pr('propertyBadge').hidden=!count}}finally{propertyPolling=false}}
+setInterval(()=>{prPoll();if(pr('page-property').classList.contains('active-page')&&!pr('propertyDialog').open&&!propertyBusy)propertyLoad()},30000);

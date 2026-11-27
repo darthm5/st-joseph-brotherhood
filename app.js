@@ -1100,7 +1100,7 @@ function storeMarkSeen(){for(const key of storeTerminal)storeSeen.add(key);try{l
 function storeUpdateBadges(requests,batches,uid,admin){storeBadgeScope(uid);storeTerminal=[...requests.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'single:'+r.id+':'+r.status),...batches.filter(r=>r.user_id===uid&&['approved','rejected'].includes(r.status)).map(r=>'batch:'+r.token+':'+r.status)];if(storeActivePanel==='storeOwnRequestsPanel'){for(const key of storeTerminal)if(!storeSeen.has(key))storeHighlights.add(key);storeMarkSeen();}else storeEl('storeOwnBadge').textContent=String(storeTerminal.filter(k=>!storeSeen.has(k)).length);const pending=admin?[...requests,...batches].filter(r=>r.status==='pending').length:0;storeEl('storeManageBadge').textContent=String(pending);storeEl('storePendingBadge').textContent=String(pending);}
 let storeBadgePolling=false;
 async function storePollBadges(){if(storeBadgePolling||storeBusy||document.hidden||!storehousePage.classList.contains('active-page')||!currentSession?.user||!['approved','admin'].includes(accessState.mode))return;const uid=currentSession.user.id,admin=accessState.mode==='admin';storeBadgePolling=true;try{const [r,b]=await Promise.all([storeAllRows('storage_requests','id,user_id,status,created_at'),storeAllRows('storage_craft_batches','token,user_id,status,created_at')]);if(currentSession?.user?.id!==uid||!storehousePage.classList.contains('active-page')||storeBusy)return;if(['storeOwnRequestsPanel','storeAdminRequests'].includes(storeActivePanel)){await loadStorehouse();}else storeUpdateBadges(r,b,uid,admin);}catch(e){}finally{storeBadgePolling=false;}}
-setInterval(storePollBadges,30000);
+
 async function loadStorehouse() {
   if (!supabaseClient || !currentSession?.user || !["approved","admin"].includes(accessState.mode)) return;
   const token=++storeLoadToken;
@@ -1397,7 +1397,7 @@ function workSwitchTab(tab){
 }
 workEl('workRefresh').addEventListener('click',loadWork);
 for(const id of ['workSearch','workActionFilter','workStatusFilter','workTypeFilter'])workEl(id).addEventListener(id==='workSearch'?'input':'change',workRender);
-setInterval(()=>{if(!document.hidden&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)loadWork();},30000);
+
 for(const a of workActions)workEl('workActionFilter').add(new Option(a,a));
 workEl('workTypeChoice').addEventListener('click',e=>{const b=e.target.closest('button');if(b){workEl('workCreateType').value=b.dataset.value;workSyncForm();}});
 workEl('workSectionChoice').addEventListener('click',e=>{const b=e.target.closest('button');if(b){workSection=b.dataset.value;workEl('workItemSearch').value='';workUpdateItems();workSyncForm();}});
@@ -1516,7 +1516,7 @@ function marketTable(container,entries,own=false){container.replaceChildren();co
 function marketRender(){marketTabState();const uid=currentSession?.user?.id,type=marketEl('marketFilterType').value,section=marketEl('marketFilterCategory').value,craft=marketEl('marketCraft').value,search=marketEl('marketSearch').value.trim().toLowerCase(),sort=marketEl('marketSort').value;const all=marketEntries();const entries=all.filter(e=>marketActive(e)&&e.ad.ad_type!=='exchange').filter(({ad,it,cat})=>(type==='all'||ad.ad_type===type)&&(section==='all'||cat?.section===section)&&(craft==='all'||cat&&storeProductCrafts(cat).includes(craft))&&[it.item_name,ad.title,ad.description,marketNames.get(ad.author_id)].join(' ').toLowerCase().includes(search));entries.sort((a,b)=>sort==='new'?new Date(b.ad.created_at)-new Date(a.ad.created_at):a.it.price==null?1:b.it.price==null?-1:sort==='low'?Number(a.it.price)-Number(b.it.price):Number(b.it.price_max??b.it.price)-Number(a.it.price_max??a.it.price));marketTable(marketEl('marketAdList'),entries);marketEl('marketCount').textContent=`Позиций: ${entries.length}`;const own=all.filter(e=>e.ad.author_id===uid);marketEl('marketOwnActive').textContent='Активные ('+own.filter(marketActive).length+')';marketEl('marketOwnClosed').textContent='Закрытые ('+own.filter(e=>!marketActive(e)).length+')';marketEl('marketOwnActive').classList.toggle('store-action-active',!marketMineClosed);marketEl('marketOwnClosed').classList.toggle('store-action-active',marketMineClosed);marketTable(marketEl('marketMineList'),own.filter(e=>marketActive(e)!==marketMineClosed).sort((a,b)=>new Date(b.ad.created_at)-new Date(a.ad.created_at)),true);marketRenderHistory();const selected=all.find(e=>(e.it.id||e.ad.id)===marketSelected);if(marketSelected){if(selected)marketDetail(selected);else marketCloseDetail();}marketBadge();}
 function marketBadge(){const uid=currentSession?.user?.id;if(!uid)return;const ids=new Set(marketEntries().filter(e=>e.ad.author_id===uid).map(e=>e.it.id));let seen=[];try{seen=JSON.parse(localStorage.getItem('marketSeen2822:'+uid)||'[]');}catch{}const keys=marketReactions.filter(r=>ids.has(r.position_id)).map(r=>r.position_id+':'+r.user_id+':'+r.created_at);if(marketPanel==='marketMinePanel'){try{localStorage.setItem('marketSeen2822:'+uid,JSON.stringify(keys));}catch{}seen=keys;}const n=keys.filter(k=>!seen.includes(k)).length;marketEl('marketMineBadge').textContent=n?String(n):'';}
 marketEl('marketOwnActive').onclick=()=>{marketMineClosed=false;marketRender();};marketEl('marketOwnClosed').onclick=()=>{marketMineClosed=true;marketRender();};marketEl('marketDetail').addEventListener('close',()=>{marketSelected=null;});marketEl('marketDetail').addEventListener('click',e=>{if(e.target===marketEl('marketDetail'))marketCloseDetail();});
-setInterval(()=>{if(document.getElementById('page-market')?.classList.contains('active-page')&&!marketBusy&&!marketEl('marketDetail').open&&marketPanel!=='marketCreatePanel'&&marketPanel!=='shopPanel')loadMarket();},30000);
+
 async function loadMarket(force=false){
   if(!supabaseClient||!currentSession?.user||!householdAllowed())return;
   const generation=accessSequence,uid=currentSession.user.id,token=++marketLoadToken;marketEl('marketNotice').textContent='Загружаем объявления…';
@@ -2747,7 +2747,7 @@ function prEdit(r){
 function prRequest(r){const f=prForm('Запросить: '+r.title),purpose=prField(f,'Цель (необязательно)','textarea','',1000),due=prField(f,'Предполагаемый возврат (необязательно)','datetime-local');const b=prButton(f,'Отправить заявку',()=>{},true);b.type='submit';f.onsubmit=e=>{e.preventDefault();prLoan(r.id,null,'request',purpose.value,due.value?new Date(due.value).toISOString():null)}}
 pr('propertyAdd').onclick=()=>prEdit();pr('propertyRefresh').onclick=propertyLoad;pr('propertySearch').oninput=propertyRender;pr('propertyFilter').onchange=propertyRender;
 async function prPoll(){if(propertyPolling||propertyBusy||document.hidden||!prUid()||!canVisit('property'))return;propertyPolling=true;const uid=prUid();try{const {count,error}=await supabaseClient.from('guild_cart_loans').select('id',{count:'exact',head:true}).in('status',['pending','returning']).or(accessState.mode==='admin'?'owner_id.is.null,owner_id.not.is.null':'owner_id.eq.'+uid);if(!error&&uid===prUid()){pr('propertyBadge').textContent=count;pr('propertyBadge').hidden=!count}}finally{propertyPolling=false}}
-setInterval(()=>{prPoll();if(pr('page-property').classList.contains('active-page')&&!pr('propertyDialog').open&&!propertyBusy)propertyLoad()},30000);
+
 
 // v2.8.7 — official shop price list
 let shopRows=[],shopLog=[],shopDraft=new Map(),shopBusy=false,shopSeq=0,shopUid=null;
@@ -2773,3 +2773,35 @@ shopEl('shopCancel').onclick=()=>{if(!shopBusy)shopEl('shopDialog').close();};sh
 shopEl('shopSearch').oninput=shopRender;shopEl('shopCraft').onchange=shopRender;shopEl('shopSort').onchange=shopRender;shopEl('shopHistory').onclick=()=>{const el=shopEl('shopHistoryList');el.hidden=!el.hidden;shopEl('shopList').hidden=!el.hidden;if(!el.hidden)shopShowHistory();};
 
 async function loadStorageTotals2913(){const {data,error}=await supabaseClient.rpc("storage_totals_v2913");if(error)throw error;return new Map(Object.entries(data||{}).map(([id,v])=>{const n=Number(v);if(!Number.isSafeInteger(n))throw new Error("Остаток вне безопасного диапазона");return [id,n];}));}
+
+// v2.9.1.4 — visibility-aware background refresh; explicit saves remain independent.
+(() => {
+  let timer=null, running=false, lastStart=0;
+  const interval=30000;
+  function stop(){if(timer!==null){clearTimeout(timer);timer=null;}}
+  function schedule(delay=interval){stop();if(!document.hidden&&navigator.onLine)timer=setTimeout(tick,delay);}
+  async function tick(){
+    stop();
+    if(document.hidden||!navigator.onLine||running)return;
+    running=true;lastStart=Date.now();
+    try{
+      if(!supabaseClient||!currentSession?.user)return;
+      const jobs=[];
+      if(householdAllowed()){
+        if(storehousePage.classList.contains('active-page'))jobs.push(storePollBadges());
+        if(document.getElementById('page-market')?.classList.contains('active-page')&&!marketBusy&&!marketEl('marketDetail').open&&marketPanel!=='marketCreatePanel'&&marketPanel!=='shopPanel')jobs.push(loadMarket());
+        if(canVisit('property')){
+          jobs.push(prPoll());
+          if(pr('page-property').classList.contains('active-page')&&!pr('propertyDialog').open&&!propertyBusy)jobs.push(propertyLoad());
+        }
+      }
+      if(canVisit('work')&&!workBusy&&workPage.classList.contains('active-page')&&!workEl('work283Detail').open&&!workPanel)jobs.push(loadWork());
+      await Promise.allSettled(jobs);
+    }finally{running=false;schedule();}
+  }
+  function resume(){if(document.hidden||!navigator.onLine){stop();return;}if(!running)schedule(Math.max(0,interval-(Date.now()-lastStart)));}
+  document.addEventListener('visibilitychange',resume);
+  window.addEventListener('online',resume);
+  window.addEventListener('offline',stop);
+  lastStart=Date.now();schedule();
+})();

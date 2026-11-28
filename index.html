@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="theme/map.css?v=2853">
 <link rel="stylesheet" href="theme/property.css?v=2861">
 <link rel="stylesheet" href="theme/shop.css?v=2871">
+<link rel="stylesheet" href="theme/notifications.css?v=293">
 </head>
 <body>
   <div class="site-shell">
@@ -70,7 +71,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.9.2.1</div>
+        <div class="sidebar-version">Резиденция · версия 2.9.3</div>
       </div>
     </aside>
 
@@ -79,6 +80,7 @@
         <button class="mobile-menu" id="mobileMenu" aria-label="Открыть меню">☰</button>
         <div class="breadcrumbs"><span>Братство</span><b>/</b><strong id="breadcrumbCurrent">Главная</strong></div>
         <div class="topbar-actions">
+<button id="notice293Bell" class="secondary-button" hidden aria-label="Уведомления">🔔 Уведомления <span id="notice293Count"></span></button>
           <span class="status-dot"></span><span class="status-text">Резиденция открыта</span>
           <button class="discord-button" id="discordLogin"><span class="discord-mark">◉</span> Войти через Discord</button>
         </div>
@@ -680,12 +682,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=2921"></script>
+  <script src="app.js?v=293"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{writeRoute('crafts','directory');area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
   c.addEventListener('click',()=>{writeRoute('crafts','calculator');area.hidden=true;calc.hidden=false;document.querySelector('#page-crafts .page-title-block').hidden=true;c.classList.add('craft-switch-active');d.classList.remove('craft-switch-active')});})();
   </script>
   <script src="crafting/lazy-loader.js?v=2913"></script>
+<dialog id="notice293Dialog" class="notice293"><h2>Уведомления братства</h2><div class="notice293Actions"><button id="notice293All" class="secondary-button">Все прочитаны</button><button id="notice293Close" class="secondary-button">Закрыть</button></div><p id="notice293Status" role="status"></p><div id="notice293List"></div><button id="notice293More" class="secondary-button" hidden>Показать ещё</button></dialog>
+<script src="notifications.js?v=293"></script>
 </body>
 </html>

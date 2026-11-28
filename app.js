@@ -2814,6 +2814,7 @@ async function revalidateAccess2921(){
       if(!supabaseClient||!currentSession?.user)return;
       if(!await revalidateAccess2921()||document.hidden||!navigator.onLine)return;
       const jobs=[];
+      if(window.notice293Refresh)jobs.push(window.notice293Refresh());
       if(householdAllowed()){
         if(storehousePage.classList.contains('active-page'))jobs.push(storePollBadges());
         if(document.getElementById('page-market')?.classList.contains('active-page')&&!marketBusy&&!marketEl('marketDetail').open&&marketPanel!=='marketCreatePanel'&&marketPanel!=='shopPanel')jobs.push(loadMarket());

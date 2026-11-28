@@ -625,8 +625,9 @@ function adminShowTab(tab){
  directory.hidden=!['members','applications'].includes(tab);extra.hidden=!directory.hidden;extra.replaceChildren();
  if(!directory.hidden){adminFilter.value=tab==='applications'?'pending':'all';renderAdminList();return;}
  const panel=element('div','panel admin-extra-panel');extra.append(panel);
+ if(tab==='audit'){adminAudit294(panel);return;}
  if(tab==='ranks'){
-  panel.append(element('h2','','Иерархия братства'),element('p','members-message','Игровые звания не предоставляют административных прав.'));
+  panel.append(element('h2','','Иерархия братства'),element('p','members-message','Административные права предоставляются от Гильдмастера и выше.'));
   for(const rank of adminRanks){const row=element('div','admin-rank-row');row.append(element('strong','',rank),element('span','',String(adminProfiles.filter(p=>p.membership_status==='approved'&&p.game_rank===rank).length)+' участников'));panel.append(row);}
   const b=element('button','secondary-button','Открыть иерархию и описания');b.type='button';b.onclick=()=>{navigate('ratusha');hallShow('council');};panel.append(b);
  }else{panel.append(element('h2','','Почётные награды'),element('p','members-message','Каталог, вручение и отзыв наград доступны в существующем Зале славы.'));const b=element('button','primary-button','Открыть Зал славы');b.type='button';b.onclick=()=>{navigate('ratusha');hallShow('awards');};panel.append(b);}
@@ -2834,3 +2835,17 @@ async function revalidateAccess2921(){
   window.addEventListener('offline',stop);
   lastStart=Date.now();schedule();
 })();
+
+function adminAudit294(panel){
+ const uid=currentSession?.user?.id;
+ const labels={profiles:'Участники',treasury_transactions:'Казна: операции',treasury_requests:'Казна: заявки',storage_transactions:'Кладовая: операции',storage_requests:'Кладовая: заявки',storage_craft_batches:'Ремесленные заявки',guild_property:'Имущество',guild_cart_loans:'Выдача повозок',guild_shop:'Лавка',guild_rank_descriptions:'Звания',guild_award_grants:'Награды',work_tasks:'Работа',guild_events:'Календарь',guild_documents:'Библиотека',guild_chronicle:'Летопись',guild_decrees:'Указы'};
+ const filter=element('select');filter.setAttribute('aria-label','Раздел');filter.append(new Option('Все разделы',''));for(const [k,v] of Object.entries(labels))filter.append(new Option(v,k));
+ const refresh=element('button','secondary-button','Обновить'),more=element('button','secondary-button','Показать ещё'),status=element('p','members-message'),list=element('div');let cursor=null,seq=0;
+ panel.append(element('h2','','Журнал административных действий'),element('p','members-message','Изменения после установки версии 2.9.4.'),filter,refresh,status,list,more);
+ async function load(reset){const token=++seq;if(reset){cursor=null;list.replaceChildren();}more.disabled=true;status.textContent='Загрузка…';try{
+ let q=supabaseClient.from('guild_admin_audit').select('id,created_at,actor_id,actor_name,source_table,operation,before_data,after_data').order('id',{ascending:false}).limit(31);if(filter.value)q=q.eq('source_table',filter.value);if(cursor!==null)q=q.lt('id',cursor);
+ const {data,error}=await q;if(error)throw error;if(token!==seq||!panel.isConnected||currentSession?.user?.id!==uid||adminTab!=='audit')return;
+ const rows=data||[];for(const r of rows.slice(0,30)){const card=element('details','panel');const title=element('summary','',new Date(r.created_at).toLocaleString('ru-RU')+' · '+(r.actor_name||r.actor_id||'SQL / система')+' · '+(labels[r.source_table]||r.source_table)+' · '+({INSERT:'Создание',UPDATE:'Изменение',DELETE:'Удаление'}[r.operation]||r.operation));card.append(title);const before=r.before_data||{},after=r.after_data||{};for(const k of new Set([...Object.keys(before),...Object.keys(after)])){if(r.operation==='UPDATE'&&JSON.stringify(before[k])===JSON.stringify(after[k]))continue;const line=element('p','',k+': '+(before[k]==null?'—':JSON.stringify(before[k]))+' → '+(after[k]==null?'—':JSON.stringify(after[k])));line.style.overflowWrap='anywhere';card.append(line);}list.append(card);cursor=r.id;}more.hidden=rows.length<=30;status.textContent=list.children.length?'':'Записей пока нет.';
+ }catch(e){if(token===seq&&panel.isConnected)status.textContent='Ошибка: '+e.message;}finally{if(token===seq)more.disabled=false;}}
+ filter.onchange=()=>load(true);refresh.onclick=()=>load(true);more.onclick=()=>load(false);load(true);
+}

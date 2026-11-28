@@ -71,7 +71,7 @@
       <div class="sidebar-bottom">
         <div class="motto">LABOR ET FIDES</div>
         <div class="motto-translation">Труд и вера</div>
-        <div class="sidebar-version">Резиденция · версия 2.9.3</div>
+        <div class="sidebar-version">Резиденция · версия 2.9.4</div>
       </div>
     </aside>
 
@@ -632,7 +632,7 @@
           <p id="adminNotice" class="members-message" role="status" aria-live="polite">Проверяем права доступа…</p>
           <div id="adminPanel" hidden>
             <div class="admin-seal-line"><span aria-hidden="true">♜</span><div><strong>Полномочия совета</strong><small>Административный доступ</small></div></div>
-            <div class="admin-tabs" aria-label="Разделы канцелярии"><button type="button" data-admin-tab="members" aria-pressed="true">Участники</button><button type="button" data-admin-tab="applications" aria-pressed="false" id="adminApplications">Заявки</button><button type="button" data-admin-tab="ranks" aria-pressed="false">Звания</button><button type="button" data-admin-tab="awards" aria-pressed="false">Награды</button></div>
+            <div class="admin-tabs" aria-label="Разделы канцелярии"><button type="button" data-admin-tab="members" aria-pressed="true">Участники</button><button type="button" data-admin-tab="applications" aria-pressed="false" id="adminApplications">Заявки</button><button type="button" data-admin-tab="ranks" aria-pressed="false">Звания</button><button type="button" data-admin-tab="awards" aria-pressed="false">Награды</button><button type="button" data-admin-tab="audit" aria-pressed="false">Журнал действий</button></div>
             <div id="adminDirectory">
             <div class="members-tools panel"><label for="adminFilter">Показать</label>
               <input id="adminSearch" type="search" placeholder="Поиск по имени или Discord" aria-label="Поиск участника"><select id="adminFilter"><option value="all">Всех зарегистрированных</option><option value="pending">Ожидающих решения</option><option value="approved">Принятых</option><option value="rejected">Отклонённых</option></select>
@@ -682,7 +682,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store-icons.js?v=2775"></script>
   <script src="store-products.js?v=2775"></script>
-  <script src="app.js?v=293"></script>
+  <script src="app.js?v=294"></script>
   <script>
   (()=>{const d=document.getElementById('craftShowDirectory'),c=document.getElementById('craftShowCalculator'),area=document.getElementById('craftDirectoryArea'),calc=document.getElementById('craftCalculator');if(!d||!c||!area||!calc)return;
   d.addEventListener('click',()=>{writeRoute('crafts','directory');area.hidden=false;calc.hidden=true;document.querySelector('#page-crafts .page-title-block').hidden=false;d.classList.add('craft-switch-active');c.classList.remove('craft-switch-active')});
